@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "swiftui-design-principles": {
+      "source": "arjitj2/swiftui-design-principles",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "83952cfa4d7219217ae5f266d629c51faa54df329b8e9119f7f80dccd7aace21"
+    },
+    "swiftui-pro": {
+      "source": "twostraws/swiftui-agent-skill",
+      "sourceType": "github",
+      "skillPath": "swiftui-pro/SKILL.md",
+      "computedHash": "07033426e384295a4b49cf0b2ffdefd4098cae4af53fef16bc1f2d9281118c41"
+    }
+  }
+}
