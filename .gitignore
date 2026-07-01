@@ -1,0 +1,6 @@
+# Xcode per-user files
+*.xcuserstate
+xcuserdata/
+
+# Local code signing
+Config/Signing.local.xcconfig

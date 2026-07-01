@@ -1,0 +1,7 @@
+// Shared signing settings.
+// Generate local overrides with: ./scripts/setup-signing.sh
+
+LOOKALS_DEVELOPMENT_TEAM =
+LOOKALS_BUNDLE_IDENTIFIER = appledev.Lookals
+
+#include? "Signing.local.xcconfig"

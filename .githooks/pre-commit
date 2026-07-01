@@ -1,0 +1,16 @@
+#!/bin/sh
+set -eu
+
+project_file="Lookals.xcodeproj/project.pbxproj"
+
+if git diff --cached --quiet -- "$project_file"; then
+  exit 0
+fi
+
+if git show ":$project_file" | grep -Eq 'DEVELOPMENT_TEAM = [A-Z0-9]{10};'; then
+  cat >&2 <<'MSG'
+Do not commit a personal DEVELOPMENT_TEAM to Lookals.xcodeproj/project.pbxproj.
+Run ./scripts/setup-signing.sh and keep team IDs in Config/Signing.local.xcconfig.
+MSG
+  exit 1
+fi
