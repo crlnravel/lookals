@@ -9,6 +9,7 @@ PROJECT_FILE="$ROOT_DIR/Lookals.xcodeproj/project.pbxproj"
 
 TEAM_ID="${LOOKALS_DEVELOPMENT_TEAM:-}"
 BUNDLE_ID="${LOOKALS_BUNDLE_IDENTIFIER:-}"
+SOURCE_PROJECT=""
 INSTALL_HOOKS=1
 NON_INTERACTIVE=0
 
@@ -17,8 +18,10 @@ usage() {
 Usage:
   ./scripts/setup-signing.sh [TEAM_ID] [BUNDLE_ID]
   ./scripts/setup-signing.sh --team TEAM_ID --bundle-id BUNDLE_ID
+  ./scripts/setup-signing.sh --from-project /path/to/WorkingApp.xcodeproj
 
 Options:
+  --from-project PATH     Read signing values from an existing working .xcodeproj.
   --team TEAM_ID          Apple Developer Team ID, for example ABCDE12345.
   --bundle-id BUNDLE_ID   Bundle identifier to use locally.
   --no-hooks              Do not configure this repo to use .githooks.
@@ -32,6 +35,15 @@ USAGE
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
+    --from-project)
+      if [ "$#" -lt 2 ]; then
+        echo "--from-project requires a value." >&2
+        usage >&2
+        exit 2
+      fi
+      SOURCE_PROJECT="${2:-}"
+      shift 2
+      ;;
     --team)
       if [ "$#" -lt 2 ]; then
         echo "--team requires a value." >&2
@@ -82,6 +94,89 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
+project_pbxproj_path() {
+  local path="$1"
+
+  case "$path" in
+    *.pbxproj)
+      printf '%s\n' "$path"
+      ;;
+    *.xcodeproj)
+      printf '%s\n' "$path/project.pbxproj"
+      ;;
+    *)
+      if [ -f "$path/project.pbxproj" ]; then
+        printf '%s\n' "$path/project.pbxproj"
+      else
+        printf '%s\n' "$path"
+      fi
+      ;;
+  esac
+}
+
+read_project_setting() {
+  local file="$1"
+  local key="$2"
+
+  [ -f "$file" ] || return 0
+  awk -v key="$key" '
+    {
+      line = $0
+      assignment = index(line, " = ")
+      if (assignment == 0) {
+        next
+      }
+      setting = substr(line, 1, assignment - 1)
+      value = substr(line, assignment + 3)
+      if (setting ~ "^[ \t\"]*" key "([[][^]]+[]])?[ \t\"]*$") {
+        gsub(/[\"; \t\r]/, "", value)
+        if (value != "" && value !~ /\$\(/) {
+          print value
+          exit
+        }
+      }
+    }
+  ' "$file"
+}
+
+read_exact_project_setting() {
+  local file="$1"
+  local key="$2"
+
+  [ -f "$file" ] || return 0
+  awk -v key="$key" '
+    {
+      line = $0
+      assignment = index(line, " = ")
+      if (assignment == 0) {
+        next
+      }
+      setting = substr(line, 1, assignment - 1)
+      value = substr(line, assignment + 3)
+      if (setting ~ "^[ \t\"]*" key "[ \t\"]*$") {
+        gsub(/[\"; \t\r]/, "", value)
+        if (value != "" && value !~ /\$\(/) {
+          print value
+          exit
+        }
+      }
+    }
+  ' "$file"
+}
+
+read_project_bundle_id() {
+  local file="$1"
+  local value
+
+  value="$(read_exact_project_setting "$file" PRODUCT_BUNDLE_IDENTIFIER)"
+  if [ -n "$value" ]; then
+    printf '%s\n' "$value"
+    return
+  fi
+
+  read_project_setting "$file" PRODUCT_BUNDLE_IDENTIFIER
+}
+
 read_config_value() {
   local file="$1"
   local key="$2"
@@ -90,16 +185,17 @@ read_config_value() {
   awk -F= -v key="$key" '
     $1 ~ "^[ \t]*" key "[ \t]*$" {
       value = $2
-      sub(/^[ \t]+/, "", value)
-      sub(/[ \t\r]+$/, "", value)
-      print value
+      gsub(/[\"; \t\r]/, "", value)
+      if (value != "" && value !~ /\$\(/) {
+        print value
+      }
     }
   ' "$file" | tail -n 1
 }
 
 detect_project_team() {
   [ -f "$PROJECT_FILE" ] || return 0
-  sed -nE 's/^[[:space:]]*DEVELOPMENT_TEAM = "?([A-Z0-9]{10})"?;$/\1/p' "$PROJECT_FILE" | head -n 1
+  read_project_setting "$PROJECT_FILE" DEVELOPMENT_TEAM
 }
 
 detect_certificate_team() {
@@ -142,6 +238,22 @@ prompt_value() {
     printf '%s\n' "$current"
   fi
 }
+
+if [ -n "$SOURCE_PROJECT" ]; then
+  SOURCE_PROJECT_FILE="$(project_pbxproj_path "$SOURCE_PROJECT")"
+  if [ ! -f "$SOURCE_PROJECT_FILE" ]; then
+    echo "Could not find project file: $SOURCE_PROJECT_FILE" >&2
+    exit 1
+  fi
+
+  if [ -z "$TEAM_ID" ]; then
+    TEAM_ID="$(read_project_setting "$SOURCE_PROJECT_FILE" DEVELOPMENT_TEAM)"
+  fi
+
+  if [ -z "$BUNDLE_ID" ]; then
+    BUNDLE_ID="$(read_project_bundle_id "$SOURCE_PROJECT_FILE")"
+  fi
+fi
 
 if [ -z "$TEAM_ID" ]; then
   TEAM_ID="$(read_config_value "$LOCAL_CONFIG" LOOKALS_DEVELOPMENT_TEAM)"

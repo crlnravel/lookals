@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		F7B823002FF3E3F8001FE59B /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 		F7B822ED2FF3E3F7001FE59B /* Lookals.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lookals.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F7B823002FF3E3F8001FE59B /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -39,20 +39,20 @@
 			);
 			sourceTree = "<group>";
 		};
-		F7B823012FF3E3F8001FE59B /* Config */ = {
-			isa = PBXGroup;
-			children = (
-				F7B823002FF3E3F8001FE59B /* Signing.xcconfig */,
-			);
-			path = Config;
-			sourceTree = "<group>";
-		};
 		F7B822EE2FF3E3F7001FE59B /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				F7B822ED2FF3E3F7001FE59B /* Lookals.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		F7B823012FF3E3F8001FE59B /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				F7B823002FF3E3F8001FE59B /* Signing.xcconfig */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -269,11 +269,14 @@
 				DEVELOPMENT_TEAM = "$(LOOKALS_DEVELOPMENT_TEAM)";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Lookals uses the camera to scan quest proof QR codes.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Lookals uses your location to confirm meeting-point and checkpoint arrivals during guided tours.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -302,11 +305,14 @@
 				DEVELOPMENT_TEAM = "$(LOOKALS_DEVELOPMENT_TEAM)";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Lookals uses the camera to scan quest proof QR codes.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Lookals uses your location to confirm meeting-point and checkpoint arrivals during guided tours.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

@@ -5,13 +5,24 @@
 Each developer should keep their Apple Developer Team ID outside the committed
 Xcode project.
 
-After cloning, run:
+After cloning, the easiest setup is to point the script at an existing Xcode
+project that already builds on your machine:
+
+```sh
+./scripts/setup-signing.sh --from-project /path/to/WorkingLookals.xcodeproj
+```
+
+The script reads that project's concrete `DEVELOPMENT_TEAM` and
+`PRODUCT_BUNDLE_IDENTIFIER` values, then writes them into this checkout's
+ignored local signing config.
+
+You can also run the script interactively:
 
 ```sh
 ./scripts/setup-signing.sh
 ```
 
-You can also pass values explicitly:
+Or pass values explicitly:
 
 ```sh
 ./scripts/setup-signing.sh ABCDE12345 appledev.yourname.Lookals
@@ -23,6 +34,27 @@ The Apple Developer Team ID is the 10-character ID for the Apple account or team
 that Xcode uses for signing. You can find it in Xcode under **Settings >
 Accounts**, then select your Apple ID and team. It is also shown in the Apple
 Developer account membership details.
+
+If Xcode does not show the raw ID in the Accounts screen, the selected team is
+still written into the build setting named `DEVELOPMENT_TEAM`. In this project,
+that value is read through `LOOKALS_DEVELOPMENT_TEAM` from
+`Config/Signing.local.xcconfig`.
+
+The setup script can copy the value from an existing working Xcode project, which
+is usually simpler than finding it manually:
+
+```sh
+./scripts/setup-signing.sh --from-project /path/to/WorkingApp.xcodeproj
+```
+
+To check what Xcode is resolving locally, run:
+
+```sh
+xcodebuild -project Lookals.xcodeproj -scheme Lookals -configuration Debug -showBuildSettings | grep DEVELOPMENT_TEAM
+```
+
+The code-signing certificate list in Keychain can be useful, but treat Xcode's
+selected signing team as the source of truth for this project.
 
 The local bundle identifier should be unique to the developer's Apple account,
 especially when using a personal team. A good format is:
