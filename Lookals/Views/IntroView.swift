@@ -25,7 +25,7 @@ struct IntroView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
+            VStack(spacing: 20) {
                 TabView(selection: $selectedPage) {
                     ForEach(pages.indices, id: \.self) { index in
                         IntroPageView(page: pages[index])
@@ -36,12 +36,9 @@ struct IntroView: View {
                 .animation(reduceMotion ? nil : .snappy(duration: 0.3), value: selectedPage)
 
                 pageIndicator
-                    .padding(.top, 8)
-                    .padding(.bottom, 48)
+                    .frame(height: 44)
 
                 continueButton
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 48)
             }
             .background(Color(.systemBackground))
             .navigationTitle("How to use Lookals")
@@ -73,15 +70,13 @@ struct IntroView: View {
     }
 
     private var continueButton: some View {
-        Button(action: continueTapped) {
-            Text("Continue")
-                .font(.title3.weight(.heavy))
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 72)
-        }
-        .background(Color.accentColor, in: Capsule())
-        .accessibilityLabel(selectedPage == pages.count - 1 ? "Finish intro" : "Continue")
+        LookalsPrimaryButton(
+            "Continue",
+            accessibilityLabel: selectedPage == pages.count - 1 ? "Finish intro" : "Continue",
+            font: .default.weight(.heavy),
+            action: continueTapped
+        )
+        .padding([.horizontal], 16)
     }
 
     private func continueTapped() {

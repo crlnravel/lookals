@@ -36,16 +36,13 @@ struct LoginView: View {
             VStack(spacing: 16) {
                 Spacer()
 
-                Button(action: getStarted) {
-                    Text("Get Started")
-                        .font(.default.weight(.heavy))
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                }
-                .padding()
-                .background(Color.accentColor.opacity(0.9))
-                .clipShape(Capsule())
-                .glassEffect()
+                LookalsPrimaryButton(
+                    "Get Started",
+                    font: .default.weight(.heavy),
+                    fillOpacity: 0.9,
+                    appliesGlassEffect: true,
+                    action: getStarted
+                )
 
                 HStack(spacing: 8) {
                     Text("Already have an account?")
