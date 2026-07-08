@@ -13,7 +13,7 @@ struct MockFaceVerificationService: FaceVerificationServicing {
 
     init(
         updates: [FaceVerificationUpdate] = MockFaceVerificationService.defaultUpdates,
-        delay: Duration = .milliseconds(700)
+        delay: Duration = .milliseconds(1000)
     ) {
         self.updates = updates
         self.delay = delay
