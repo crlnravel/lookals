@@ -36,7 +36,7 @@ struct LoginView: View {
             VStack(spacing: 16) {
                 Spacer()
 
-                LookalsPrimaryButton(
+                PrimaryButton(
                     "Get Started",
                     font: .default.weight(.heavy),
                     fillOpacity: 0.9,
