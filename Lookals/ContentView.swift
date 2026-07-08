@@ -8,8 +8,21 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var isShowingHome = false
+
     var body: some View {
-        HomeView()
+        if isShowingHome {
+            HomeView()
+        } else {
+            LoginView(
+                onGetStarted: showHome,
+                onSignIn: showHome
+            )
+        }
+    }
+
+    private func showHome() {
+        isShowingHome = true
     }
 }
 
