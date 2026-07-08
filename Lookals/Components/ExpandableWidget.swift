@@ -118,7 +118,8 @@ struct ExpandableWidget<CollapsedContent: View, ExpandedContent: View>: View {
     }
 
     private var dismissLayer: some View {
-        Color.clear
+        Color.black.opacity(0.28)
+            .ignoresSafeArea()
             .contentShape(Rectangle())
             .onTapGesture(perform: collapse)
             .accessibilityHidden(true)
@@ -161,16 +162,11 @@ struct ExpandableWidget<CollapsedContent: View, ExpandedContent: View>: View {
 
 #Preview("Expandable Widget") {
     struct PreviewHost: View {
-        @State private var isExpanded = false
+        @State private var isExpanded = true
 
         var body: some View {
             ZStack {
-                LinearGradient(
-                    colors: [Color(.systemGray5), Color(.systemGray3)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+                PreviewBackdropContent()
 
                 ExpandableWidget(isExpanded: $isExpanded) {
                     QuestCollapsedContent(
@@ -189,6 +185,46 @@ struct ExpandableWidget<CollapsedContent: View, ExpandedContent: View>: View {
                         onSubmit: {}
                     )
                 }
+            }
+        }
+    }
+
+    struct PreviewBackdropContent: View {
+        var body: some View {
+            ZStack {
+                LinearGradient(
+                    colors: [Color(.systemMint), Color(.systemBlue), Color(.systemOrange)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
+
+                VStack(spacing: 24) {
+                    Text("Map Content Behind Widget")
+                        .font(.title2.weight(.heavy))
+                        .foregroundStyle(.white)
+
+                    ForEach(0..<4, id: \.self) { index in
+                        HStack(spacing: 16) {
+                            Image(systemName: index.isMultiple(of: 2) ? "mappin.circle.fill" : "person.crop.circle.fill")
+                                .font(.largeTitle)
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(index.isMultiple(of: 2) ? "Quest Stop" : "Nearby Friend")
+                                    .font(.headline.weight(.bold))
+
+                                Text("This background should darken when expanded.")
+                                    .font(.subheadline)
+                            }
+
+                            Spacer()
+                        }
+                        .foregroundStyle(.white)
+                        .padding(16)
+                        .background(.white.opacity(0.18), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    }
+                }
+                .padding(.horizontal, 32)
             }
         }
     }
