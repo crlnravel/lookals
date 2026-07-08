@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftData
 
 struct AppDependencies: Sendable {
     let lookalMatchRepository: any LookalMatchRepository
@@ -22,7 +23,9 @@ extension AppDependencies {
 
     static func mock(matches: [LookalMatch] = LookalMatch.sampleMatches) -> AppDependencies {
         let service = MockLookalMatchingService(matches: matches)
-        let store = InMemoryLookalMatchStore(cachedMatches: matches)
+        let store = SwiftDataLookalMatchStore(
+            modelContainer: makeModelContainer(isStoredInMemoryOnly: true)
+        )
         let repository = DefaultLookalMatchRepository(service: service, store: store)
         return AppDependencies(lookalMatchRepository: repository)
     }
@@ -30,8 +33,22 @@ extension AppDependencies {
     static func live(baseURL: URL) -> AppDependencies {
         let apiClient = URLSessionAPIClient(baseURL: baseURL)
         let service = RemoteLookalMatchingService(apiClient: apiClient)
-        let store = InMemoryLookalMatchStore()
+        let store = SwiftDataLookalMatchStore(
+            modelContainer: makeModelContainer(isStoredInMemoryOnly: false)
+        )
         let repository = DefaultLookalMatchRepository(service: service, store: store)
         return AppDependencies(lookalMatchRepository: repository)
+    }
+
+    private static func makeModelContainer(isStoredInMemoryOnly: Bool) -> ModelContainer {
+        do {
+            let configuration = ModelConfiguration(isStoredInMemoryOnly: isStoredInMemoryOnly)
+            return try ModelContainer(
+                for: LookalMatchRecord.self,
+                configurations: configuration
+            )
+        } catch {
+            fatalError("Unable to create SwiftData container: \(error.localizedDescription)")
+        }
     }
 }
