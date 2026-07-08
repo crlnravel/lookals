@@ -1,128 +1,92 @@
 # Lookals Guide
 
-This guide summarizes the current project structure and the responsibility of each folder in the Lookals app.
+This guide explains the purpose of each main folder in the Lookals project. Many files are currently scaffolding or placeholders, so this focuses on folder responsibilities rather than documenting every file.
 
-## App Overview
+## App Structure
 
-Lookals is a SwiftUI app that shows a login screen, then displays lookalike match results. Match data flows through a layered architecture:
+Lookals is organized as a small SwiftUI app with separate folders for app setup, UI, view state, data models, networking, persistence, services, and repository coordination.
 
-1. `ContentView` shows `LoginView` first.
-2. Tapping `Get Started` or `Sign In` switches to `HomeView`.
-3. `HomeView` owns a `HomeViewModel`.
-4. `HomeViewModel` asks a `LookalMatchRepository` for matches.
-5. `DefaultLookalMatchRepository` reads cached matches from SwiftData, or refreshes from a matching service.
-6. Matching services return local mock data or remote API results.
-7. SwiftData persists matches through `LookalMatchRecord`.
+The current app flow is simple:
 
-The app currently starts with `AppDependencies.preview`, so it uses mock match data and an in-memory SwiftData store by default.
+1. The app launches into a login-style screen.
+2. Login actions route into the home screen.
+3. The home screen displays lookalike match data.
+4. Match data currently comes from mock/sample dependencies by default.
 
-## Config
+## `Config`
 
-`Config/Signing.xcconfig` stores shared signing configuration.
+Contains project configuration that should not live directly in Swift source files.
 
-- `LOOKALS_DEVELOPMENT_TEAM` is intentionally blank for local configuration.
-- `LOOKALS_BUNDLE_IDENTIFIER` is set to `appledev.Lookals`.
-- `Signing.local.xcconfig` can be included as a local override without changing shared settings.
+Currently this folder is used for signing-related build settings, including the bundle identifier and optional local signing overrides.
 
-## Dependencies
+## `Lookals`
 
-`Lookals/Dependencies` contains dependency composition for the app.
+Contains the application source code and assets.
 
-- `AppDependencies` is the app-level dependency container.
-- It currently exposes `lookalMatchRepository`.
-- `preview` and `mock(matches:)` build a mock service plus an in-memory SwiftData store.
-- `live(baseURL:)` builds a `URLSessionAPIClient`, remote matching service, persistent SwiftData store, and repository.
-- `makeModelContainer(isStoredInMemoryOnly:)` creates the SwiftData `ModelContainer` for `LookalMatchRecord`.
+This is the main app module. It includes the SwiftUI entry point, root view, screens, state objects, data models, and supporting infrastructure.
 
-## Models
+## `Lookals/Dependencies`
 
-`Lookals/Models` contains app domain models.
+Defines how app dependencies are assembled.
 
-- `LookalMatch` represents one match result.
-- Fields: `id`, `name`, `resemblanceScore`, and `category`.
-- It conforms to `Codable`, `Identifiable`, `Equatable`, and `Sendable`.
-- `sampleMatches` provides preview and mock data.
+This folder is responsible for choosing which concrete implementations the app uses, such as mock dependencies for previews/development or live dependencies for real API and persistent storage usage.
 
-## Networking
+## `Lookals/Models`
 
-`Lookals/Networking` contains generic API transport primitives.
+Contains domain data types used across the app.
 
-- `APIClient` defines a generic async `send(_:)` function for typed API endpoints.
-- `APIEndpoint<Response>` describes a request path, HTTP method, query items, headers, and optional body.
-- `HTTPMethod` defines supported methods: `GET`, `POST`, `PUT`, and `DELETE`.
-- `APIError` defines common network errors: invalid URL, invalid response, server status failure, and decoding failure.
-- `URLSessionAPIClient` builds `URLRequest` values from endpoints, performs requests with `URLSession`, validates `2xx` responses, and decodes JSON.
-- `MockAPIClient` returns configured `[LookalMatch]` data for tests or previews that need an `APIClient` implementation.
+These models represent the core data the app works with, independent of the UI, network layer, or persistence layer.
 
-## Persistence
+## `Lookals/Networking`
 
-`Lookals/Persistence` contains SwiftData storage for match results.
+Contains generic API request infrastructure.
 
-- `LookalMatchStoring` defines async storage operations: fetch, save, and remove all matches.
-- `LookalMatchRecord` is the SwiftData `@Model` persistence representation of `LookalMatch`.
-- `LookalMatchRecord` can be initialized from a domain `LookalMatch` and converted back through `lookalMatch`.
-- `SwiftDataLookalMatchStore` is a `@ModelActor` that implements `LookalMatchStoring`.
-- Fetching sorts matches by `resemblanceScore` descending.
-- Saving replaces all existing records with the new match list.
+This folder is intended for HTTP client abstractions, endpoint descriptions, request methods, and network error handling. It should stay focused on transport-level concerns, not app-specific business logic.
 
-## Repositories
+## `Lookals/Persistence`
 
-`Lookals/Repositories` coordinates between services and persistence.
+Contains local storage infrastructure.
 
-- `LookalMatchRepository` defines `fetchMatches(refresh:)`.
-- `DefaultLookalMatchRepository` first reads cached matches from `LookalMatchStoring`.
-- If `refresh` is false and cached matches exist, cached data is returned.
-- If refresh is requested or the cache is empty, it fetches from `LookalMatchingServicing`, saves the result, and returns fresh matches.
+This folder is responsible for saving, loading, and deleting app data on device. In this project, it is set up around SwiftData so match results can be cached locally.
 
-## Services
+## `Lookals/Repositories`
 
-`Lookals/Services` contains match-fetching use cases.
+Coordinates data access for the rest of the app.
 
-- `LookalMatchingServicing` defines `fetchMatches()`.
-- `MockLookalMatchingService` returns configured local matches, defaulting to `LookalMatch.sampleMatches`.
-- `RemoteLookalMatchingService` uses an `APIClient` to request `APIEndpoint<[LookalMatch]>(path: "matches")`.
+Repositories sit between view models and lower-level services/storage. They decide whether data should come from cache, local storage, or a service refresh, keeping that decision out of the UI.
 
-## ViewModels
+## `Lookals/Services`
 
-`Lookals/ViewModels` contains UI state and presentation logic.
+Contains app-specific data-fetching behavior.
 
-- `HomeViewModel` is `@MainActor` and `@Observable`.
-- It stores `matches` and a `LoadingState` of `idle`, `loading`, `loaded`, or `failed(String)`.
-- `topMatch` derives the match with the highest `resemblanceScore`.
-- `loadMatches(refresh:)` prevents duplicate loading, asks the repository for data, and updates state for success or failure.
+Services represent use-case-level operations, such as fetching lookalike matches. They can be backed by mock data during development or by networking in a live app.
 
-## Views
+## `Lookals/ViewModels`
 
-`Lookals/Views` contains reusable SwiftUI screens and visual components.
+Contains UI state and presentation logic.
 
-- `LoginView` is the initial screen. It displays a full-screen rotating image background, a `Get Started` button, and a `Sign In` action.
-- `LoginView` respects `accessibilityReduceMotion` when rotating images.
-- `LoginBackgroundView` renders the background image stack and dark gradient overlay.
-- `HomeView` displays matches in a `NavigationStack` and `List`.
-- `HomeView` shows a top-match section, a full matches section, a loading overlay, and pull-to-refresh.
+View models prepare data for SwiftUI views, track loading/error states, and call repositories. This keeps screens focused on layout and user interaction instead of data coordination.
 
-## Root App Files
+## `Lookals/Views`
 
-`Lookals/ContentView.swift` and `Lookals/LookalsApp.swift` define app entry and top-level navigation.
+Contains SwiftUI screens and reusable visual components.
 
-- `LookalsApp` is the `@main` entry point.
-- It currently creates `AppDependencies.preview` and injects it into `ContentView`.
-- `ContentView` toggles between `LoginView` and `HomeView` using `isShowingHome`.
-- Both login actions currently call the same `showHome()` method.
+This folder owns the visible UI, including the login screen, background visuals, and home screen. Views should remain mostly declarative and delegate data loading or state decisions to view models.
 
-## Assets
+## `Lookals/Assets.xcassets`
 
-`Lookals/Assets.xcassets` stores visual assets used by the app.
+Contains app visual assets.
 
-- `LoginView` expects assets named `Login Image 1` and `Login Image 2`.
-- Standard asset catalog contents such as app icons, colors, and images live here.
+This includes image assets, colors, icons, and other resources used by SwiftUI views.
 
-## Products
+## `Products`
 
-`Products/Lookals.app` is the built app product shown by Xcode. It is generated by the build system and is not source code.
+Contains build products shown by Xcode.
 
-## Current Data Modes
+This is generated output, such as the built `.app`, and is not source code that should normally be edited directly.
 
-- Preview/mock mode: `AppDependencies.preview` or `AppDependencies.mock(matches:)` uses `MockLookalMatchingService` and in-memory SwiftData.
-- Live mode: `AppDependencies.live(baseURL:)` uses `URLSessionAPIClient`, `RemoteLookalMatchingService`, and persistent SwiftData.
-- The running app currently uses preview/mock mode because `LookalsApp` initializes `AppDependencies.preview`.
+## Current Implementation Notes
+
+- The project currently uses mock/sample data by default.
+- Several layers are already separated even where the implementation is still minimal.
+- The folder structure is prepared for growth into a live app with networking, caching, and SwiftUI presentation kept separate.
