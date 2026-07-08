@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var isShowingHome = false
+    @State private var screen: AppScreen = .login
 
     private let dependencies: AppDependencies
 
@@ -17,19 +17,32 @@ struct ContentView: View {
     }
 
     var body: some View {
-        if isShowingHome {
-            HomeView(dependencies: dependencies)
-        } else {
+        switch screen {
+        case .login:
             LoginView(
-                onGetStarted: showHome,
+                onGetStarted: showIntro,
                 onSignIn: showHome
             )
+        case .intro:
+            IntroView(onFinish: showHome)
+        case .home:
+            HomeView(dependencies: dependencies)
         }
     }
 
-    private func showHome() {
-        isShowingHome = true
+    private func showIntro() {
+        screen = .intro
     }
+
+    private func showHome() {
+        screen = .home
+    }
+}
+
+private enum AppScreen {
+    case login
+    case intro
+    case home
 }
 
 #Preview {

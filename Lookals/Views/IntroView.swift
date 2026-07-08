@@ -2,7 +2,7 @@
 //  IntroView.swift
 //  Lookals
 //
-//  Created by Codex on 08/07/26.
+//  Created by Carleano Ravelza Wongso on 08/07/26.
 //
 
 import SwiftUI
@@ -11,7 +11,6 @@ struct IntroView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var selectedPage = 0
 
-    let onBack: () -> Void
     let onFinish: () -> Void
 
     private let pages = [
@@ -20,62 +19,44 @@ struct IntroView: View {
         IntroPage(imageName: "Intro Phone 3", accessibilityLabel: "Finish the quest and continue.")
     ]
 
-    init(
-        onBack: @escaping () -> Void = {},
-        onFinish: @escaping () -> Void = {}
-    ) {
-        self.onBack = onBack
+    init(onFinish: @escaping () -> Void = {}) {
         self.onFinish = onFinish
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
+        NavigationStack {
+            VStack(spacing: 0) {
+                TabView(selection: $selectedPage) {
+                    ForEach(pages.indices, id: \.self) { index in
+                        IntroPageView(page: pages[index])
+                            .tag(index)
+                    }
+                }
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                .animation(reduceMotion ? nil : .snappy(duration: 0.3), value: selectedPage)
 
-            TabView(selection: $selectedPage) {
-                ForEach(pages.indices, id: \.self) { index in
-                    IntroPageView(page: pages[index])
-                        .tag(index)
+                pageIndicator
+                    .padding(.top, 8)
+                    .padding(.bottom, 48)
+
+                continueButton
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 48)
+            }
+            .background(Color(.systemBackground))
+            .navigationTitle("How to use Lookals")
+            .toolbarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: backTapped) {
+                        Label("", systemImage: "chevron.left")
+                    }
+                    .accessibilityLabel("Next intro image")
+                    .padding()
+                    .glassEffect()
                 }
             }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            .animation(reduceMotion ? nil : .snappy(duration: 0.3), value: selectedPage)
-
-            pageIndicator
-                .padding(.top, 8)
-                .padding(.bottom, 48)
-
-            continueButton
-                .padding(.horizontal, 16)
-                .padding(.bottom, 48)
         }
-        .background(Color(.systemBackground))
-    }
-
-    private var header: some View {
-        ZStack {
-            Text("How to use Lookals")
-                .font(.title3.weight(.heavy))
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-
-            HStack {
-                Button(action: onBack) {
-                    Image(systemName: "chevron.left")
-                        .font(.title2.weight(.semibold))
-                        .foregroundStyle(.primary)
-                        .frame(width: 56, height: 56)
-                        .background(.ultraThinMaterial, in: Circle())
-                }
-                .accessibilityLabel("Back")
-
-                Spacer()
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 56)
-        .padding(.bottom, 24)
     }
 
     private var pageIndicator: some View {
@@ -106,7 +87,15 @@ struct IntroView: View {
     private func continueTapped() {
         if selectedPage == pages.count - 1 {
             onFinish()
-        } else if reduceMotion {
+        } else {
+            swipeImageLeft()
+        }
+    }
+
+    private func swipeImageLeft() {
+        guard selectedPage < pages.count - 1 else { return }
+
+        if reduceMotion {
             selectedPage += 1
         } else {
             withAnimation(.snappy(duration: 0.3)) {
@@ -114,6 +103,23 @@ struct IntroView: View {
             }
         }
     }
+    
+    private func backTapped() {
+        swipeImageRight()
+    }
+    
+    private func swipeImageRight() {
+        guard selectedPage >= 0 else { return }
+
+        if reduceMotion {
+            selectedPage -= 1
+        } else {
+            withAnimation(.snappy(duration: 0.3)) {
+                selectedPage -= 1
+            }
+        }
+    }
+
 }
 
 private struct IntroPage: Identifiable {
