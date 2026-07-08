@@ -21,11 +21,9 @@ struct QuizQuestContent: View {
             QuestExpandedHeader(questNumber: questNumber, title: title, reward: reward)
 
             Text(question)
-                .font(.headline.weight(.bold))
+                .font(.subheadline.weight(.bold))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.primary)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 16)
 
             VStack(spacing: 12) {
                 ForEach(options, id: \.self) { option in
@@ -41,8 +39,6 @@ struct QuizQuestContent: View {
             PrimaryButton(
                 "Submit",
                 font: .headline.weight(.heavy),
-                height: 24,
-                verticalPadding: 16,
                 isActive: selectedOption != nil,
                 action: onSubmit
             )
@@ -63,7 +59,7 @@ struct QuestExpandedHeader: View {
         ZStack(alignment: .topTrailing) {
             VStack(spacing: 4) {
                 Text("QUEST \(questNumber)")
-                    .font(.headline.weight(.heavy))
+                    .font(.subheadline.weight(.bold))
                     .foregroundStyle(.primary)
 
                 Text(title)
@@ -89,10 +85,8 @@ private struct QuizOptionRow: View {
         Button(action: action) {
             HStack(spacing: 12) {
                 Text(title)
-                    .font(.subheadline)
+                    .font(.caption)
                     .foregroundStyle(.primary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
 
                 Spacer(minLength: 12)
 
@@ -103,7 +97,7 @@ private struct QuizOptionRow: View {
                             .fill(isSelected ? Color.accentColor : .clear)
                             .padding(4)
                     }
-                    .frame(width: 20, height: 20)
+                    .frame(width: 16, height: 16)
                     .accessibilityHidden(true)
             }
             .padding(.horizontal, 16)

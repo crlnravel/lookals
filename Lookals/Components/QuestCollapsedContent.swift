@@ -27,10 +27,9 @@ struct QuestCollapsedContent: View {
             Color.clear
                 .frame(width: 48, height: 48)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading) {
                 Text("QUEST \(questNumber)")
-                    .font(.headline.weight(.heavy))
-                    .foregroundStyle(.primary)
+                    .font(.subheadline.weight(.bold))
 
                 Text(title)
                     .font(.title3.weight(.heavy))
