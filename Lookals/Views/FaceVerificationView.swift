@@ -44,38 +44,41 @@ struct FaceVerificationView: View {
     }
 
     var body: some View {
-        GeometryReader { proxy in
-            let previewWidth = min(proxy.size.width - 64, 340)
-            let previewHeight = min(previewWidth / 0.84, proxy.size.height * 0.46)
+        NavigationStack {
+            GeometryReader { proxy in
+                let previewWidth = min(proxy.size.width - 32, 340)
+                let previewHeight = min(previewWidth / 0.84, proxy.size.height * 0.80)
 
-            VStack(spacing: 0) {
-                header
-                    .padding(.horizontal, 32)
-                    .padding(.top, 8)
+                VStack(spacing: 20) {
+                    cameraPreview
+                        .frame(width: previewWidth, height: previewHeight)
+                        .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
 
-                cameraPreview
-                    .frame(width: previewWidth, height: previewHeight)
-                    .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
-                    .padding(.top, 8)
+                    instructionText
 
-                instructionText
-                    .padding(.top, 20)
+                    Spacer(minLength: 24)
 
-                Spacer(minLength: 32)
+                    VerificationProgressBar(progress: clampedProgress, percentage: progressPercentage)
+                        .frame(height: 28)
+                        .padding(.horizontal, 16)
 
-                VerificationProgressBar(progress: clampedProgress, percentage: progressPercentage)
-                    .frame(height: 28)
-                    .padding(.horizontal, 32)
-
-                Spacer()
-                    .frame(height: 72)
-
-                doneButton
-                    .padding(.horizontal, 32)
-                    .padding(.bottom, 32)
+                    doneButton
+                }
+                .frame(width: proxy.size.width, height: proxy.size.height)
+                .background(Color(.systemBackground))
             }
-            .frame(width: proxy.size.width, height: proxy.size.height)
-            .background(Color(.systemBackground))
+            .navigationTitle("Face Verification")
+            .toolbarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: backTapped) {
+                        Label("", systemImage: "chevron.left")
+                    }
+                    .accessibilityLabel("Back")
+                    .padding()
+                    .glassEffect()
+                }
+            }
         }
         .task {
             guard startsAutomatically else { return }
@@ -84,30 +87,6 @@ struct FaceVerificationView: View {
         .onDisappear {
             viewModel.cancel()
         }
-    }
-
-    private var header: some View {
-        ZStack {
-            Text("Face Verification")
-                .font(.title3.weight(.bold))
-                .lineLimit(1)
-                .minimumScaleFactor(0.85)
-
-            HStack {
-                Button(action: backTapped) {
-                    Image(systemName: "chevron.left")
-                        .font(.title2.weight(.semibold))
-                        .foregroundStyle(.primary)
-                        .frame(width: 56, height: 56)
-                }
-                .buttonStyle(.plain)
-                .glassEffect()
-                .accessibilityLabel("Back")
-
-                Spacer()
-            }
-        }
-        .frame(height: 64)
     }
 
     @ViewBuilder
@@ -127,6 +106,9 @@ struct FaceVerificationView: View {
 
     private var instructionText: some View {
         VStack(spacing: 12) {
+            Text(viewModel.instruction)
+                .multilineTextAlignment(.center)
+            
             if isLoading {
                 ProgressView()
                     .controlSize(.regular)
@@ -134,28 +116,19 @@ struct FaceVerificationView: View {
                     .transition(.scale.combined(with: .opacity))
             }
 
-            Text(viewModel.instruction)
-                .font(.title3)
-                .multilineTextAlignment(.center)
-                .lineSpacing(4)
-                .foregroundStyle(.primary)
-                .padding(.horizontal, 32)
         }
         .animation(.smooth(duration: 0.25), value: isLoading)
         .animation(.default, value: viewModel.instruction)
     }
 
     private var doneButton: some View {
-        Button(action: doneTapped) {
-            Text("Done")
-                .font(.title3.weight(.heavy))
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 64)
-        }
-        .background(viewModel.isComplete ? Color.accentColor : Color(.systemGray4), in: Capsule())
-        .disabled(!viewModel.isComplete)
-        .accessibilityLabel("Done")
+        PrimaryButton(
+            "Done",
+            font: .default.weight(.heavy),
+            isActive: viewModel.isComplete,
+            action: doneTapped
+        )
+        .padding(.horizontal, 16)
     }
 
     private func backTapped() {
