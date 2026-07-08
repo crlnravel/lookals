@@ -2,7 +2,7 @@
 //  LookalMatchRecord.swift
 //  Lookals
 //
-//  Created by Codex on 08/07/26.
+//  Created by Carleano Ravelza Wongso on 08/07/26.
 //
 
 import Foundation
