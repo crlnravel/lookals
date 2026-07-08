@@ -100,15 +100,21 @@ struct ExpandableWidget<CollapsedContent: View, ExpandedContent: View>: View {
 
     private var expansionControl: some View {
         Button(action: toggleExpansion) {
-            Image(systemName: "arrow.up.left.and.arrow.down.right")
+            Image(systemName: expansionControlSystemName)
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(.primary)
-                .rotationEffect(.degrees(isExpanded ? 180 : 0))
                 .frame(width: 48, height: 48)
                 .background(.thinMaterial, in: Circle())
+                .contentShape(Circle())
         }
         .buttonStyle(.plain)
+        .glassEffect()
+        .zIndex(1)
         .accessibilityLabel(isExpanded ? "Collapse quest" : "Expand quest")
+    }
+
+    private var expansionControlSystemName: String {
+        isExpanded ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right"
     }
 
     private var dismissLayer: some View {
