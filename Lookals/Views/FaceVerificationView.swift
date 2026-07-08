@@ -2,53 +2,50 @@
 //  FaceVerificationView.swift
 //  Lookals
 //
-//  Created by Codex on 08/07/26.
+//  Created by Carleano Ravelza Wongso on 08/07/26.
 //
 
 import SwiftUI
 
 struct FaceVerificationView: View {
-    let image: Image
-    let progress: Double
+    @State private var viewModel: FaceVerificationViewModel
+
+    let startsAutomatically: Bool
     let onBack: () -> Void
     let onDone: () -> Void
 
     private var clampedProgress: Double {
-        min(max(progress, 0), 1)
+        min(max(viewModel.progress, 0), 1)
     }
 
     private var progressPercentage: Int {
         Int((clampedProgress * 100).rounded())
     }
 
-    private var isComplete: Bool {
-        clampedProgress >= 1
-    }
-
     init(
-        image: Image = Image("Login Image 1"),
-        progress: Double = 0.85,
+        viewModel: FaceVerificationViewModel? = nil,
+        startsAutomatically: Bool = true,
         onBack: @escaping () -> Void = {},
         onDone: @escaping () -> Void = {}
     ) {
-        self.image = image
-        self.progress = progress
+        _viewModel = State(initialValue: viewModel ?? FaceVerificationViewModel())
+        self.startsAutomatically = startsAutomatically
         self.onBack = onBack
         self.onDone = onDone
     }
 
     var body: some View {
         GeometryReader { proxy in
-            let imageWidth = min(proxy.size.width - 64, 340)
-            let imageHeight = min(imageWidth / 0.84, proxy.size.height * 0.46)
+            let previewWidth = min(proxy.size.width - 64, 340)
+            let previewHeight = min(previewWidth / 0.84, proxy.size.height * 0.46)
 
             VStack(spacing: 0) {
                 header
                     .padding(.horizontal, 32)
                     .padding(.top, 8)
 
-                faceImage
-                    .frame(width: imageWidth, height: imageHeight)
+                cameraPreview
+                    .frame(width: previewWidth, height: previewHeight)
                     .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
                     .padding(.top, 8)
 
@@ -71,6 +68,13 @@ struct FaceVerificationView: View {
             .frame(width: proxy.size.width, height: proxy.size.height)
             .background(Color(.systemBackground))
         }
+        .task {
+            guard startsAutomatically else { return }
+            viewModel.start()
+        }
+        .onDisappear {
+            viewModel.cancel()
+        }
     }
 
     private var header: some View {
@@ -81,7 +85,7 @@ struct FaceVerificationView: View {
                 .minimumScaleFactor(0.85)
 
             HStack {
-                Button(action: onBack) {
+                Button(action: backTapped) {
                     Image(systemName: "chevron.left")
                         .font(.title2.weight(.semibold))
                         .foregroundStyle(.primary)
@@ -97,33 +101,93 @@ struct FaceVerificationView: View {
         .frame(height: 64)
     }
 
-    private var faceImage: some View {
-        image
-            .resizable()
-            .scaledToFill()
-            .accessibilityLabel("Face verification photo")
+    @ViewBuilder
+    private var cameraPreview: some View {
+        if viewModel.shouldShowCameraPreview && startsAutomatically {
+            FaceCameraPreview(session: viewModel.captureSession)
+                .accessibilityLabel("Live face verification camera preview")
+        } else {
+            CameraPreviewPlaceholder(state: viewModel.state)
+        }
     }
 
     private var instructionText: some View {
-        Text("Please hold your face and wait.\nWe are verifying your face.")
+        Text(viewModel.instruction)
             .font(.title3)
             .multilineTextAlignment(.center)
             .lineSpacing(4)
             .foregroundStyle(.primary)
             .padding(.horizontal, 32)
+            .animation(.default, value: viewModel.instruction)
     }
 
     private var doneButton: some View {
-        Button(action: onDone) {
+        Button(action: doneTapped) {
             Text("Done")
                 .font(.title3.weight(.heavy))
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .frame(height: 64)
         }
-        .background(isComplete ? Color.accentColor : Color(.systemGray4), in: Capsule())
-        .disabled(!isComplete)
+        .background(viewModel.isComplete ? Color.accentColor : Color(.systemGray4), in: Capsule())
+        .disabled(!viewModel.isComplete)
         .accessibilityLabel("Done")
+    }
+
+    private func backTapped() {
+        viewModel.cancel()
+        onBack()
+    }
+
+    private func doneTapped() {
+        guard viewModel.isComplete else { return }
+        onDone()
+    }
+}
+
+private struct CameraPreviewPlaceholder: View {
+    let state: FaceVerificationViewModel.State
+
+    var body: some View {
+        ZStack {
+            Color(.secondarySystemBackground)
+
+            VStack(spacing: 12) {
+                Image(systemName: symbolName)
+                    .font(.system(size: 44, weight: .semibold))
+                    .foregroundStyle(.secondary)
+
+                Text(title)
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(title)
+    }
+
+    private var symbolName: String {
+        switch state {
+        case .cameraUnavailable:
+            "camera.fill.badge.ellipsis"
+        case .complete:
+            "checkmark.circle.fill"
+        case .idle, .requestingCamera, .verifying:
+            "camera.fill"
+        }
+    }
+
+    private var title: String {
+        switch state {
+        case .cameraUnavailable:
+            "Camera unavailable"
+        case .complete:
+            "Verified"
+        case .idle, .requestingCamera, .verifying:
+            "Camera preview"
+        }
     }
 }
 
@@ -155,9 +219,15 @@ private struct VerificationProgressBar: View {
 }
 
 #Preview("In Progress") {
-    FaceVerificationView(progress: 0.85)
+    FaceVerificationView(
+        viewModel: .preview(state: .verifying(.scanningFace), progress: 0.85),
+        startsAutomatically: false
+    )
 }
 
 #Preview("Complete") {
-    FaceVerificationView(progress: 1)
+    FaceVerificationView(
+        viewModel: .preview(state: .complete, progress: 1),
+        startsAutomatically: false
+    )
 }
