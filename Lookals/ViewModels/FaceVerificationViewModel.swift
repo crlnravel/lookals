@@ -8,6 +8,7 @@
 import AVFoundation
 import Foundation
 import Observation
+import UIKit
 
 @MainActor
 @Observable
@@ -21,12 +22,13 @@ final class FaceVerificationViewModel {
     }
 
     private let cameraController: FaceCameraSessionController
-    private let verificationService: any FaceVerificationServicing
+    private let verificationService: (any FaceVerificationServicing)?
 
     @ObservationIgnored private var verificationTask: Task<Void, Never>?
 
     private(set) var state: State = .idle
     private(set) var progress: Double = 0
+    private(set) var capturedFaceImage: UIImage?
 
     var captureSession: AVCaptureSession {
         cameraController.session
@@ -51,9 +53,9 @@ final class FaceVerificationViewModel {
 
     var shouldShowCameraPreview: Bool {
         switch state {
-        case .verifying, .complete:
+        case .requestingCamera, .verifying, .complete:
             true
-        case .idle, .requestingCamera, .cameraUnavailable:
+        case .idle, .cameraUnavailable:
             false
         }
     }
@@ -63,7 +65,7 @@ final class FaceVerificationViewModel {
         verificationService: (any FaceVerificationServicing)? = nil
     ) {
         self.cameraController = cameraController ?? FaceCameraSessionController()
-        self.verificationService = verificationService ?? MockFaceVerificationService()
+        self.verificationService = verificationService
     }
 
     static func preview(
@@ -97,6 +99,7 @@ final class FaceVerificationViewModel {
     private func runVerification() async {
         state = .requestingCamera
         progress = 0
+        capturedFaceImage = nil
 
         let cameraState = await cameraController.start()
         guard cameraState == .authorized else {
@@ -104,6 +107,15 @@ final class FaceVerificationViewModel {
             return
         }
 
+        if let verificationService {
+            await runMockVerification(with: verificationService)
+            return
+        }
+
+        await runLiveFaceVerification()
+    }
+
+    private func runMockVerification(with verificationService: any FaceVerificationServicing) async {
         for await update in verificationService.verificationUpdates() {
             guard !Task.isCancelled else { return }
             progress = min(max(update.progress, 0), 1)
@@ -114,6 +126,47 @@ final class FaceVerificationViewModel {
                 state = .verifying(update.phase)
             }
         }
+    }
+
+    private func runLiveFaceVerification() async {
+        state = .verifying(.aligningFace)
+        progress = 0.15
+
+        for await update in cameraController.faceDetectionUpdates() {
+            guard !Task.isCancelled else { return }
+
+            guard update.isFaceDetected else {
+                state = .verifying(.aligningFace)
+                progress = max(progress, 0.2)
+                continue
+            }
+
+            capturedFaceImage = update.capturedImage ?? capturedFaceImage
+            state = .verifying(.scanningFace)
+            progress = max(progress, 0.7)
+
+            await finishVerification()
+            return
+        }
+    }
+
+    private func finishVerification() async {
+        state = .verifying(.finalizing)
+
+        for progressValue in [0.82, 0.92, 1.0] {
+            guard !Task.isCancelled else { return }
+
+            progress = progressValue
+
+            do {
+                try await Task.sleep(for: .milliseconds(260))
+            } catch {
+                return
+            }
+        }
+
+        state = .complete
+        cameraController.stop()
     }
 
     private func message(for cameraState: FaceCameraAuthorizationState) -> String {

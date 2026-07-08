@@ -22,6 +22,15 @@ struct FaceVerificationView: View {
         Int((clampedProgress * 100).rounded())
     }
 
+    private var isLoading: Bool {
+        switch viewModel.state {
+        case .requestingCamera, .verifying:
+            true
+        case .idle, .complete, .cameraUnavailable:
+            false
+        }
+    }
+
     init(
         viewModel: FaceVerificationViewModel? = nil,
         startsAutomatically: Bool = true,
@@ -103,7 +112,12 @@ struct FaceVerificationView: View {
 
     @ViewBuilder
     private var cameraPreview: some View {
-        if viewModel.shouldShowCameraPreview && startsAutomatically {
+        if let capturedFaceImage = viewModel.capturedFaceImage {
+            Image(uiImage: capturedFaceImage)
+                .resizable()
+                .scaledToFill()
+                .accessibilityLabel("Captured face verification image")
+        } else if viewModel.shouldShowCameraPreview && startsAutomatically {
             FaceCameraPreview(session: viewModel.captureSession)
                 .accessibilityLabel("Live face verification camera preview")
         } else {
@@ -112,13 +126,23 @@ struct FaceVerificationView: View {
     }
 
     private var instructionText: some View {
-        Text(viewModel.instruction)
-            .font(.title3)
-            .multilineTextAlignment(.center)
-            .lineSpacing(4)
-            .foregroundStyle(.primary)
-            .padding(.horizontal, 32)
-            .animation(.default, value: viewModel.instruction)
+        VStack(spacing: 12) {
+            if isLoading {
+                ProgressView()
+                    .controlSize(.regular)
+                    .tint(.accentColor)
+                    .transition(.scale.combined(with: .opacity))
+            }
+
+            Text(viewModel.instruction)
+                .font(.title3)
+                .multilineTextAlignment(.center)
+                .lineSpacing(4)
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 32)
+        }
+        .animation(.smooth(duration: 0.25), value: isLoading)
+        .animation(.default, value: viewModel.instruction)
     }
 
     private var doneButton: some View {
@@ -204,6 +228,7 @@ private struct VerificationProgressBar: View {
                 Capsule()
                     .fill(Color.accentColor)
                     .frame(width: max(proxy.size.height, proxy.size.width * progress))
+                    .animation(.smooth(duration: 0.35), value: progress)
 
                 Text("\(percentage)%")
                     .font(.title3.weight(.heavy))
