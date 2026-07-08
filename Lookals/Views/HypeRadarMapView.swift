@@ -1,0 +1,105 @@
+//
+//  HypeRadarMapView.swift
+//  Lookals
+//
+//  Created by Codex on 09/07/26.
+//
+
+import MapKit
+import SwiftUI
+
+struct HypeRadarMapView: View {
+    let state: HypeRadarMapState
+    let onBack: () -> Void
+    let onLocate: () -> Void
+
+    @State private var cameraPosition: MapCameraPosition = .region(Self.mapRegion)
+
+    private static let mapRegion = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: 40.7478, longitude: -73.9854),
+        span: MKCoordinateSpan(latitudeDelta: 0.055, longitudeDelta: 0.055)
+    )
+
+    init(
+        state: HypeRadarMapState = .goingToMeetingPoint,
+        onBack: @escaping () -> Void = {},
+        onLocate: @escaping () -> Void = {}
+    ) {
+        self.state = state
+        self.onBack = onBack
+        self.onLocate = onLocate
+    }
+
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack {
+                mapBackground
+
+                CloudOverlay()
+
+                radarMarkers(in: proxy.size)
+
+                VStack(spacing: 0) {
+                    MapTopBar(
+                        title: "Hype Radar Map",
+                        onBack: onBack,
+                        onLocate: onLocate
+                    )
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+
+                    Spacer()
+
+                    BottomStatusCard(state: state)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 32)
+                }
+            }
+            .ignoresSafeArea()
+        }
+    }
+
+    private var mapBackground: some View {
+        Map(position: $cameraPosition, interactionModes: [])
+        .mapStyle(.standard(elevation: .flat, emphasis: .muted))
+        .saturation(0.72)
+        .opacity(0.82)
+        .overlay(Color.white.opacity(0.16))
+        .accessibilityHidden(true)
+    }
+
+    @ViewBuilder
+    private func radarMarkers(in size: CGSize) -> some View {
+        switch state {
+        case .goingToMeetingPoint:
+            RadarMarker(style: .smallDestination)
+                .position(x: size.width * 0.30, y: size.height * 0.56)
+
+            RadarMarker(style: .avatar)
+                .position(x: size.width * 0.36, y: size.height * 0.66)
+
+            RadarMarker(style: .mapBadge("9A"))
+                .position(x: size.width * 0.30, y: size.height * 0.42)
+
+        case .arrived:
+            RadarMarker(style: .place)
+                .position(x: size.width * 0.43, y: size.height * 0.56)
+
+            RadarMarker(style: .avatar)
+                .position(x: size.width * 0.54, y: size.height * 0.59)
+        }
+    }
+}
+
+enum HypeRadarMapState {
+    case goingToMeetingPoint
+    case arrived
+}
+
+#Preview("Going to meeting point") {
+    HypeRadarMapView(state: .goingToMeetingPoint)
+}
+
+#Preview("Arrived") {
+    HypeRadarMapView(state: .arrived)
+}
