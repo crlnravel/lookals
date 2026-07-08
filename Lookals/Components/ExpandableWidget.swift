@@ -1,5 +1,5 @@
 //
-//  ExpandableQuestWidget.swift
+//  ExpandableWidget.swift
 //  Lookals
 //
 //  Created by Carleano Ravelza Wongso on 09/07/26.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ExpandableQuestWidget<CollapsedContent: View, ExpandedContent: View>: View {
+struct ExpandableWidget<CollapsedContent: View, ExpandedContent: View>: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @Binding private var isExpanded: Bool
@@ -153,7 +153,7 @@ struct ExpandableQuestWidget<CollapsedContent: View, ExpandedContent: View>: Vie
     }
 }
 
-#Preview("Expandable Quest Widget") {
+#Preview("Expandable Widget") {
     struct PreviewHost: View {
         @State private var isExpanded = false
 
@@ -166,7 +166,7 @@ struct ExpandableQuestWidget<CollapsedContent: View, ExpandedContent: View>: Vie
                 )
                 .ignoresSafeArea()
 
-                ExpandableQuestWidget(isExpanded: $isExpanded) {
+                ExpandableWidget(isExpanded: $isExpanded) {
                     QuestCollapsedContent(
                         questNumber: 1,
                         title: "Quiz",
