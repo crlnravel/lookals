@@ -1,5 +1,5 @@
 //
-//  LookalsPrimaryButton.swift
+//  PrimaryButton.swift
 //  Lookals
 //
 //  Created by Carleano Ravelza Wongso on 08/07/26.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct LookalsPrimaryButton: View {
+struct PrimaryButton: View {
     let title: String
     let accessibilityLabel: String?
     let font: Font
@@ -16,6 +16,7 @@ struct LookalsPrimaryButton: View {
     let verticalPadding: CGFloat
     let fillOpacity: Double
     let appliesGlassEffect: Bool
+    let isActive: Bool
     let action: () -> Void
 
     init(
@@ -27,6 +28,7 @@ struct LookalsPrimaryButton: View {
         verticalPadding: CGFloat = 16,
         fillOpacity: Double = 1,
         appliesGlassEffect: Bool = false,
+        isActive: Bool = true,
         action: @escaping () -> Void
     ) {
         self.title = title
@@ -37,6 +39,7 @@ struct LookalsPrimaryButton: View {
         self.verticalPadding = verticalPadding
         self.fillOpacity = fillOpacity
         self.appliesGlassEffect = appliesGlassEffect
+        self.isActive = isActive
         self.action = action
     }
 
@@ -58,12 +61,14 @@ struct LookalsPrimaryButton: View {
         }
         .padding(.horizontal, horizontalPadding)
         .padding(.vertical, verticalPadding)
-        .background(Color.accentColor.opacity(fillOpacity), in: Capsule())
+        .background(Color.accentColor.opacity(isActive ? fillOpacity : fillOpacity * 0.5), in: Capsule())
+        .opacity(isActive ? 1 : 0.6)
+        .disabled(!isActive)
         .accessibilityLabel(Text(accessibilityLabel ?? title))
     }
 }
 
 #Preview {
-    LookalsPrimaryButton("Continue") {}
+    PrimaryButton("Continue") {}
         .padding()
 }

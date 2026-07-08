@@ -70,7 +70,7 @@ struct IntroView: View {
     }
 
     private var continueButton: some View {
-        LookalsPrimaryButton(
+        PrimaryButton(
             "Continue",
             accessibilityLabel: selectedPage == pages.count - 1 ? "Finish intro" : "Continue",
             font: .default.weight(.heavy),
