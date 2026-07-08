@@ -18,7 +18,7 @@ final class HomeViewModel {
         case failed(String)
     }
 
-    private let matchingService: LookalMatchingServicing
+    private let repository: any LookalMatchRepository
 
     private(set) var matches: [LookalMatch]
     private(set) var state: LoadingState
@@ -28,28 +28,28 @@ final class HomeViewModel {
     }
 
     init() {
-        self.matchingService = MockLookalMatchingService()
+        self.repository = AppDependencies.preview.lookalMatchRepository
         self.matches = []
         self.state = .idle
     }
 
     init(
-        matchingService: LookalMatchingServicing,
+        repository: any LookalMatchRepository,
         matches: [LookalMatch] = [],
         state: LoadingState = .idle
     ) {
-        self.matchingService = matchingService
+        self.repository = repository
         self.matches = matches
         self.state = state
     }
 
-    func loadMatches() async {
+    func loadMatches(refresh: Bool = false) async {
         guard state != .loading else { return }
 
         state = .loading
 
         do {
-            matches = try await matchingService.fetchMatches()
+            matches = try await repository.fetchMatches(refresh: refresh)
             state = .loaded
         } catch {
             state = .failed("Unable to load matches.")

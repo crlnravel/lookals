@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct LookalsApp: App {
+    private let dependencies = AppDependencies.preview
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(dependencies: dependencies)
         }
     }
 }

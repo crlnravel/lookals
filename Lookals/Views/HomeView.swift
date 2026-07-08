@@ -10,8 +10,10 @@ import SwiftUI
 struct HomeView: View {
     @State private var viewModel: HomeViewModel
 
-    init() {
-        _viewModel = State(initialValue: HomeViewModel())
+    init(dependencies: AppDependencies = .preview) {
+        _viewModel = State(
+            initialValue: HomeViewModel(repository: dependencies.lookalMatchRepository)
+        )
     }
 
     init(viewModel: HomeViewModel) {
@@ -79,7 +81,7 @@ struct HomeView: View {
                 await viewModel.loadMatches()
             }
             .refreshable {
-                await viewModel.loadMatches()
+                await viewModel.loadMatches(refresh: true)
             }
         }
     }
@@ -88,11 +90,8 @@ struct HomeView: View {
 #Preview {
     HomeView(
         viewModel: HomeViewModel(
-            matchingService: MockLookalMatchingService(),
-            matches: [
-                LookalMatch(name: "Alex", resemblanceScore: 92, category: "Style match"),
-                LookalMatch(name: "Mika", resemblanceScore: 87, category: "Face shape")
-            ],
+            repository: AppDependencies.preview.lookalMatchRepository,
+            matches: LookalMatch.sampleMatches,
             state: .loaded
         )
     )

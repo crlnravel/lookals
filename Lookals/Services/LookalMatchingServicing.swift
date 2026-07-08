@@ -7,6 +7,6 @@
 
 import Foundation
 
-protocol LookalMatchingServicing {
+protocol LookalMatchingServicing: Sendable {
     func fetchMatches() async throws -> [LookalMatch]
 }

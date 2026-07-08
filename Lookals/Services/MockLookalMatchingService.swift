@@ -8,11 +8,13 @@
 import Foundation
 
 struct MockLookalMatchingService: LookalMatchingServicing {
+    private let matches: [LookalMatch]
+
+    init(matches: [LookalMatch] = LookalMatch.sampleMatches) {
+        self.matches = matches
+    }
+
     func fetchMatches() async throws -> [LookalMatch] {
-        [
-            LookalMatch(name: "Alex", resemblanceScore: 92, category: "Style match"),
-            LookalMatch(name: "Mika", resemblanceScore: 87, category: "Face shape"),
-            LookalMatch(name: "Raya", resemblanceScore: 81, category: "Expression")
-        ]
+        matches
     }
 }

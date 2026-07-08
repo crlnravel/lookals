@@ -10,9 +10,15 @@ import SwiftUI
 struct ContentView: View {
     @State private var isShowingHome = false
 
+    private let dependencies: AppDependencies
+
+    init(dependencies: AppDependencies = .preview) {
+        self.dependencies = dependencies
+    }
+
     var body: some View {
         if isShowingHome {
-            HomeView()
+            HomeView(dependencies: dependencies)
         } else {
             LoginView(
                 onGetStarted: showHome,
@@ -27,5 +33,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    ContentView(dependencies: .preview)
 }

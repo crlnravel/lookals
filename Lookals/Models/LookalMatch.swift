@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct LookalMatch: Identifiable, Equatable {
+struct LookalMatch: Codable, Identifiable, Equatable, Sendable {
     let id: UUID
     let name: String
     let resemblanceScore: Int
@@ -24,4 +24,12 @@ struct LookalMatch: Identifiable, Equatable {
         self.resemblanceScore = resemblanceScore
         self.category = category
     }
+}
+
+extension LookalMatch {
+    static let sampleMatches = [
+        LookalMatch(name: "Alex", resemblanceScore: 92, category: "Style match"),
+        LookalMatch(name: "Mika", resemblanceScore: 87, category: "Face shape"),
+        LookalMatch(name: "Raya", resemblanceScore: 81, category: "Expression")
+    ]
 }
