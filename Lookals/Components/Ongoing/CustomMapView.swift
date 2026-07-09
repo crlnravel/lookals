@@ -44,41 +44,77 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
     }
 
     var body: some View {
-        NavigationStack {
-            GeometryReader { proxy in
-                ZStack {
-                    mapBackground
+        GeometryReader { proxy in
+            ZStack {
+                mapBackground
 
-                    overlay()
+                overlay()
 
-                    mapMarkers(in: proxy.size)
+                mapMarkers(in: proxy.size)
 
-                    bottomOverlay()
-                }
-                .padding(.bottom, 10)
-                .ignoresSafeArea()
+                mapHeader(topInset: proxy.safeAreaInsets.top)
+
+                bottomOverlay()
             }
-            .navigationTitle(title)
-            .toolbarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarIconButton(
-                    placement: .topBarLeading,
+            .padding(.bottom, 10)
+            .ignoresSafeArea()
+        }
+    }
+
+    private func mapHeader(topInset: CGFloat) -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                mapHeaderButton(
                     systemImage: "chevron.left",
                     accessibilityLabel: "Go back",
-                    background: .white,
+                    background: Color(.systemBackground),
+                    foreground: .primary,
                     action: onBack
                 )
 
-                ToolbarIconButton(
-                    placement: .topBarTrailing,
+                Spacer()
+
+                Text(title)
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+
+                Spacer()
+
+                mapHeaderButton(
                     systemImage: "location.north.fill",
                     accessibilityLabel: "Show current location",
-                    background: .accent,
+                    background: Color.accentColor,
                     foreground: .white,
                     action: onLocate
                 )
             }
+            .padding(.horizontal, 32)
+            .padding(.top, topInset + 16)
+
+            Spacer()
         }
+    }
+
+    private func mapHeaderButton(
+        systemImage: String,
+        accessibilityLabel: String,
+        background: Color,
+        foreground: Color,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(foreground)
+                .frame(width: 44, height: 44)
+                .background(background, in: Circle())
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .glassEffect()
+        .accessibilityLabel(accessibilityLabel)
     }
 
     private var mapBackground: some View {
