@@ -23,8 +23,6 @@ struct ArtistIntroQuestContent: View {
                 .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Spacer(minLength: 160)
-
             PrimaryButton(
                 step.primaryActionTitle,
                 font: .headline.weight(.heavy),
@@ -34,7 +32,6 @@ struct ArtistIntroQuestContent: View {
         .padding(.horizontal, 32)
         .padding(.top, 32)
         .padding(.bottom, 28)
-        .frame(minHeight: 620)
     }
 }
 

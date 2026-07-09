@@ -112,6 +112,7 @@ struct QuestExpandedHeader: View {
                 Text(label)
                     .font(.subheadline.weight(.bold))
                     .foregroundStyle(.primary)
+                    .padding(.top, 40)
 
                 Text(title)
                     .font(.largeTitle.weight(.heavy))

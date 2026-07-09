@@ -49,8 +49,6 @@ struct FindOutQuestContent: View {
                 }
             }
 
-            Spacer(minLength: 120)
-
             PrimaryButton(
                 hasCapturedPhoto ? "Next" : step.primaryActionTitle,
                 font: .headline.weight(.heavy),
@@ -61,7 +59,6 @@ struct FindOutQuestContent: View {
         .padding(.horizontal, 32)
         .padding(.top, 32)
         .padding(.bottom, 28)
-        .frame(minHeight: 620)
     }
 
     private var canContinue: Bool {

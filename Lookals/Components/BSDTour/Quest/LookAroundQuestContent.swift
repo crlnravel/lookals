@@ -18,7 +18,7 @@ struct LookAroundQuestContent: View {
 
             VStack(spacing: 4) {
                 Text(step.prompt)
-                    .font(.title3.weight(.semibold))
+                    .font(.default.weight(.semibold))
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
                     .foregroundStyle(.primary)
