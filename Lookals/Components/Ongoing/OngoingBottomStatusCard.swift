@@ -17,6 +17,8 @@ struct OngoingBottomStatusCard: View {
                 goingContent
             case .arrived:
                 arrivedContent
+            case .shakeYourPhone:
+                arrivedContent
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -53,27 +55,27 @@ struct OngoingBottomStatusCard: View {
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Kelontong Poet-Tea")
-                    .font(.title2.weight(.heavy))
+                    .font(.title3.weight(.heavy))
                     .foregroundStyle(.primary)
 
                 Text("You’ve arrived!")
-                    .font(.title3.weight(.semibold))
+                    .font(.default.weight(.semibold))
                     .foregroundStyle(.secondary)
             }
 
             HStack(spacing: 0) {
                 Capsule()
                     .fill(Color.accentColor)
-                    .frame(height: 6)
+                    .frame(height: 4)
 
                 RadarMarker(style: .avatar)
-                    .frame(width: 40, height: 40)
+                    .frame(width: 28, height: 28)
                     .scaleEffect(0.78)
-                    .padding(.leading, -4)
+                    .padding(.leading, -16)
 
                 RadarMarker(style: .smallDestination)
                     .frame(width: 32, height: 32)
-                    .scaleEffect(0.56)
+                    .scaleEffect(0.60)
                     .padding(.leading, 8)
             }
         }

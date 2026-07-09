@@ -14,6 +14,7 @@ struct HypeRadarMapView: View {
     let onLocate: () -> Void
 
     @State private var cameraPosition: MapCameraPosition = .region(Self.mapRegion)
+    @State private var isShakeWidgetExpanded = false
 
     private static let mapRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 40.7478, longitude: -73.9854),
@@ -40,13 +41,7 @@ struct HypeRadarMapView: View {
 
                     radarMarkers(in: proxy.size)
 
-                    VStack(spacing: 0) {
-                        Spacer()
-
-                        OngoingBottomStatusCard(state: state)
-                            .padding(.horizontal, 20)
-                            .padding(.bottom, 32)
-                    }
+                    bottomOverlay
                 }
                 .ignoresSafeArea()
             }
@@ -74,7 +69,7 @@ struct HypeRadarMapView: View {
     }
 
     private var mapBackground: some View {
-        Map(position: $cameraPosition, interactionModes: [])
+        Map(position: $cameraPosition, interactionModes: .pan)
         .mapStyle(.standard(elevation: .flat, emphasis: .muted))
         .saturation(0.72)
         .opacity(0.82)
@@ -84,23 +79,70 @@ struct HypeRadarMapView: View {
 
     @ViewBuilder
     private func radarMarkers(in size: CGSize) -> some View {
+        Group {
+            switch state {
+            case .goingToMeetingPoint:
+                RadarMarker(style: .smallDestination)
+                    .position(x: size.width * 0.30, y: size.height * 0.56)
+
+                RadarMarker(style: .avatar)
+                    .position(x: size.width * 0.36, y: size.height * 0.66)
+
+                RadarMarker(style: .mapBadge("9A"))
+                    .position(x: size.width * 0.30, y: size.height * 0.42)
+
+            case .arrived:
+                RadarMarker(style: .place)
+                    .position(x: size.width * 0.43, y: size.height * 0.56)
+
+                RadarMarker(style: .avatar)
+                    .position(x: size.width * 0.54, y: size.height * 0.59)
+
+            case .shakeYourPhone:
+                RadarMarker(style: .place)
+                    .position(x: size.width * 0.43, y: size.height * 0.56)
+
+                RadarMarker(style: .avatar)
+                    .position(x: size.width * 0.54, y: size.height * 0.59)
+            }
+        }
+        .allowsHitTesting(false)
+    }
+
+    @ViewBuilder
+    private var bottomOverlay: some View {
         switch state {
-        case .goingToMeetingPoint:
-            RadarMarker(style: .smallDestination)
-                .position(x: size.width * 0.30, y: size.height * 0.56)
+        case .goingToMeetingPoint, .arrived:
+            VStack(spacing: 0) {
+                Spacer()
 
-            RadarMarker(style: .avatar)
-                .position(x: size.width * 0.36, y: size.height * 0.66)
+                OngoingBottomStatusCard(state: state)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 32)
+            }
 
-            RadarMarker(style: .mapBadge("9A"))
-                .position(x: size.width * 0.30, y: size.height * 0.42)
+        case .shakeYourPhone:
+            ZStack {
+                VStack(spacing: 0) {
+                    Spacer()
 
-        case .arrived:
-            RadarMarker(style: .place)
-                .position(x: size.width * 0.43, y: size.height * 0.56)
+                    OngoingBottomStatusCard(state: .arrived)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 132)
+                }
 
-            RadarMarker(style: .avatar)
-                .position(x: size.width * 0.54, y: size.height * 0.59)
+                ExpandableWidget(
+                    isExpanded: $isShakeWidgetExpanded,
+                    collapsedMaxWidth: 392,
+                    expandedMaxWidth: 360,
+                    horizontalPadding: 20,
+                    edgePadding: 16
+                ) {
+                    ShakePhoneCollapsedContent()
+                } expandedContent: {
+                    ShakePhoneQuestContent()
+                }
+            }
         }
     }
 }
@@ -111,4 +153,8 @@ struct HypeRadarMapView: View {
 
 #Preview("Arrived") {
     HypeRadarMapView(state: .arrived)
+}
+
+#Preview("Shake Your Phone") {
+    HypeRadarMapView(state: .shakeYourPhone)
 }
