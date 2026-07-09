@@ -45,12 +45,11 @@ struct IntroView: View {
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button(action: backTapped) {
-                        Label("", systemImage: "chevron.left")
-                    }
-                    .accessibilityLabel("Next intro image")
-                    .padding()
-                    .glassEffect()
+                    ToolbarIconButton(
+                        systemImage: "chevron.left",
+                        accessibilityLabel: "Previous intro image",
+                        action: backTapped
+                    )
                 }
             }
         }

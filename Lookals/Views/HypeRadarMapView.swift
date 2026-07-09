@@ -2,7 +2,7 @@
 //  HypeRadarMapView.swift
 //  Lookals
 //
-//  Created by Codex on 09/07/26.
+//  Created by Carleano Ravelza Wongso on 09/07/26.
 //
 
 import MapKit
@@ -31,31 +31,44 @@ struct HypeRadarMapView: View {
     }
 
     var body: some View {
-        GeometryReader { proxy in
-            ZStack {
-                mapBackground
+        NavigationStack {
+            GeometryReader { proxy in
+                ZStack {
+                    mapBackground
 
-                CloudOverlay()
+                    OngoingCloudOverlay()
 
-                radarMarkers(in: proxy.size)
+                    radarMarkers(in: proxy.size)
 
-                VStack(spacing: 0) {
-                    MapTopBar(
-                        title: "Hype Radar Map",
-                        onBack: onBack,
-                        onLocate: onLocate
+                    VStack(spacing: 0) {
+                        Spacer()
+
+                        OngoingBottomStatusCard(state: state)
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 32)
+                    }
+                }
+                .ignoresSafeArea()
+            }
+            .navigationTitle("Hype Radar Map")
+            .toolbarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    ToolbarIconButton(
+                        systemImage: "chevron.left",
+                        accessibilityLabel: "Go back",
+                        action: onBack
                     )
-                    .padding(.horizontal, 20)
-                    .padding(.top, 8)
+                }
 
-                    Spacer()
-
-                    BottomStatusCard(state: state)
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 32)
+                ToolbarItem(placement: .topBarTrailing) {
+                    ToolbarIconButton(
+                        systemImage: "location.north.fill",
+                        accessibilityLabel: "Show current location",
+                        action: onLocate
+                    )
                 }
             }
-            .ignoresSafeArea()
         }
     }
 
@@ -89,11 +102,6 @@ struct HypeRadarMapView: View {
                 .position(x: size.width * 0.54, y: size.height * 0.59)
         }
     }
-}
-
-enum HypeRadarMapState {
-    case goingToMeetingPoint
-    case arrived
 }
 
 #Preview("Going to meeting point") {
