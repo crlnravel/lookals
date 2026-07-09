@@ -57,17 +57,24 @@ struct HypeRadarMapView: View {
                     ToolbarIconButton(
                         systemImage: "chevron.left",
                         accessibilityLabel: "Go back",
+                        background: .white,
                         action: onBack
                     )
+                    .glassEffect()
                 }
+                .sharedBackgroundVisibility(.hidden)
 
                 ToolbarItem(placement: .topBarTrailing) {
                     ToolbarIconButton(
                         systemImage: "location.north.fill",
                         accessibilityLabel: "Show current location",
+                        background: .accent,
+                        foreground: .white,
                         action: onLocate
                     )
+                    .glassEffect()
                 }
+                .sharedBackgroundVisibility(.hidden)
             }
         }
     }
