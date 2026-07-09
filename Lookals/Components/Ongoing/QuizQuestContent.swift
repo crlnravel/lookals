@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct QuizQuestContent: View {
+    let label: String
     let questNumber: Int
     let title: String
     let question: String
@@ -16,9 +17,47 @@ struct QuizQuestContent: View {
     let reward: Int
     let onSubmit: () -> Void
 
+    init(
+        label: String,
+        title: String,
+        question: String,
+        options: [String],
+        selectedOption: Binding<String?>,
+        reward: Int,
+        onSubmit: @escaping () -> Void
+    ) {
+        self.label = label
+        self.questNumber = 0
+        self.title = title
+        self.question = question
+        self.options = options
+        self._selectedOption = selectedOption
+        self.reward = reward
+        self.onSubmit = onSubmit
+    }
+
+    init(
+        questNumber: Int,
+        title: String,
+        question: String,
+        options: [String],
+        selectedOption: Binding<String?>,
+        reward: Int,
+        onSubmit: @escaping () -> Void
+    ) {
+        self.label = "QUEST \(questNumber)"
+        self.questNumber = questNumber
+        self.title = title
+        self.question = question
+        self.options = options
+        self._selectedOption = selectedOption
+        self.reward = reward
+        self.onSubmit = onSubmit
+    }
+
     var body: some View {
         VStack(spacing: 24) {
-            QuestExpandedHeader(questNumber: questNumber, title: title, reward: reward)
+            QuestExpandedHeader(label: label, title: title, reward: reward)
 
             Text(question)
                 .font(.subheadline.weight(.bold))
@@ -51,14 +90,26 @@ struct QuizQuestContent: View {
 }
 
 struct QuestExpandedHeader: View {
-    let questNumber: Int
+    let label: String
     let title: String
     let reward: Int
+
+    init(questNumber: Int, title: String, reward: Int) {
+        self.label = "QUEST \(questNumber)"
+        self.title = title
+        self.reward = reward
+    }
+
+    init(label: String, title: String, reward: Int) {
+        self.label = label
+        self.title = title
+        self.reward = reward
+    }
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
             VStack(spacing: 4) {
-                Text("QUEST \(questNumber)")
+                Text(label)
                     .font(.subheadline.weight(.bold))
                     .foregroundStyle(.primary)
 

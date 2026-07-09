@@ -1,0 +1,67 @@
+//
+//  LookAroundQuestContent.swift
+//  Lookals
+//
+//  Created by OpenAI on 10/07/26.
+//
+
+import SwiftUI
+
+struct LookAroundQuestContent: View {
+    let quest: OngoingQuest
+    let step: OngoingQuestStep
+    let onNext: () -> Void
+
+    var body: some View {
+        VStack(spacing: 24) {
+            QuestExpandedHeader(label: quest.displayLabel, title: step.title, reward: quest.reward)
+
+            VStack(spacing: 4) {
+                Text(step.prompt)
+                    .font(.title3.weight(.semibold))
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+                    .foregroundStyle(.primary)
+
+                if let footnote = step.footnote {
+                    Text(footnote)
+                        .font(.footnote.weight(.semibold))
+                        .italic()
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            if let imageName = step.imageName {
+                Image(imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity)
+                    .aspectRatio(0.82, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .shadow(color: .black.opacity(0.18), radius: 14, x: 0, y: 8)
+                    .accessibilityLabel(step.prompt)
+            }
+
+            PrimaryButton(
+                step.primaryActionTitle,
+                font: .headline.weight(.heavy),
+                action: onNext
+            )
+            .padding(.top, 24)
+        }
+        .padding(.horizontal, 32)
+        .padding(.top, 32)
+        .padding(.bottom, 28)
+    }
+}
+
+#Preview {
+    LookAroundQuestContent(
+        quest: OngoingQuestDemoData.quests[0],
+        step: OngoingQuestDemoData.quests[0].steps[0],
+        onNext: {}
+    )
+    .frame(maxWidth: 360)
+    .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 32, style: .continuous))
+}

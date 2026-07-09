@@ -62,8 +62,16 @@ final class OngoingQuestFlowModel {
         textResponses[step.id] = response
     }
 
+    func textResponse(for step: OngoingQuestStep) -> String {
+        textResponses[step.id, default: ""]
+    }
+
     func updateCapturedPhotoData(_ data: Data, for step: OngoingQuestStep) {
         capturedPhotoData[step.id] = data
+    }
+
+    func hasCapturedPhoto(for step: OngoingQuestStep) -> Bool {
+        capturedPhotoData[step.id] != nil
     }
 
     func updateDrawingData(_ data: Data?) {
