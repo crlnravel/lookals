@@ -46,6 +46,8 @@ final class OngoingQuestFlowModel {
         self.capturedPhotoData = [:]
         self.scannedQRPayloads = [:]
         self.qrValidationMessage = nil
+
+        prepareCurrentStep()
     }
 
     var currentQuest: OngoingQuest? {
@@ -80,7 +82,7 @@ final class OngoingQuestFlowModel {
         drawingData = data
     }
 
-    func startDrawingCountdown(for step: OngoingQuestStep) {
+    private func startDrawingCountdown(for step: OngoingQuestStep) {
         drawingCountdownTask?.cancel()
 
         guard let durationSeconds = step.durationSeconds else {
@@ -100,7 +102,7 @@ final class OngoingQuestFlowModel {
         }
     }
 
-    func stopDrawingCountdown() {
+    private func stopDrawingCountdown() {
         drawingCountdownTask?.cancel()
         drawingCountdownTask = nil
     }
@@ -163,7 +165,18 @@ final class OngoingQuestFlowModel {
         stopDrawingCountdown()
         selectedQuizOption = nil
         qrValidationMessage = nil
-        drawingRemainingSeconds = currentStep?.durationSeconds ?? 0
+
+        guard let currentStep else {
+            drawingRemainingSeconds = 0
+            return
+        }
+
+        guard currentStep.kind == .drawingCanvas else {
+            drawingRemainingSeconds = currentStep.durationSeconds ?? 0
+            return
+        }
+
+        startDrawingCountdown(for: currentStep)
     }
 
     private func tickDrawingCountdown() {

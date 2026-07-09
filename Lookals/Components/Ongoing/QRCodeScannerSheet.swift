@@ -7,6 +7,7 @@
 
 import AVFoundation
 import SwiftUI
+import UIKit
 
 struct QRCodeScannerSheet: View {
     let onPayload: (String) -> Void
@@ -32,9 +33,14 @@ struct QRCodeScannerSheet: View {
 
     @ViewBuilder
     private var content: some View {
-        switch authorizationStatus {
+        switch effectiveAuthorizationStatus {
         case .authorized:
-            QRCodeScannerView(onPayload: onPayload)
+            QRCodeScannerView(
+                onPayload: onPayload,
+                onUnavailable: {
+                    authorizationStatus = .unavailable
+                }
+            )
                 .ignoresSafeArea(edges: .bottom)
                 .overlay(alignment: .center) {
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
@@ -62,6 +68,17 @@ struct QRCodeScannerSheet: View {
                 description: Text("This device cannot scan QR codes right now.")
             )
         }
+    }
+
+    private var effectiveAuthorizationStatus: CameraAuthorizationStatus {
+        guard
+            UIImagePickerController.isSourceTypeAvailable(.camera),
+            AVCaptureDevice.default(for: .video) != nil
+        else {
+            return .unavailable
+        }
+
+        return authorizationStatus
     }
 
     private func requestCameraAccessIfNeeded() async {

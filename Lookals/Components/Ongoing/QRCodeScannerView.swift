@@ -10,6 +10,7 @@ import SwiftUI
 
 struct QRCodeScannerView: UIViewRepresentable {
     let onPayload: (String) -> Void
+    let onUnavailable: () -> Void
 
     func makeUIView(context: Context) -> QRCodeScannerPreviewView {
         let previewView = QRCodeScannerPreviewView()
@@ -22,7 +23,7 @@ struct QRCodeScannerView: UIViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(onPayload: onPayload)
+        Coordinator(onPayload: onPayload, onUnavailable: onUnavailable)
     }
 
     static func dismantleUIView(_ uiView: QRCodeScannerPreviewView, coordinator: Coordinator) {
@@ -31,13 +32,19 @@ struct QRCodeScannerView: UIViewRepresentable {
 
     final class Coordinator: NSObject, AVCaptureMetadataOutputObjectsDelegate {
         private let onPayload: (String) -> Void
+        private let onUnavailable: () -> Void
         private let session = AVCaptureSession()
         private let sessionQueue = DispatchQueue(label: "lookals.qr-scanner.session")
         private weak var previewView: QRCodeScannerPreviewView?
         private var didScanPayload = false
+        private var didReportUnavailable = false
 
-        init(onPayload: @escaping (String) -> Void) {
+        init(
+            onPayload: @escaping (String) -> Void,
+            onUnavailable: @escaping () -> Void
+        ) {
             self.onPayload = onPayload
+            self.onUnavailable = onUnavailable
         }
 
         func configure(previewView: QRCodeScannerPreviewView) {
@@ -75,19 +82,30 @@ struct QRCodeScannerView: UIViewRepresentable {
                 let input = try? AVCaptureDeviceInput(device: captureDevice),
                 session.canAddInput(input)
             else {
+                reportUnavailable()
+                return
+            }
+
+            let metadataOutput = AVCaptureMetadataOutput()
+            guard session.canAddOutput(metadataOutput) else {
+                reportUnavailable()
                 return
             }
 
             session.beginConfiguration()
             session.addInput(input)
+            session.addOutput(metadataOutput)
 
-            let metadataOutput = AVCaptureMetadataOutput()
-            if session.canAddOutput(metadataOutput) {
-                session.addOutput(metadataOutput)
-                metadataOutput.setMetadataObjectsDelegate(self, queue: .main)
-                metadataOutput.metadataObjectTypes = [.qr]
+            guard metadataOutput.availableMetadataObjectTypes.contains(.qr) else {
+                session.removeOutput(metadataOutput)
+                session.removeInput(input)
+                session.commitConfiguration()
+                reportUnavailable()
+                return
             }
 
+            metadataOutput.setMetadataObjectsDelegate(self, queue: .main)
+            metadataOutput.metadataObjectTypes = [.qr]
             session.commitConfiguration()
             startSession()
         }
@@ -95,6 +113,15 @@ struct QRCodeScannerView: UIViewRepresentable {
         private func startSession() {
             guard !session.isRunning else { return }
             session.startRunning()
+        }
+
+        private func reportUnavailable() {
+            guard !didReportUnavailable else { return }
+
+            didReportUnavailable = true
+            DispatchQueue.main.async { [onUnavailable] in
+                onUnavailable()
+            }
         }
 
         func metadataOutput(
