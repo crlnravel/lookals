@@ -21,7 +21,13 @@ struct ContentView: View {
         case .login:
             LoginView(
                 onGetStarted: showIntro,
-                onSignIn: showHome
+                onSignIn: showSignIn
+            )
+        case .signIn:
+            SignInView(
+                onBack: showLogin,
+                onSignIn: showHome,
+                onSignUp: showIntro
             )
         case .intro:
             IntroView(onFinish: showHome)
@@ -34,6 +40,14 @@ struct ContentView: View {
         screen = .intro
     }
 
+    private func showSignIn() {
+        screen = .signIn
+    }
+
+    private func showLogin() {
+        screen = .login
+    }
+
     private func showHome() {
         screen = .home
     }
@@ -41,6 +55,7 @@ struct ContentView: View {
 
 private enum AppScreen {
     case login
+    case signIn
     case intro
     case home
 }
