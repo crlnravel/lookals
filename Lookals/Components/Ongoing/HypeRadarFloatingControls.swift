@@ -2,7 +2,7 @@
 //  HypeRadarFloatingControls.swift
 //  Lookals
 //
-//  Created by Codex on 09/07/26.
+//  Created by Carleano Ravelza Wongso on 09/07/26.
 //
 
 import SwiftUI

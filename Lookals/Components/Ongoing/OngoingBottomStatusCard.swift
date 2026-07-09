@@ -8,11 +8,20 @@
 import SwiftUI
 
 struct OngoingBottomStatusCard: View {
-    let state: HypeRadarMapState
+    let phase: HypeRadarMapPhase
+    let place: HypeRadarMapPlace
+
+    init(
+        phase: HypeRadarMapPhase,
+        place: HypeRadarMapPlace = .poetTea
+    ) {
+        self.phase = phase
+        self.place = place
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            switch state {
+            switch phase {
             case .goingToMeetingPoint:
                 goingContent
             case .arrived:
@@ -42,8 +51,8 @@ struct OngoingBottomStatusCard: View {
                     .frame(width: 28, height: 32)
                     .scaleEffect(0.60)
 
-                Text("Kelontong Poet-Tea Jl. BSD\nRaya Barat.")
-                    .font(.body.weight(.regular))
+                Text("\(place.name)\n\(place.address)")
+                    .font(.subheadline.weight(.regular))
                     .foregroundStyle(.primary)
                     .lineSpacing(2)
                     .fixedSize(horizontal: false, vertical: true)
@@ -54,7 +63,7 @@ struct OngoingBottomStatusCard: View {
     private var arrivedContent: some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading) {
-                Text("Kelontong Poet-Tea")
+                Text(place.name)
                     .font(.title3.weight(.heavy))
                     .foregroundStyle(.primary)
 
@@ -83,13 +92,13 @@ struct OngoingBottomStatusCard: View {
 }
 
 #Preview("Going to Meeting Point Card") {
-    OngoingBottomStatusCard(state: .goingToMeetingPoint)
+    OngoingBottomStatusCard(phase: .goingToMeetingPoint)
         .padding(20)
         .background(Color(.systemGray5))
 }
 
 #Preview("Arrived Card") {
-    OngoingBottomStatusCard(state: .arrived)
+    OngoingBottomStatusCard(phase: .arrived)
         .padding(20)
         .background(Color(.systemGray5))
 }
