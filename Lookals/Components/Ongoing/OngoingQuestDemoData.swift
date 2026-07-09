@@ -6,9 +6,9 @@
 //
 
 enum OngoingQuestDemoData {
-    static let q2ExpectedQRPayload = "lookals:l2:q2:confirm"
+    nonisolated static let q2ExpectedQRPayload = "lookals:l2:q2:confirm"
 
-    static let quests: [OngoingQuest] = [
+    nonisolated static let quests: [OngoingQuest] = [
         OngoingQuest(
             id: "l1-q1",
             locationCode: "L1",
