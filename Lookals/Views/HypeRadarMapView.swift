@@ -53,28 +53,22 @@ struct HypeRadarMapView: View {
             .navigationTitle("Hype Radar Map")
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    ToolbarIconButton(
-                        systemImage: "chevron.left",
-                        accessibilityLabel: "Go back",
-                        background: .white,
-                        action: onBack
-                    )
-                    .glassEffect()
-                }
-                .sharedBackgroundVisibility(.hidden)
+                ToolbarIconButton(
+                    placement: .topBarLeading,
+                    systemImage: "chevron.left",
+                    accessibilityLabel: "Go back",
+                    background: .white,
+                    action: onBack
+                )
 
-                ToolbarItem(placement: .topBarTrailing) {
-                    ToolbarIconButton(
-                        systemImage: "location.north.fill",
-                        accessibilityLabel: "Show current location",
-                        background: .accent,
-                        foreground: .white,
-                        action: onLocate
-                    )
-                    .glassEffect()
-                }
-                .sharedBackgroundVisibility(.hidden)
+                ToolbarIconButton(
+                    placement: .topBarTrailing,
+                    systemImage: "location.north.fill",
+                    accessibilityLabel: "Show current location",
+                    background: .accent,
+                    foreground: .white,
+                    action: onLocate
+                )
             }
         }
     }
