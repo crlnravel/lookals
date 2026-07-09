@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct HypeRadarPointsBadge: View {
+struct MapPointsBadge: View {
     let points: Int
 
     var body: some View {
@@ -24,7 +24,7 @@ struct HypeRadarPointsBadge: View {
     }
 }
 
-struct HypeRadarCameraButton: View {
+struct MapCameraButton: View {
     let action: () -> Void
 
     var body: some View {
@@ -44,8 +44,8 @@ struct HypeRadarCameraButton: View {
 
 #Preview("Floating Controls") {
     HStack(spacing: 24) {
-        HypeRadarPointsBadge(points: 0)
-        HypeRadarCameraButton(action: {})
+        MapPointsBadge(points: 0)
+        MapCameraButton(action: {})
     }
     .padding()
     .background(Color(.systemGray5))

@@ -49,7 +49,7 @@ struct BSDTourMapView: View {
             onBack: onBack,
             onLocate: onLocate
         ) {
-            BSDTourCloudOverlay()
+            MapCloudOverlay()
         } bottomOverlay: {
             bottomOverlay
         }
@@ -110,7 +110,7 @@ struct BSDTourMapView: View {
             Spacer()
 
             HStack {
-                HypeRadarPointsBadge(points: flow.earnedPoints)
+                MapPointsBadge(points: flow.earnedPoints)
 
                 Spacer()
             }

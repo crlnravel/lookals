@@ -53,7 +53,7 @@ struct HypeRadarMapView: View {
             onBack: onBack,
             onLocate: onLocate
         ) {
-            BSDTourCloudOverlay()
+            MapCloudOverlay()
         } bottomOverlay: {
             bottomOverlay
         }
@@ -109,7 +109,7 @@ struct HypeRadarMapView: View {
         VStack(spacing: 0) {
             Spacer()
 
-            BSDTourBottomStatusCard(phase: phase, place: state.place)
+            HypeRadarBottomStatusCard(phase: phase, place: state.place)
                 .padding(.horizontal, 20)
                 .padding(.bottom, bottomPadding)
         }
@@ -120,11 +120,11 @@ struct HypeRadarMapView: View {
             Spacer()
 
             HStack {
-                HypeRadarPointsBadge(points: selectedQuizOption == nil ? 0 : 30)
+                MapPointsBadge(points: selectedQuizOption == nil ? 0 : 30)
 
                 Spacer()
 
-                HypeRadarCameraButton(action: onOpenCamera)
+                MapCameraButton(action: onOpenCamera)
             }
             .padding(.horizontal, 20)
             .padding(.bottom, bottomPadding)
