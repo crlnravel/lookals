@@ -129,7 +129,6 @@ struct HypeRadarMapView: View {
         case .arrived:
             ZStack {
                 bottomStatusCard(state: state, bottomPadding: 32)
-                mapUtilityControls(bottomPadding: 224)
             }
 
         case .shakeYourPhone:
