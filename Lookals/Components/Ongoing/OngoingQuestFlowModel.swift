@@ -11,6 +11,8 @@ import Observation
 @MainActor
 @Observable
 final class OngoingQuestFlowModel {
+    @ObservationIgnored private var drawingCountdownTask: Task<Void, Never>?
+
     private(set) var quests: [OngoingQuest]
     private(set) var currentQuestIndex: Int
     private(set) var currentStepIndex: Int
@@ -78,6 +80,31 @@ final class OngoingQuestFlowModel {
         drawingData = data
     }
 
+    func startDrawingCountdown(for step: OngoingQuestStep) {
+        drawingCountdownTask?.cancel()
+
+        guard let durationSeconds = step.durationSeconds else {
+            drawingRemainingSeconds = 0
+            return
+        }
+
+        drawingRemainingSeconds = durationSeconds
+        drawingCountdownTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1))
+
+                guard !Task.isCancelled else { return }
+
+                await self?.tickDrawingCountdown()
+            }
+        }
+    }
+
+    func stopDrawingCountdown() {
+        drawingCountdownTask?.cancel()
+        drawingCountdownTask = nil
+    }
+
     func setDrawingRemainingSeconds(_ seconds: Int) {
         drawingRemainingSeconds = max(0, seconds)
     }
@@ -125,6 +152,7 @@ final class OngoingQuestFlowModel {
             earnedPoints += currentQuest.reward
         }
 
+        stopDrawingCountdown()
         currentQuestIndex += 1
         currentStepIndex = 0
         isWidgetExpanded = false
@@ -132,9 +160,23 @@ final class OngoingQuestFlowModel {
     }
 
     private func prepareCurrentStep() {
+        stopDrawingCountdown()
         selectedQuizOption = nil
         qrValidationMessage = nil
         drawingRemainingSeconds = currentStep?.durationSeconds ?? 0
+    }
+
+    private func tickDrawingCountdown() {
+        guard drawingRemainingSeconds > 0 else {
+            stopDrawingCountdown()
+            return
+        }
+
+        drawingRemainingSeconds -= 1
+
+        if drawingRemainingSeconds == 0 {
+            stopDrawingCountdown()
+        }
     }
 }
 

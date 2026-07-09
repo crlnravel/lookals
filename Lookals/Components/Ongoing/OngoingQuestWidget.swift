@@ -67,9 +67,16 @@ struct OngoingQuestWidget: View {
                 step: step,
                 remainingSeconds: flow.drawingRemainingSeconds
             ) {
-                DrawingCanvasPlaceholder()
+                DrawingCanvasView(drawingData: $flow.drawingData)
             } onSubmit: {
+                flow.stopDrawingCountdown()
                 flow.advance()
+            }
+            .task(id: step.id) {
+                flow.startDrawingCountdown(for: step)
+            }
+            .onDisappear {
+                flow.stopDrawingCountdown()
             }
 
         case .findOut:
