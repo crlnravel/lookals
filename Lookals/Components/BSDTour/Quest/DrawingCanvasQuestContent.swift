@@ -8,15 +8,15 @@
 import SwiftUI
 
 struct DrawingCanvasQuestContent<Canvas: View>: View {
-    let quest: OngoingQuest
-    let step: OngoingQuestStep
+    let quest: BSDQuest
+    let step: BSDQuestStep
     let remainingSeconds: Int
     let canvas: Canvas
     let onSubmit: () -> Void
 
     init(
-        quest: OngoingQuest,
-        step: OngoingQuestStep,
+        quest: BSDQuest,
+        step: BSDQuestStep,
         remainingSeconds: Int,
         @ViewBuilder canvas: () -> Canvas,
         onSubmit: @escaping () -> Void
@@ -74,13 +74,16 @@ struct DrawingCanvasPlaceholder: View {
 }
 
 #Preview {
-    DrawingCanvasQuestContent(
-        quest: OngoingQuestDemoData.quests[1],
-        step: OngoingQuestDemoData.quests[1].steps[1],
-        remainingSeconds: 20
+    BSDQuestContentPreviewContainer(
+        quest: BSDTourQuestDemoData.quests[1],
+        step: BSDTourQuestDemoData.quests[1].steps[1]
     ) {
-        DrawingCanvasPlaceholder()
-    } onSubmit: {}
-    .frame(maxWidth: 360)
-    .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 32, style: .continuous))
+        DrawingCanvasQuestContent(
+            quest: BSDTourQuestDemoData.quests[1],
+            step: BSDTourQuestDemoData.quests[1].steps[1],
+            remainingSeconds: 20
+        ) {
+            DrawingCanvasPlaceholder()
+        } onSubmit: {}
+    }
 }

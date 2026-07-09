@@ -1,5 +1,5 @@
 //
-//  OngoingQuestFlowModel.swift
+//  BSDTourFlowModel.swift
 //  Lookals
 //
 //  Created by Carleano Ravelza Wongso on 10/07/26.
@@ -10,10 +10,10 @@ import Observation
 
 @MainActor
 @Observable
-final class OngoingQuestFlowModel {
+final class BSDTourFlowModel {
     @ObservationIgnored private var drawingCountdownTask: Task<Void, Never>?
 
-    private(set) var quests: [OngoingQuest]
+    private(set) var quests: [BSDQuest]
     private(set) var currentQuestIndex: Int
     private(set) var currentStepIndex: Int
     private(set) var earnedPoints: Int
@@ -28,7 +28,7 @@ final class OngoingQuestFlowModel {
     var qrValidationMessage: String?
 
     init(
-        quests: [OngoingQuest] = OngoingQuestDemoData.quests,
+        quests: [BSDQuest] = BSDTourQuestDemoData.quests,
         currentQuestIndex: Int = 0,
         currentStepIndex: Int = 0,
         earnedPoints: Int = 0,
@@ -50,11 +50,15 @@ final class OngoingQuestFlowModel {
         prepareCurrentStep()
     }
 
-    var currentQuest: OngoingQuest? {
+    deinit {
+        drawingCountdownTask?.cancel()
+    }
+
+    var currentQuest: BSDQuest? {
         quests[safe: currentQuestIndex]
     }
 
-    var currentStep: OngoingQuestStep? {
+    var currentStep: BSDQuestStep? {
         currentQuest?.steps[safe: currentStepIndex]
     }
 
@@ -62,19 +66,19 @@ final class OngoingQuestFlowModel {
         currentQuest == nil
     }
 
-    func updateTextResponse(_ response: String, for step: OngoingQuestStep) {
+    func updateTextResponse(_ response: String, for step: BSDQuestStep) {
         textResponses[step.id] = response
     }
 
-    func textResponse(for step: OngoingQuestStep) -> String {
+    func textResponse(for step: BSDQuestStep) -> String {
         textResponses[step.id, default: ""]
     }
 
-    func updateCapturedPhotoData(_ data: Data, for step: OngoingQuestStep) {
+    func updateCapturedPhotoData(_ data: Data, for step: BSDQuestStep) {
         capturedPhotoData[step.id] = data
     }
 
-    func hasCapturedPhoto(for step: OngoingQuestStep) -> Bool {
+    func hasCapturedPhoto(for step: BSDQuestStep) -> Bool {
         capturedPhotoData[step.id] != nil
     }
 
@@ -82,7 +86,7 @@ final class OngoingQuestFlowModel {
         drawingData = data
     }
 
-    private func startDrawingCountdown(for step: OngoingQuestStep) {
+    private func startDrawingCountdown(for step: BSDQuestStep) {
         drawingCountdownTask?.cancel()
 
         guard let durationSeconds = step.durationSeconds else {
@@ -111,7 +115,7 @@ final class OngoingQuestFlowModel {
         drawingRemainingSeconds = max(0, seconds)
     }
 
-    func validateQRPayload(_ payload: String, for step: OngoingQuestStep) -> Bool {
+    func validateQRPayload(_ payload: String, for step: BSDQuestStep) -> Bool {
         scannedQRPayloads[step.id] = payload
 
         guard let expectedQRPayload = step.expectedQRPayload else {

@@ -53,7 +53,7 @@ struct HypeRadarMapView: View {
             onBack: onBack,
             onLocate: onLocate
         ) {
-            OngoingCloudOverlay()
+            BSDTourCloudOverlay()
         } bottomOverlay: {
             bottomOverlay
         }
@@ -109,7 +109,7 @@ struct HypeRadarMapView: View {
         VStack(spacing: 0) {
             Spacer()
 
-            OngoingBottomStatusCard(phase: phase, place: state.place)
+            BSDTourBottomStatusCard(phase: phase, place: state.place)
                 .padding(.horizontal, 20)
                 .padding(.bottom, bottomPadding)
         }

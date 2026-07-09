@@ -1,5 +1,5 @@
 //
-//  OngoingBottomStatusCard.swift
+//  BSDTourBottomStatusCard.swift
 //  Lookals
 //
 //  Created by Carleano Ravelza Wongso on 09/07/26.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct OngoingBottomStatusCard: View {
+struct BSDTourBottomStatusCard: View {
     let phase: HypeRadarMapPhase
     let place: HypeRadarMapPlace
 
@@ -92,13 +92,13 @@ struct OngoingBottomStatusCard: View {
 }
 
 #Preview("Going to Meeting Point Card") {
-    OngoingBottomStatusCard(phase: .goingToMeetingPoint)
+    BSDTourBottomStatusCard(phase: .goingToMeetingPoint)
         .padding(20)
         .background(Color(.systemGray5))
 }
 
 #Preview("Arrived Card") {
-    OngoingBottomStatusCard(phase: .arrived)
+    BSDTourBottomStatusCard(phase: .arrived)
         .padding(20)
         .background(Color(.systemGray5))
 }

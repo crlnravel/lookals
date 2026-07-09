@@ -166,14 +166,18 @@ private struct QuizOptionRow: View {
 }
 
 #Preview {
-    QuizQuestContent(
-        questNumber: 1,
-        title: "Quiz",
-        question: "What's the name of Kelontong Poet-Tea owner?",
-        options: ["Julian Yang", "Kevin Halim", "Carleano Ravel", "Gisella Jayanta"],
-        selectedOption: .constant("Carleano Ravel"),
-        reward: 30,
-        onSubmit: {}
-    )
-    .background(Color(.systemBackground))
+    BSDQuestContentPreviewContainer(
+        quest: BSDTourQuestDemoData.quests[0],
+        step: BSDTourQuestDemoData.quests[0].steps[1]
+    ) {
+        QuizQuestContent(
+            questNumber: 1,
+            title: "Quiz",
+            question: "What's the name of Kelontong Poet-Tea owner?",
+            options: ["Julian Yang", "Kevin Halim", "Carleano Ravel", "Gisella Jayanta"],
+            selectedOption: .constant("Carleano Ravel"),
+            reward: 30,
+            onSubmit: {}
+        )
+    }
 }

@@ -1,5 +1,5 @@
 //
-//  OngoingQuestCollapsedContent.swift
+//  BSDTourQuestCollapsedContent.swift
 //  Lookals
 //
 //  Created by Carleano Ravelza Wongso on 10/07/26.
@@ -7,9 +7,9 @@
 
 import SwiftUI
 
-struct OngoingQuestCollapsedContent: View {
-    let quest: OngoingQuest
-    let step: OngoingQuestStep
+struct BSDTourQuestCollapsedContent: View {
+    let quest: BSDQuest
+    let step: BSDQuestStep
 
     var body: some View {
         HStack(spacing: 16) {
@@ -39,9 +39,9 @@ struct OngoingQuestCollapsedContent: View {
 }
 
 #Preview {
-    OngoingQuestCollapsedContent(
-        quest: OngoingQuestDemoData.quests[1],
-        step: OngoingQuestDemoData.quests[1].steps[0]
+    BSDTourQuestCollapsedContent(
+        quest: BSDTourQuestDemoData.quests[1],
+        step: BSDTourQuestDemoData.quests[1].steps[0]
     )
     .padding()
     .background(Color(.systemGray5))

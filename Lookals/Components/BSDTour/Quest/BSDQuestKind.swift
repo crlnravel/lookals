@@ -1,11 +1,11 @@
 //
-//  OngoingQuestKind.swift
+//  BSDQuestKind.swift
 //  Lookals
 //
 //  Created by Carleano Ravelza Wongso on 10/07/26.
 //
 
-enum OngoingQuestKind: Equatable {
+enum BSDQuestKind: Equatable {
     case quest
     case sideQuest
 

@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct ArtistIntroQuestContent: View {
-    let quest: OngoingQuest
-    let step: OngoingQuestStep
+    let quest: BSDQuest
+    let step: BSDQuestStep
     let onNext: () -> Void
 
     var body: some View {
@@ -39,11 +39,14 @@ struct ArtistIntroQuestContent: View {
 }
 
 #Preview {
-    ArtistIntroQuestContent(
-        quest: OngoingQuestDemoData.quests[1],
-        step: OngoingQuestDemoData.quests[1].steps[0],
-        onNext: {}
-    )
-    .frame(maxWidth: 360)
-    .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 32, style: .continuous))
+    BSDQuestContentPreviewContainer(
+        quest: BSDTourQuestDemoData.quests[1],
+        step: BSDTourQuestDemoData.quests[1].steps[0]
+    ) {
+        ArtistIntroQuestContent(
+            quest: BSDTourQuestDemoData.quests[1],
+            step: BSDTourQuestDemoData.quests[1].steps[0],
+            onNext: {}
+        )
+    }
 }

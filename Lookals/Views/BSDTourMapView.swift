@@ -1,5 +1,5 @@
 //
-//  OngoingQuestDemoMapView.swift
+//  BSDTourMapView.swift
 //  Lookals
 //
 //  Created by Carleano Ravelza Wongso on 10/07/26.
@@ -9,13 +9,13 @@ import CoreLocation
 import MapKit
 import SwiftUI
 
-struct OngoingQuestDemoMapView: View {
+struct BSDTourMapView: View {
     let onBack: () -> Void
     let onLocate: () -> Void
 
-    @State private var flow: OngoingQuestFlowModel
-    @State private var cameraStep: OngoingQuestStep?
-    @State private var qrStep: OngoingQuestStep?
+    @State private var flow: BSDTourFlowModel
+    @State private var cameraStep: BSDQuestStep?
+    @State private var qrStep: BSDQuestStep?
 
     private let region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: -6.3016, longitude: 106.6519),
@@ -26,13 +26,13 @@ struct OngoingQuestDemoMapView: View {
         onBack: @escaping () -> Void = {},
         onLocate: @escaping () -> Void = {}
     ) {
-        self._flow = State(initialValue: OngoingQuestFlowModel())
+        self._flow = State(initialValue: BSDTourFlowModel())
         self.onBack = onBack
         self.onLocate = onLocate
     }
 
     init(
-        flow: OngoingQuestFlowModel,
+        flow: BSDTourFlowModel,
         onBack: @escaping () -> Void = {},
         onLocate: @escaping () -> Void = {}
     ) {
@@ -49,7 +49,7 @@ struct OngoingQuestDemoMapView: View {
             onBack: onBack,
             onLocate: onLocate
         ) {
-            OngoingCloudOverlay()
+            BSDTourCloudOverlay()
         } bottomOverlay: {
             bottomOverlay
         }
@@ -96,7 +96,7 @@ struct OngoingQuestDemoMapView: View {
             if flow.isComplete {
                 completionCard
             } else {
-                OngoingQuestWidget(
+                BSDTourQuestWidget(
                     flow: flow,
                     onPhotoRequested: presentCamera,
                     onQRScanRequested: presentQRScanner
@@ -153,22 +153,22 @@ struct OngoingQuestDemoMapView: View {
         }
     }
 
-    private func presentCamera(for step: OngoingQuestStep) {
+    private func presentCamera(for step: BSDQuestStep) {
         cameraStep = step
     }
 
-    private func presentQRScanner(for step: OngoingQuestStep) {
+    private func presentQRScanner(for step: BSDQuestStep) {
         qrStep = step
     }
 }
 
-#Preview("Ongoing Quest Demo Map") {
-    OngoingQuestDemoMapView()
+#Preview("BSD Tour Quest Demo Map") {
+    BSDTourMapView()
 }
 
-#Preview("Ongoing Quest Demo Map - Drawing") {
-    OngoingQuestDemoMapView(
-        flow: OngoingQuestFlowModel(
+#Preview("BSD Tour Quest Demo Map - Drawing") {
+    BSDTourMapView(
+        flow: BSDTourFlowModel(
             currentQuestIndex: 1,
             currentStepIndex: 1,
             earnedPoints: 30,
@@ -177,10 +177,10 @@ struct OngoingQuestDemoMapView: View {
     )
 }
 
-#Preview("Ongoing Quest Demo Map - Complete") {
-    OngoingQuestDemoMapView(
-        flow: OngoingQuestFlowModel(
-            currentQuestIndex: OngoingQuestDemoData.quests.count,
+#Preview("BSD Tour Quest Demo Map - Complete") {
+    BSDTourMapView(
+        flow: BSDTourFlowModel(
+            currentQuestIndex: BSDTourQuestDemoData.quests.count,
             currentStepIndex: 0,
             earnedPoints: 70,
             isWidgetExpanded: false

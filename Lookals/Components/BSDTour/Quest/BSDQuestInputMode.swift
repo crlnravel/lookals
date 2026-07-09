@@ -1,11 +1,11 @@
 //
-//  OngoingQuestInputMode.swift
+//  BSDQuestInputMode.swift
 //  Lookals
 //
 //  Created by Carleano Ravelza Wongso on 10/07/26.
 //
 
-enum OngoingQuestInputMode: Equatable {
+enum BSDQuestInputMode: Equatable {
     case text
     case currency
 

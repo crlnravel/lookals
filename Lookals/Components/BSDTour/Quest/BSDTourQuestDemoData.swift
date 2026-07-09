@@ -1,15 +1,15 @@
 //
-//  OngoingQuestDemoData.swift
+//  BSDTourQuestDemoData.swift
 //  Lookals
 //
 //  Created by Carleano Ravelza Wongso on 10/07/26.
 //
 
-enum OngoingQuestDemoData {
+enum BSDTourQuestDemoData {
     nonisolated static let q2ExpectedQRPayload = "lookals:l2:q2:confirm"
 
-    nonisolated static let quests: [OngoingQuest] = [
-        OngoingQuest(
+    nonisolated static let quests: [BSDQuest] = [
+        BSDQuest(
             id: "l1-q1",
             locationCode: "L1",
             questCode: "Q1",
@@ -18,7 +18,7 @@ enum OngoingQuestDemoData {
             title: "Look Around!",
             reward: 30,
             steps: [
-                OngoingQuestStep(
+                BSDQuestStep(
                     id: "l1-q1-look-around",
                     kind: .lookAround,
                     title: "Look Around!",
@@ -31,14 +31,14 @@ enum OngoingQuestDemoData {
                     expectedQRPayload: nil,
                     durationSeconds: nil
                 ),
-                OngoingQuestStep(
+                BSDQuestStep(
                     id: "l1-q1-quiz",
                     kind: .quiz,
                     title: "Quiz",
                     prompt: "",
                     footnote: nil,
                     imageName: nil,
-                    quiz: OngoingQuestQuiz(
+                    quiz: BSDQuestQuiz(
                         question: "What’s the name of the plant?",
                         options: [
                             "Alocasia Watsoniana",
@@ -55,7 +55,7 @@ enum OngoingQuestDemoData {
                 )
             ]
         ),
-        OngoingQuest(
+        BSDQuest(
             id: "l2-sq1",
             locationCode: "L2",
             questCode: "SQ1",
@@ -64,7 +64,7 @@ enum OngoingQuestDemoData {
             title: "Be an Artist!",
             reward: 5,
             steps: [
-                OngoingQuestStep(
+                BSDQuestStep(
                     id: "l2-sq1-intro",
                     kind: .artistIntro,
                     title: "Be an Artist!",
@@ -77,7 +77,7 @@ enum OngoingQuestDemoData {
                     expectedQRPayload: nil,
                     durationSeconds: 20
                 ),
-                OngoingQuestStep(
+                BSDQuestStep(
                     id: "l2-sq1-drawing",
                     kind: .drawingCanvas,
                     title: "Be an Artist!",
@@ -92,7 +92,7 @@ enum OngoingQuestDemoData {
                 )
             ]
         ),
-        OngoingQuest(
+        BSDQuest(
             id: "l2-q2",
             locationCode: "L2",
             questCode: "Q2",
@@ -101,7 +101,7 @@ enum OngoingQuestDemoData {
             title: "Look Around!",
             reward: 30,
             steps: [
-                OngoingQuestStep(
+                BSDQuestStep(
                     id: "l2-q2-look-around",
                     kind: .lookAround,
                     title: "Look Around!",
@@ -114,7 +114,7 @@ enum OngoingQuestDemoData {
                     expectedQRPayload: nil,
                     durationSeconds: nil
                 ),
-                OngoingQuestStep(
+                BSDQuestStep(
                     id: "l2-q2-find-out",
                     kind: .findOut,
                     title: "Lets Find Out!",
@@ -127,7 +127,7 @@ enum OngoingQuestDemoData {
                     expectedQRPayload: nil,
                     durationSeconds: nil
                 ),
-                OngoingQuestStep(
+                BSDQuestStep(
                     id: "l2-q2-confirm",
                     kind: .qrConfirm,
                     title: "Confirm",
@@ -142,7 +142,7 @@ enum OngoingQuestDemoData {
                 )
             ]
         ),
-        OngoingQuest(
+        BSDQuest(
             id: "l2-sq2",
             locationCode: "L2",
             questCode: "SQ2",
@@ -151,7 +151,7 @@ enum OngoingQuestDemoData {
             title: "Lets Find Out!",
             reward: 5,
             steps: [
-                OngoingQuestStep(
+                BSDQuestStep(
                     id: "l2-sq2-find-out",
                     kind: .findOut,
                     title: "Lets Find Out!",

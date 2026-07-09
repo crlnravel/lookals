@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct LookAroundQuestContent: View {
-    let quest: OngoingQuest
-    let step: OngoingQuestStep
+    let quest: BSDQuest
+    let step: BSDQuestStep
     let onNext: () -> Void
 
     var body: some View {
@@ -57,11 +57,14 @@ struct LookAroundQuestContent: View {
 }
 
 #Preview {
-    LookAroundQuestContent(
-        quest: OngoingQuestDemoData.quests[0],
-        step: OngoingQuestDemoData.quests[0].steps[0],
-        onNext: {}
-    )
-    .frame(maxWidth: 360)
-    .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 32, style: .continuous))
+    BSDQuestContentPreviewContainer(
+        quest: BSDTourQuestDemoData.quests[0],
+        step: BSDTourQuestDemoData.quests[0].steps[0]
+    ) {
+        LookAroundQuestContent(
+            quest: BSDTourQuestDemoData.quests[0],
+            step: BSDTourQuestDemoData.quests[0].steps[0],
+            onNext: {}
+        )
+    }
 }

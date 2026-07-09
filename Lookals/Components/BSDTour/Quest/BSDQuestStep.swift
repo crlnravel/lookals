@@ -1,11 +1,11 @@
 //
-//  OngoingQuestStep.swift
+//  BSDQuestStep.swift
 //  Lookals
 //
 //  Created by Carleano Ravelza Wongso on 10/07/26.
 //
 
-struct OngoingQuestStep: Identifiable, Equatable {
+struct BSDQuestStep: Identifiable, Equatable {
     enum Kind: Equatable {
         case lookAround
         case quiz
@@ -21,8 +21,8 @@ struct OngoingQuestStep: Identifiable, Equatable {
     let prompt: String
     let footnote: String?
     let imageName: String?
-    let quiz: OngoingQuestQuiz?
-    let inputMode: OngoingQuestInputMode?
+    let quiz: BSDQuestQuiz?
+    let inputMode: BSDQuestInputMode?
     let primaryActionTitle: String
     let expectedQRPayload: String?
     let durationSeconds: Int?

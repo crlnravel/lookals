@@ -1,5 +1,5 @@
 //
-//  OngoingCloudOverlay.swift
+//  BSDTourCloudOverlay.swift
 //  Lookals
 //
 //  Created by Carleano Ravelza Wongso on 09/07/26.
@@ -7,14 +7,14 @@
 
 import SwiftUI
 
-struct OngoingCloudOverlay: View {
+struct BSDTourCloudOverlay: View {
     private let clouds = [
-        OngoingCloudPlacement(x: 0.18, y: 0.12, width: 260, opacity: 1, rotation: -8),
-        OngoingCloudPlacement(x: 0.68, y: 0.13, width: 320, opacity: 1, rotation: 7),
-        OngoingCloudPlacement(x: 0.86, y: 0.34, width: 280, opacity: 1, rotation: -12),
-        OngoingCloudPlacement(x: 0.22, y: 0.80, width: 300, opacity: 1, rotation: 10),
-        OngoingCloudPlacement(x: 0.70, y: 0.86, width: 340, opacity: 1, rotation: -5),
-        OngoingCloudPlacement(x: 0.47, y: 0.43, width: 360, opacity: 1, rotation: 4)
+        BSDTourCloudPlacement(x: 0.18, y: 0.12, width: 260, opacity: 1, rotation: -8),
+        BSDTourCloudPlacement(x: 0.68, y: 0.13, width: 320, opacity: 1, rotation: 7),
+        BSDTourCloudPlacement(x: 0.86, y: 0.34, width: 280, opacity: 1, rotation: -12),
+        BSDTourCloudPlacement(x: 0.22, y: 0.80, width: 300, opacity: 1, rotation: 10),
+        BSDTourCloudPlacement(x: 0.70, y: 0.86, width: 340, opacity: 1, rotation: -5),
+        BSDTourCloudPlacement(x: 0.47, y: 0.43, width: 360, opacity: 1, rotation: 4)
     ]
 
     var body: some View {
@@ -42,7 +42,7 @@ struct OngoingCloudOverlay: View {
     }
 }
 
-private struct OngoingCloudPlacement: Identifiable {
+private struct BSDTourCloudPlacement: Identifiable {
     let id = UUID()
     let x: CGFloat
     let y: CGFloat
@@ -51,13 +51,13 @@ private struct OngoingCloudPlacement: Identifiable {
     let rotation: Double
 }
 
-#Preview("Ongoing Cloud Overlay") {
+#Preview("BSD Tour Cloud Overlay") {
     ZStack {
         Color(.systemBlue)
             .opacity(0.35)
             .ignoresSafeArea()
 
-        OngoingCloudOverlay()
+        BSDTourCloudOverlay()
             .ignoresSafeArea()
     }
 }

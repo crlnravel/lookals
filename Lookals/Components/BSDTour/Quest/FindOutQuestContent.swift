@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct FindOutQuestContent: View {
-    let quest: OngoingQuest
-    let step: OngoingQuestStep
+    let quest: BSDQuest
+    let step: BSDQuestStep
     @Binding var response: String
     let hasCapturedPhoto: Bool
     let onPhoto: () -> Void
@@ -78,16 +78,19 @@ struct FindOutQuestContent: View {
         @State private var response = ""
 
         var body: some View {
-            FindOutQuestContent(
-                quest: OngoingQuestDemoData.quests[3],
-                step: OngoingQuestDemoData.quests[3].steps[0],
-                response: $response,
-                hasCapturedPhoto: false,
-                onPhoto: {},
-                onSubmit: {}
-            )
-            .frame(maxWidth: 360)
-            .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 32, style: .continuous))
+            BSDQuestContentPreviewContainer(
+                quest: BSDTourQuestDemoData.quests[3],
+                step: BSDTourQuestDemoData.quests[3].steps[0]
+            ) {
+                FindOutQuestContent(
+                    quest: BSDTourQuestDemoData.quests[3],
+                    step: BSDTourQuestDemoData.quests[3].steps[0],
+                    response: $response,
+                    hasCapturedPhoto: false,
+                    onPhoto: {},
+                    onSubmit: {}
+                )
+            }
         }
     }
 

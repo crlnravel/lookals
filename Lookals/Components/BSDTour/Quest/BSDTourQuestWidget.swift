@@ -1,5 +1,5 @@
 //
-//  OngoingQuestWidget.swift
+//  BSDTourQuestWidget.swift
 //  Lookals
 //
 //  Created by Carleano Ravelza Wongso on 10/07/26.
@@ -7,16 +7,16 @@
 
 import SwiftUI
 
-struct OngoingQuestWidget: View {
-    @Bindable var flow: OngoingQuestFlowModel
+struct BSDTourQuestWidget: View {
+    @Bindable var flow: BSDTourFlowModel
 
-    let onPhotoRequested: (OngoingQuestStep) -> Void
-    let onQRScanRequested: (OngoingQuestStep) -> Void
+    let onPhotoRequested: (BSDQuestStep) -> Void
+    let onQRScanRequested: (BSDQuestStep) -> Void
 
     init(
-        flow: OngoingQuestFlowModel,
-        onPhotoRequested: @escaping (OngoingQuestStep) -> Void = { _ in },
-        onQRScanRequested: @escaping (OngoingQuestStep) -> Void = { _ in }
+        flow: BSDTourFlowModel,
+        onPhotoRequested: @escaping (BSDQuestStep) -> Void = { _ in },
+        onQRScanRequested: @escaping (BSDQuestStep) -> Void = { _ in }
     ) {
         self.flow = flow
         self.onPhotoRequested = onPhotoRequested
@@ -32,7 +32,7 @@ struct OngoingQuestWidget: View {
                 horizontalPadding: 20,
                 edgePadding: 16
             ) {
-                OngoingQuestCollapsedContent(quest: quest, step: step)
+                BSDTourQuestCollapsedContent(quest: quest, step: step)
             } expandedContent: {
                 expandedContent(quest: quest, step: step)
             }
@@ -40,7 +40,7 @@ struct OngoingQuestWidget: View {
     }
 
     @ViewBuilder
-    private func expandedContent(quest: OngoingQuest, step: OngoingQuestStep) -> some View {
+    private func expandedContent(quest: BSDQuest, step: BSDQuestStep) -> some View {
         switch step.kind {
         case .lookAround:
             LookAroundQuestContent(quest: quest, step: step, onNext: flow.advance)
@@ -92,7 +92,7 @@ struct OngoingQuestWidget: View {
         }
     }
 
-    private func textBinding(for step: OngoingQuestStep) -> Binding<String> {
+    private func textBinding(for step: BSDQuestStep) -> Binding<String> {
         Binding {
             flow.textResponse(for: step)
         } set: { newValue in
@@ -101,15 +101,15 @@ struct OngoingQuestWidget: View {
     }
 }
 
-#Preview("Ongoing Quest Widget") {
+#Preview("BSD Tour Quest Widget") {
     struct PreviewHost: View {
-        @State private var flow = OngoingQuestFlowModel(isWidgetExpanded: true)
+        @State private var flow = BSDTourFlowModel(isWidgetExpanded: true)
 
         var body: some View {
             ZStack {
                 Color(.systemGray5).ignoresSafeArea()
 
-                OngoingQuestWidget(flow: flow)
+                BSDTourQuestWidget(flow: flow)
             }
         }
     }

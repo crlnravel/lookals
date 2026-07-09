@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct QRConfirmQuestContent: View {
-    let quest: OngoingQuest
-    let step: OngoingQuestStep
+    let quest: BSDQuest
+    let step: BSDQuestStep
     let validationMessage: String?
     let onScan: () -> Void
 
@@ -55,12 +55,15 @@ struct QRConfirmQuestContent: View {
 }
 
 #Preview {
-    QRConfirmQuestContent(
-        quest: OngoingQuestDemoData.quests[2],
-        step: OngoingQuestDemoData.quests[2].steps[2],
-        validationMessage: "That QR code does not match this quest. Try again.",
-        onScan: {}
-    )
-    .frame(maxWidth: 360)
-    .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 32, style: .continuous))
+    BSDQuestContentPreviewContainer(
+        quest: BSDTourQuestDemoData.quests[2],
+        step: BSDTourQuestDemoData.quests[2].steps[2]
+    ) {
+        QRConfirmQuestContent(
+            quest: BSDTourQuestDemoData.quests[2],
+            step: BSDTourQuestDemoData.quests[2].steps[2],
+            validationMessage: "That QR code does not match this quest. Try again.",
+            onScan: {}
+        )
+    }
 }
