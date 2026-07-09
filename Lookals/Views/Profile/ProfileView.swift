@@ -10,13 +10,28 @@ struct ProfileView: View {
                 
                 // Profile Info
                 VStack(spacing: 8) {
-                    Image(viewModel.user.profileImageName)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 100, height: 100)
-                        .foregroundColor(.gray)
-                        .padding(4)
-                        .background(Circle().stroke(Color.orange, lineWidth: 2))
+                    if let imageData = viewModel.user.customImageData,
+                        let uiImage = UIImage(data: imageData) {
+                            
+                        // Show the custom uploaded photo
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 100, height: 100)
+                            .clipShape(Circle())
+                            .padding(4)
+                            .background(Circle().stroke(Color.orange, lineWidth: 2))
+                        } else {
+                            // Show the default asset image
+                            Image(viewModel.user.profileImageName)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 100, height: 100)
+                                .foregroundColor(.gray)
+                                .clipShape(Circle())
+                                .padding(4)
+                                .background(Circle().stroke(Color.orange, lineWidth: 2))
+                        }
                     
                     Text(viewModel.user.nickname)
                         .font(.title)

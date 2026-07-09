@@ -55,6 +55,9 @@ struct User {
     var profileImageName: String
     var myCoupons: [Coupon] = [] // NEW: Stores the user's coupons
     
+    // save image when user upload photo
+    var customImageData: Data? = nil
+    
     var level: UserLevel {
         if points < 100 { return .level1 }
         else if points < 300 { return .level2 }
