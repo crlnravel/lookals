@@ -46,7 +46,9 @@ struct ProfileView: View {
                 
                 // Progress Bar
                 VStack(spacing: 6) {
-                    SegmentedProgressBar()
+                    // calculate progress bar
+                    let currentProgress = min(Double(viewModel.user.points) / 1000.0, 1.0)
+                    SegmentedProgressBar(progress: currentProgress)
                         .padding(.horizontal, 40)
                     
                     Text("You've reached \(viewModel.user.points) cumulative point!")
@@ -132,11 +134,32 @@ struct ProfileView: View {
 }
 
 struct SegmentedProgressBar: View {
+    var progress: Double // A value between 0.0 (empty) and 1.0 (full)
+    
     var body: some View {
-        HStack(spacing: 2) {
-            ForEach(0..<5) { _ in
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                // 1. The Background (Gray Segments)
+                HStack(spacing: 2) {
+                    ForEach(0..<5, id: \.self) { _ in
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                    }
+                }
+                
+                // 2. The Foreground (Orange Fill)
+                // Its width is a percentage of the total width based on the progress
                 Rectangle()
-                    .fill(Color.gray.opacity(0.3))
+                    .fill(Color.orange)
+                    .frame(width: max(0, geometry.size.width * CGFloat(progress)))
+            }
+            // 3. Mask the whole thing so the 2px gaps stay transparent!
+            .mask {
+                HStack(spacing: 2) {
+                    ForEach(0..<5, id: \.self) { _ in
+                        Rectangle()
+                    }
+                }
             }
         }
         .frame(height: 18)

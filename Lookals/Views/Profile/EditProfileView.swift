@@ -20,30 +20,41 @@ struct EditProfileView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 
-                // 3. Wrap the image in a PhotosPicker
                 CenterView {
+                    // Profile Picture
                     PhotosPicker(selection: $selectedPhotoItem, matching: .images, photoLibrary: .shared()) {
                         ZStack(alignment: .bottomTrailing) {
                             
-                            // Display the custom image if selected, otherwise show the default asset
-                            if let customProfileImage {
-                                customProfileImage
+                            // 🔥 CHANGED: Now looking at draftUser instead of viewModel.user
+                            if let imageData = draftUser.customImageData,
+                               let uiImage = UIImage(data: imageData) {
+                                
+                                // Show the custom uploaded photo
+                                Image(uiImage: uiImage)
                                     .resizable()
-                                    .scaledToFill() // Use Fill so rectangular photos don't look squished
+                                    .scaledToFill()
                                     .frame(width: 100, height: 100)
                                     .clipShape(Circle())
+                                    .padding(4)
+                                    .background(Circle().stroke(Color.orange, lineWidth: 2))
+                                    
                             } else {
+                                
+                                // 🔥 CHANGED: Now looking at draftUser instead of viewModel.user
+                                // Show the default asset image
                                 Image(draftUser.profileImageName)
                                     .resizable()
                                     .scaledToFill()
                                     .frame(width: 100, height: 100)
                                     .foregroundColor(.gray)
                                     .clipShape(Circle())
+                                    .padding(4)
+                                    .background(Circle().stroke(Color.orange, lineWidth: 2))
                             }
                             
                             Image(systemName: "camera.fill")
                                 .font(.caption)
-                                .foregroundColor(.black) // Added color so it's visible on any background
+                                .foregroundColor(.black)
                                 .padding(6)
                                 .background(Circle().fill(Color.white))
                                 .shadow(radius: 2)

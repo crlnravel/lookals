@@ -9,76 +9,79 @@ import SwiftUI
 struct CouponCard: View {
     let coupon: Coupon
     let isOwned: Bool
-    let onRedeem: () -> Void
+    var canRedeem: Bool = true // Defaults to true so "My Coupons" stay colored
+    let action: () -> Void
     
     var body: some View {
+        // 1. Dynamic theme color logic
+        let themeColor = (isOwned || canRedeem) ? Color.orange : Color.gray.opacity(0.4)
+        
         HStack(spacing: 0) {
-            Rectangle()
-                .fill(Color.orange)
+            // Left Edge Accent Bar
+            themeColor
                 .frame(width: 12)
             
+            // Text and Buttons Content
             VStack(alignment: .leading, spacing: 8) {
                 Text(coupon.title)
-                    .font(.system(size: 20))
+                    .font(.title3)
                     .fontWeight(.bold)
                     .foregroundColor(.black)
                 
                 Text(coupon.description)
-                    .font(.system(size: 13))
-                    .foregroundColor(.gray)
+                    .font(.subheadline)
+                    .foregroundColor(.black.opacity(0.8))
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
                 
                 Spacer(minLength: 0)
                 
-                HStack(spacing: 12) {
-                    if isOwned {
-                        Text("Owned")
-                            .font(.caption)
-                            .fontWeight(.bold)
-                            .foregroundColor(.gray)
-                    } else {
-                        Button(action: onRedeem) {
+                HStack {
+                    if !isOwned {
+                        Button(action: action) {
                             Text("Redeem")
-                                .font(.caption)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(canRedeem ? .white : .gray)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 6)
-                                .background(Capsule().fill(Color.orange))
+                                .background(Capsule().fill(canRedeem ? themeColor : Color.gray.opacity(0.2)))
                         }
-                        
+                        // Disables the button if they don't have enough points!
+                        .disabled(!canRedeem)
+                    }
+                    
+                    Spacer()
+                    
+                    if !isOwned {
                         HStack(spacing: 4) {
                             Image(systemName: "star.fill")
-                                .font(.system(size: 10))
-                                .foregroundColor(.white)
-                                .padding(4)
-                                .background(Circle().fill(Color.orange))
+                                .font(.system(size: 10, weight: .bold)) // slightly smaller star
+                                .foregroundColor(.white) // Star is always white
+                                .padding(5) // Space between the star and the edge of the circle
+                                .background(Circle().fill(themeColor)) // The dynamic colored circle
                             
                             Text("\(coupon.pointsRequired)")
-                                .font(.caption)
+                                .font(.subheadline)
                                 .fontWeight(.bold)
-                                .foregroundColor(.orange)
+                                .foregroundColor(themeColor)
                         }
                     }
                 }
             }
             .padding(.vertical, 16)
-            .padding(.horizontal, 12)
+            .padding(.horizontal, 16)
             .frame(maxWidth: .infinity, alignment: .leading)
             
-            ZStack {
-                Color.gray.opacity(0.2)
-                Image(coupon.imageName)
-                    .font(.largeTitle)
-                    .foregroundColor(.gray)
-            }
-            .frame(width: 110)
-            .clipped()
+            // Image on the Right
+            Image(coupon.imageName)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 130, height: 130)
+                .clipped()
         }
-        .frame(height: 120)
+        .frame(height: 130)
         .background(Color.white)
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
     }
 }
