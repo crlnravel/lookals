@@ -48,35 +48,7 @@ struct EditProfileView: View {
                 CustomDropdown(title: "Gender", selection: $draftUser.gender)
                 
                 // Interests
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Interests").font(.subheadline).bold()
-                    
-                    // Using FlowLayout instead of LazyVGrid
-                    FlowLayout(spacing: 10) {
-                        ForEach(Interest.allCases, id: \.self) { interest in
-                            let isSelected = draftUser.interests.contains(interest)
-                            
-                            Text(interest.rawValue)
-                                .font(.system(size: 15, weight: .regular))
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 16) // Slightly wider horizontal padding looks better with larger text
-                                .background(
-                                    Capsule().fill(isSelected ? Color.orange.opacity(0.8) : Color.white)
-                                )
-                                .overlay(
-                                    Capsule().stroke(isSelected ? Color.clear : Color.gray.opacity(0.3), lineWidth: 1)
-                                )
-                                .foregroundColor(.black)
-                                .onTapGesture {
-                                    if isSelected {
-                                        draftUser.interests.remove(interest)
-                                    } else {
-                                        draftUser.interests.insert(interest)
-                                    }
-                                }
-                        }
-                    }
-                }
+                InterestSelectionView(selectedInterests: $draftUser.interests)
                 
                 CustomDropdown(title: "Personality", selection: $draftUser.personality)
             }
