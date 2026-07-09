@@ -17,7 +17,7 @@ struct OngoingBottomStatusCard: View {
                 goingContent
             case .arrived:
                 arrivedContent
-            case .shakeYourPhone:
+            case .shakeYourPhone, .quiz:
                 arrivedContent
             }
         }

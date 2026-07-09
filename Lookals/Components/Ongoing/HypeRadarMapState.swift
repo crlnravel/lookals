@@ -9,4 +9,5 @@ enum HypeRadarMapState {
     case goingToMeetingPoint
     case arrived
     case shakeYourPhone
+    case quiz
 }

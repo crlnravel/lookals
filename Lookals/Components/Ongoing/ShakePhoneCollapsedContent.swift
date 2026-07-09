@@ -36,7 +36,7 @@ struct ShakePhoneCollapsedContent: View {
 
 struct ShakePhoneParticipantRow: View {
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 8) {
             RadarMarker(style: .avatar)
                 .frame(width: 28, height: 28)
                 .scaleEffect(0.64)
