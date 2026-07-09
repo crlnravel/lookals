@@ -152,8 +152,8 @@ struct HypeRadarMapView: View {
         case .quiz:
             ZStack {
                 if !isQuizWidgetExpanded {
-                    bottomStatusCard(state: .arrived, bottomPadding: isQuizWidgetVisible ? 132 : 32)
-                    mapUtilityControls(bottomPadding: isQuizWidgetVisible ? 324 : 224)
+                    bottomStatusCard(state: .arrived, bottomPadding: isQuizWidgetVisible ? 130 : 32)
+                    mapUtilityControls(bottomPadding: isQuizWidgetVisible ? 265 : 165)
                 }
 
                 if isQuizWidgetVisible {

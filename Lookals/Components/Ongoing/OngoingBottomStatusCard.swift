@@ -24,7 +24,7 @@ struct OngoingBottomStatusCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .frame(maxWidth: 392)
         .padding(.horizontal, 24)
-        .padding(.vertical, 24)
+        .padding(.vertical, 16)
         .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
         .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
         .shadow(color: .black.opacity(0.16), radius: 20, x: 0, y: 10)
@@ -52,8 +52,8 @@ struct OngoingBottomStatusCard: View {
     }
 
     private var arrivedContent: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading) {
                 Text("Kelontong Poet-Tea")
                     .font(.title3.weight(.heavy))
                     .foregroundStyle(.primary)
@@ -70,7 +70,7 @@ struct OngoingBottomStatusCard: View {
 
                 RadarMarker(style: .avatar)
                     .frame(width: 28, height: 28)
-                    .scaleEffect(0.78)
+                    .scaleEffect(0.7)
                     .padding(.leading, -16)
 
                 RadarMarker(style: .smallDestination)
