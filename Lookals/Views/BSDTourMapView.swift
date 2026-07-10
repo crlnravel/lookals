@@ -176,6 +176,28 @@ struct BSDTourMapView: View {
     )
 }
 
+#Preview("BSD Tour Quest Demo Map - Q6 Clue") {
+    BSDTourMapView(
+        flow: BSDTourFlowModel(
+            currentQuestIndex: 7,
+            currentStepIndex: 1,
+            earnedPoints: 160,
+            isWidgetExpanded: true
+        )
+    )
+}
+
+#Preview("BSD Tour Quest Demo Map - Q6 Final Clue") {
+    BSDTourMapView(
+        flow: BSDTourFlowModel(
+            currentQuestIndex: 7,
+            currentStepIndex: 3,
+            earnedPoints: 160,
+            isWidgetExpanded: true
+        )
+    )
+}
+
 #Preview("BSD Tour Quest Demo Map - Complete") {
     BSDTourMapView(
         flow: BSDTourFlowModel(
