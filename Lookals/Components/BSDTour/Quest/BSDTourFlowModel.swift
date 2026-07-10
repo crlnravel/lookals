@@ -26,13 +26,15 @@ final class BSDTourFlowModel {
     var capturedPhotoData: [String: Data]
     var scannedQRPayloads: [String: String]
     var qrValidationMessage: String?
+    var isShowingQuestSuccess: Bool
 
     init(
         quests: [BSDQuest] = BSDTourQuestDemoData.quests,
         currentQuestIndex: Int = 0,
         currentStepIndex: Int = 0,
         earnedPoints: Int = 0,
-        isWidgetExpanded: Bool = false
+        isWidgetExpanded: Bool = false,
+        isShowingQuestSuccess: Bool = false
     ) {
         self.quests = quests
         self.currentQuestIndex = currentQuestIndex
@@ -46,6 +48,7 @@ final class BSDTourFlowModel {
         self.capturedPhotoData = [:]
         self.scannedQRPayloads = [:]
         self.qrValidationMessage = nil
+        self.isShowingQuestSuccess = isShowingQuestSuccess
 
         prepareCurrentStep()
     }
@@ -63,6 +66,10 @@ final class BSDTourFlowModel {
     }
 
     var canGoBack: Bool {
+        guard !isShowingQuestSuccess else {
+            return false
+        }
+
         guard
             currentStepIndex > 0,
             let currentQuest,
@@ -88,6 +95,10 @@ final class BSDTourFlowModel {
 
     var isComplete: Bool {
         currentQuest == nil
+    }
+
+    var questSuccessTitle: String {
+        currentStep?.kind == .quiz ? "Correct!" : "Quest Complete!"
     }
 
     func updateTextResponse(_ response: String, for step: BSDQuestStep) {
@@ -153,13 +164,13 @@ final class BSDTourFlowModel {
     }
 
     func advance() {
-        guard let quest = currentQuest else { return }
+        guard !isShowingQuestSuccess, let quest = currentQuest else { return }
 
         if currentStepIndex < quest.steps.count - 1 {
             currentStepIndex += 1
             prepareCurrentStep()
         } else {
-            completeCurrentQuest()
+            showQuestSuccess()
         }
     }
 
@@ -167,6 +178,16 @@ final class BSDTourFlowModel {
         guard canGoBack else { return }
 
         currentStepIndex -= 1
+        prepareCurrentStep()
+    }
+
+    func continueAfterQuestSuccess() {
+        guard isShowingQuestSuccess else { return }
+
+        isShowingQuestSuccess = false
+        currentQuestIndex += 1
+        currentStepIndex = 0
+        isWidgetExpanded = false
         prepareCurrentStep()
     }
 
@@ -181,19 +202,19 @@ final class BSDTourFlowModel {
         capturedPhotoData = [:]
         scannedQRPayloads = [:]
         qrValidationMessage = nil
+        isShowingQuestSuccess = false
         prepareCurrentStep()
     }
 
-    private func completeCurrentQuest() {
+    private func showQuestSuccess() {
         if let currentQuest {
             earnedPoints += currentQuest.reward
         }
 
         stopDrawingCountdown()
-        currentQuestIndex += 1
-        currentStepIndex = 0
-        isWidgetExpanded = false
-        prepareCurrentStep()
+        qrValidationMessage = nil
+        isWidgetExpanded = true
+        isShowingQuestSuccess = true
     }
 
     private func prepareCurrentStep() {
