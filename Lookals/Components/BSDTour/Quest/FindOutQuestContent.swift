@@ -16,6 +16,8 @@ struct FindOutQuestContent: View {
     let onPhoto: () -> Void
     let onSubmit: () -> Void
 
+    @FocusState private var isResponseFocused: Bool
+
     var body: some View {
         VStack(spacing: 28) {
             QuestExpandedHeader(label: quest.displayLabel, title: step.title, reward: quest.reward)
@@ -35,6 +37,7 @@ struct FindOutQuestContent: View {
                     .padding(.vertical, 16)
                     .frame(minHeight: 64, alignment: .topLeading)
                     .keyboardType(step.inputMode == .currency ? .numberPad : .default)
+                    .focused($isResponseFocused)
                     .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                     .overlay {
                         RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -60,6 +63,22 @@ struct FindOutQuestContent: View {
         .padding(.horizontal, 32)
         .padding(.top, 32)
         .padding(.bottom, 28)
+        .background {
+            Color.clear
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    isResponseFocused = false
+                }
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+
+                Button("Done") {
+                    isResponseFocused = false
+                }
+            }
+        }
     }
 
     private var canContinue: Bool {
