@@ -10,7 +10,9 @@ enum BSDTourQuestDemoData {
     nonisolated static let q3ExpectedQRPayload = "lookals:l3:q3:confirm"
     nonisolated static let q4ExpectedQRPayload = "lookals:l4:q4:confirm"
     nonisolated static let q5ExpectedQRPayload = "lookals:l5:q5:confirm"
-    nonisolated static let q6ExpectedQRPayload = "lookals:l6:q6:confirm"
+    nonisolated static let q6Clue1ExpectedQRPayload = "lookals:l6:q6:clue-1"
+    nonisolated static let q6Clue2ExpectedQRPayload = "lookals:l6:q6:clue-2"
+    nonisolated static let q6FinalExpectedQRPayload = "lookals:l6:q6:final"
     nonisolated static let q7ExpectedQRPayload = "lookals:l7:q7:confirm"
     nonisolated static let q8ExpectedQRPayload = "lookals:l8:q8:confirm"
 
@@ -360,16 +362,42 @@ enum BSDTourQuestDemoData {
                     durationSeconds: nil
                 ),
                 BSDQuestStep(
-                    id: "l6-q6-confirm",
+                    id: "l6-q6-clue-1",
                     kind: .qrConfirm,
-                    title: "Confirm",
-                    prompt: "Find the next clue!",
+                    title: "Clue 1",
+                    prompt: "Scan the QR code on the first treasure clue.",
                     footnote: nil,
                     imageName: nil,
                     quiz: nil,
                     inputMode: nil,
-                    primaryActionTitle: "Scan to Confirm",
-                    expectedQRPayload: q6ExpectedQRPayload,
+                    primaryActionTitle: "Scan Clue 1",
+                    expectedQRPayload: q6Clue1ExpectedQRPayload,
+                    durationSeconds: nil
+                ),
+                BSDQuestStep(
+                    id: "l6-q6-clue-2",
+                    kind: .qrConfirm,
+                    title: "Clue 2",
+                    prompt: "Nice. Follow the clue and scan the second QR code.",
+                    footnote: nil,
+                    imageName: nil,
+                    quiz: nil,
+                    inputMode: nil,
+                    primaryActionTitle: "Scan Clue 2",
+                    expectedQRPayload: q6Clue2ExpectedQRPayload,
+                    durationSeconds: nil
+                ),
+                BSDQuestStep(
+                    id: "l6-q6-final",
+                    kind: .qrConfirm,
+                    title: "Final Clue",
+                    prompt: "Find the final QR code to unlock the treasure.",
+                    footnote: nil,
+                    imageName: nil,
+                    quiz: nil,
+                    inputMode: nil,
+                    primaryActionTitle: "Finish Hunt",
+                    expectedQRPayload: q6FinalExpectedQRPayload,
                     durationSeconds: nil
                 )
             ]
