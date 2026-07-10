@@ -62,6 +62,30 @@ final class BSDTourFlowModel {
         currentQuest?.steps[safe: currentStepIndex]
     }
 
+    var canGoBack: Bool {
+        guard
+            currentStepIndex > 0,
+            let currentQuest,
+            let currentStep
+        else {
+            return false
+        }
+
+        if currentStep.kind.isTimerStep {
+            return false
+        }
+
+        if currentQuest.id == "l6-q6", currentStep.kind == .qrConfirm {
+            return false
+        }
+
+        if currentQuest.steps[safe: currentStepIndex - 1]?.kind.isTimerStep == true {
+            return false
+        }
+
+        return true
+    }
+
     var isComplete: Bool {
         currentQuest == nil
     }
@@ -139,6 +163,13 @@ final class BSDTourFlowModel {
         }
     }
 
+    func goBack() {
+        guard canGoBack else { return }
+
+        currentStepIndex -= 1
+        prepareCurrentStep()
+    }
+
     func restart() {
         currentQuestIndex = 0
         currentStepIndex = 0
@@ -194,6 +225,12 @@ final class BSDTourFlowModel {
         if drawingRemainingSeconds == 0 {
             stopDrawingCountdown()
         }
+    }
+}
+
+private extension BSDQuestStep.Kind {
+    var isTimerStep: Bool {
+        self == .drawingCanvas || self == .timedPhysicalChallenge
     }
 }
 
