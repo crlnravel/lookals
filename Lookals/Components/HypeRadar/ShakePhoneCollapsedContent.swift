@@ -8,6 +8,12 @@
 import SwiftUI
 
 struct ShakePhoneCollapsedContent: View {
+    let participants: [BSDTourParticipantDisplay]
+
+    init(participants: [BSDTourParticipantDisplay] = []) {
+        self.participants = participants
+    }
+
     var body: some View {
         HStack(spacing: 16) {
             Color.clear
@@ -22,7 +28,7 @@ struct ShakePhoneCollapsedContent: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.78)
 
-                ShakePhoneParticipantRow()
+                ShakePhoneParticipantRow(participants: participants)
             }
 
             Spacer(minLength: 0)
@@ -35,19 +41,29 @@ struct ShakePhoneCollapsedContent: View {
 }
 
 struct ShakePhoneParticipantRow: View {
+    let participants: [BSDTourParticipantDisplay]
+
+    init(participants: [BSDTourParticipantDisplay] = []) {
+        self.participants = participants
+    }
+
     var body: some View {
         HStack(spacing: 8) {
-            RadarMarker(style: .avatar)
-                .frame(width: 28, height: 28)
-                .scaleEffect(0.64)
-
-            RadarMarker(style: .avatar)
-                .frame(width: 28, height: 28)
-                .scaleEffect(0.64)
-
-            ShakePhoneParticipantRing(color: .blue)
-            ShakePhoneParticipantRing(color: .green)
-            ShakePhoneParticipantRing(color: .red)
+            ForEach(participants) { participant in
+                if participant.hasJoined {
+                    RadarMarker(
+                        style: .participantAvatar(
+                            imageName: participant.avatarImageName,
+                            ringColor: participant.ringColor,
+                            label: participant.name
+                        )
+                    )
+                    .frame(width: 28, height: 28)
+                    .scaleEffect(0.64)
+                } else {
+                    ShakePhoneParticipantRing(color: participant.ringColor)
+                }
+            }
         }
         .accessibilityHidden(true)
     }

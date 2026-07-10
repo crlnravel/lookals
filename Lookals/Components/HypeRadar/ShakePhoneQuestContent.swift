@@ -8,6 +8,12 @@
 import SwiftUI
 
 struct ShakePhoneQuestContent: View {
+    let participants: [BSDTourParticipantDisplay]
+
+    init(participants: [BSDTourParticipantDisplay] = []) {
+        self.participants = participants
+    }
+
     var body: some View {
         VStack(spacing: 24) {
             ShakePhoneAsset(size: .large)
@@ -30,7 +36,7 @@ struct ShakePhoneQuestContent: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            ShakePhoneExpandedParticipantCluster()
+            ShakePhoneExpandedParticipantCluster(participants: participants)
                 .padding(.top, 8)
         }
         .padding(.horizontal, 40)
@@ -42,28 +48,55 @@ struct ShakePhoneQuestContent: View {
 }
 
 private struct ShakePhoneExpandedParticipantCluster: View {
+    let participants: [BSDTourParticipantDisplay]
+
     var body: some View {
         ZStack {
-            ShakePhoneParticipantRing(color: .red, size: 58)
-                .offset(x: -44, y: -28)
-
-            ShakePhoneParticipantRing(color: .blue, size: 76)
-                .offset(x: 40, y: -44)
-
-            ShakePhoneParticipantRing(color: .green, size: 64)
-                .offset(x: 76, y: 28)
-
-            RadarMarker(style: .avatar)
-                .frame(width: 48, height: 48)
-                .offset(x: -64, y: 32)
-
-            RadarMarker(style: .avatar)
-                .frame(width: 42, height: 42)
-                .scaleEffect(0.86)
-                .offset(x: -12, y: 24)
+            ForEach(Array(participants.enumerated()), id: \.element.id) { index, participant in
+                participantMarker(participant)
+                    .frame(width: markerSize(at: index), height: markerSize(at: index))
+                    .scaleEffect(index == 4 ? 0.86 : 1)
+                    .offset(offset(at: index))
+            }
         }
         .frame(width: 196, height: 132)
         .accessibilityHidden(true)
+    }
+
+    @ViewBuilder
+    private func participantMarker(_ participant: BSDTourParticipantDisplay) -> some View {
+        if participant.hasJoined {
+            RadarMarker(
+                style: .participantAvatar(
+                    imageName: participant.avatarImageName,
+                    ringColor: participant.ringColor,
+                    label: participant.name
+                )
+            )
+        } else {
+            ShakePhoneParticipantRing(color: participant.ringColor, size: 58)
+        }
+    }
+
+    private func offset(at index: Int) -> CGSize {
+        let offsets = [
+            CGSize(width: -64, height: 32),
+            CGSize(width: -12, height: 24),
+            CGSize(width: -44, height: -28),
+            CGSize(width: 40, height: -44),
+            CGSize(width: 76, height: 28)
+        ]
+        return offsets[safe: index] ?? .zero
+    }
+
+    private func markerSize(at index: Int) -> CGFloat {
+        [48, 42, 58, 76, 64][safe: index] ?? 48
+    }
+}
+
+private extension Array {
+    subscript(safe index: Int) -> Element? {
+        indices.contains(index) ? self[index] : nil
     }
 }
 

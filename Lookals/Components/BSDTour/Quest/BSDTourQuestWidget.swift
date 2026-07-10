@@ -38,7 +38,13 @@ struct BSDTourQuestWidget: View {
                     BSDQuestSuccessContent(
                         quest: quest,
                         title: flow.questSuccessTitle,
+                        subtitle: flow.questSuccessSubtitle,
                         onContinue: flow.continueAfterQuestSuccess
+                    )
+                } else if flow.isWaitingForGroupCompletion {
+                    BSDQuestWaitingContent(
+                        quest: quest,
+                        message: flow.groupWaitMessage ?? "Waiting for everyone to finish this quest."
                     )
                 } else {
                     expandedContent(quest: quest, step: step)

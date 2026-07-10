@@ -33,7 +33,7 @@ struct ContentView: View {
         case .home:
             HomeView(dependencies: dependencies)
         case .bsdTour:
-            BSDTourMapView(onBack: showHome)
+            BSDTourMapView(dependencies: dependencies, onBack: showHome)
         }
     }
 

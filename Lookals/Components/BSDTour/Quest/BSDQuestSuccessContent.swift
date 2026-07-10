@@ -10,7 +10,20 @@ import SwiftUI
 struct BSDQuestSuccessContent: View {
     let quest: BSDQuest
     let title: String
+    let subtitle: String?
     let onContinue: () -> Void
+
+    init(
+        quest: BSDQuest,
+        title: String,
+        subtitle: String? = nil,
+        onContinue: @escaping () -> Void
+    ) {
+        self.quest = quest
+        self.title = title
+        self.subtitle = subtitle
+        self.onContinue = onContinue
+    }
 
     var body: some View {
         ZStack {
@@ -28,6 +41,14 @@ struct BSDQuestSuccessContent: View {
                         .foregroundStyle(.primary)
                         .multilineTextAlignment(.center)
                         .minimumScaleFactor(0.82)
+
+                    if let subtitle {
+                        Text(subtitle)
+                            .font(.headline.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .lineSpacing(4)
+                    }
                 }
                 .padding(.top, 88)
 
@@ -173,6 +194,7 @@ private struct ConfettiPiece: Identifiable {
         BSDQuestSuccessContent(
             quest: BSDTourQuestDemoData.quests[0],
             title: "Correct!",
+            subtitle: "Completed by You",
             onContinue: {}
         )
     }

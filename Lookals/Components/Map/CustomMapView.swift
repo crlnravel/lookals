@@ -15,11 +15,21 @@ struct CustomMapMarker: Identifiable {
     let yRatio: CGFloat
 }
 
+struct CustomCoordinateMapMarker: Identifiable {
+    let id: String
+    let style: RadarMarkerStyle
+    let coordinate: CLLocationCoordinate2D
+}
+
 struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
     let title: String
     let onBack: () -> Void
     let onLocate: () -> Void
     let markers: [CustomMapMarker]
+    let coordinateMarkers: [CustomCoordinateMapMarker]
+    let activeRoute: MKRoute?
+    let showsUserLocation: Bool
+    let cameraRegion: MKCoordinateRegion
     let overlay: () -> Overlay
     let bottomOverlay: () -> BottomOverlay
 
@@ -29,6 +39,9 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
         title: String,
         region: MKCoordinateRegion,
         markers: [CustomMapMarker] = [],
+        coordinateMarkers: [CustomCoordinateMapMarker] = [],
+        activeRoute: MKRoute? = nil,
+        showsUserLocation: Bool = false,
         onBack: @escaping () -> Void = {},
         onLocate: @escaping () -> Void = {},
         @ViewBuilder overlay: @escaping () -> Overlay = { EmptyView() },
@@ -38,6 +51,10 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
         self.onBack = onBack
         self.onLocate = onLocate
         self.markers = markers
+        self.coordinateMarkers = coordinateMarkers
+        self.activeRoute = activeRoute
+        self.showsUserLocation = showsUserLocation
+        self.cameraRegion = region
         self.overlay = overlay
         self.bottomOverlay = bottomOverlay
         self._cameraPosition = State(initialValue: .region(region))
@@ -58,6 +75,11 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
             }
             .padding(.bottom, 10)
             .ignoresSafeArea()
+            .onChange(of: cameraRegionKey) {
+                withAnimation(.smooth(duration: 0.35)) {
+                    cameraPosition = .region(cameraRegion)
+                }
+            }
         }
     }
 
@@ -118,11 +140,30 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
     }
 
     private var mapBackground: some View {
-        Map(position: $cameraPosition, interactionModes: .pan)
+        Map(position: $cameraPosition, interactionModes: .all) {
+            if let activeRoute {
+                MapPolyline(activeRoute.polyline)
+                    .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round))
+            }
+
+            ForEach(coordinateMarkers) { marker in
+                Annotation(marker.style.accessibilityLabel, coordinate: marker.coordinate) {
+                    RadarMarker(style: marker.style)
+                }
+            }
+
+            if showsUserLocation {
+                UserAnnotation()
+            }
+        }
             .mapStyle(.standard(elevation: .flat, emphasis: .muted))
             .saturation(0.72)
             .opacity(0.82)
-            .overlay(Color.white.opacity(0.16))
+            .overlay {
+                Color.white
+                    .opacity(0.16)
+                    .allowsHitTesting(false)
+            }
             .accessibilityHidden(true)
     }
 
@@ -133,5 +174,16 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
                 .position(x: size.width * marker.xRatio, y: size.height * marker.yRatio)
         }
         .allowsHitTesting(false)
+    }
+
+    private var cameraRegionKey: String {
+        [
+            cameraRegion.center.latitude,
+            cameraRegion.center.longitude,
+            cameraRegion.span.latitudeDelta,
+            cameraRegion.span.longitudeDelta
+        ]
+        .map { String(format: "%.6f", $0) }
+        .joined(separator: ":")
     }
 }

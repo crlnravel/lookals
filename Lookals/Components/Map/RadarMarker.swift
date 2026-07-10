@@ -15,10 +15,16 @@ struct RadarMarker: View {
             switch style {
             case .avatar:
                 avatarMarker
+            case .participantAvatar(let imageName, let ringColor, _):
+                participantAvatarMarker(imageName: imageName, ringColor: ringColor)
             case .smallDestination:
                 destinationMarker
             case .place:
                 placeMarker
+            case .unknownCheckpoint:
+                unknownCheckpointMarker
+            case .landmark(let imageName, _):
+                landmarkMarker(imageName: imageName)
             case .mapBadge(let label):
                 mapBadge(label)
             }
@@ -35,6 +41,19 @@ struct RadarMarker: View {
             .overlay(
                 Circle()
                     .stroke(Color.accentColor, lineWidth: 5)
+            )
+            .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 4)
+    }
+
+    private func participantAvatarMarker(imageName: String?, ringColor: Color) -> some View {
+        Image(imageName ?? "AvatarPlaceholder")
+            .resizable()
+            .scaledToFill()
+            .frame(width: 44, height: 44)
+            .clipShape(Circle())
+            .overlay(
+                Circle()
+                    .stroke(ringColor, lineWidth: 5)
             )
             .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 4)
     }
@@ -71,6 +90,34 @@ struct RadarMarker: View {
             .shadow(color: .black.opacity(0.12), radius: 8, x: 0, y: 4)
     }
 
+    private var unknownCheckpointMarker: some View {
+        Image("BSDMap/QuestionMarkIcon")
+            .resizable()
+            .scaledToFit()
+            .frame(width: 44, height: 44)
+            .padding(8)
+            .background(Color.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 8))
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.brown.opacity(0.82), lineWidth: 4)
+            )
+            .shadow(color: .black.opacity(0.12), radius: 8, x: 0, y: 4)
+    }
+
+    private func landmarkMarker(imageName: String) -> some View {
+        Image(imageName)
+            .resizable()
+            .scaledToFit()
+            .frame(width: 44, height: 44)
+            .padding(8)
+            .background(Color.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 8))
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color(.systemGray), lineWidth: 3)
+            )
+            .shadow(color: .black.opacity(0.12), radius: 8, x: 0, y: 4)
+    }
+
     private func mapBadge(_ label: String) -> some View {
         Text(label)
             .font(.subheadline.weight(.heavy))
@@ -87,18 +134,27 @@ struct RadarMarker: View {
 
 enum RadarMarkerStyle {
     case avatar
+    case participantAvatar(imageName: String?, ringColor: Color, label: String)
     case smallDestination
     case place
+    case unknownCheckpoint
+    case landmark(imageName: String, label: String)
     case mapBadge(String)
 
     var accessibilityLabel: String {
         switch self {
         case .avatar:
             "Your location"
+        case .participantAvatar(_, _, let label):
+            label
         case .smallDestination:
             "Meeting point destination"
         case .place:
             "Kelontong Poet-Tea"
+        case .unknownCheckpoint:
+            "Unknown checkpoint"
+        case .landmark(_, let label):
+            label
         case .mapBadge(let label):
             "Map route \(label)"
         }

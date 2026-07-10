@@ -12,6 +12,9 @@ import Observation
 @Observable
 final class BSDTourFlowModel {
     @ObservationIgnored private var drawingCountdownTask: Task<Void, Never>?
+    @ObservationIgnored var onQuestCompletionRequested: ((BSDQuest) -> BSDTourQuestCompletionOutcome)?
+    @ObservationIgnored var onQuestSuccessContinued: ((BSDQuest) -> Void)?
+    @ObservationIgnored var onStepChanged: ((Int, Int) -> Void)?
 
     private(set) var quests: [BSDQuest]
     private(set) var currentQuestIndex: Int
@@ -27,6 +30,10 @@ final class BSDTourFlowModel {
     var scannedQRPayloads: [String: String]
     var qrValidationMessage: String?
     var isShowingQuestSuccess: Bool
+    var questSuccessTitleOverride: String?
+    var questSuccessSubtitle: String?
+    var isWaitingForGroupCompletion: Bool
+    var groupWaitMessage: String?
 
     init(
         quests: [BSDQuest] = BSDTourQuestDemoData.quests,
@@ -49,6 +56,10 @@ final class BSDTourFlowModel {
         self.scannedQRPayloads = [:]
         self.qrValidationMessage = nil
         self.isShowingQuestSuccess = isShowingQuestSuccess
+        self.questSuccessTitleOverride = nil
+        self.questSuccessSubtitle = nil
+        self.isWaitingForGroupCompletion = false
+        self.groupWaitMessage = nil
 
         prepareCurrentStep()
     }
@@ -98,7 +109,11 @@ final class BSDTourFlowModel {
     }
 
     var questSuccessTitle: String {
-        currentStep?.kind == .quiz ? "Correct!" : "Quest Complete!"
+        if let questSuccessTitleOverride {
+            return questSuccessTitleOverride
+        }
+
+        return currentStep?.kind == .quiz ? "Correct!" : "Quest Complete!"
     }
 
     func updateTextResponse(_ response: String, for step: BSDQuestStep) {
@@ -136,7 +151,7 @@ final class BSDTourFlowModel {
 
                 guard !Task.isCancelled else { return }
 
-                await self?.tickDrawingCountdown()
+                self?.tickDrawingCountdown()
             }
         }
     }
@@ -148,6 +163,10 @@ final class BSDTourFlowModel {
 
     func setDrawingRemainingSeconds(_ seconds: Int) {
         drawingRemainingSeconds = max(0, seconds)
+    }
+
+    func setEarnedPoints(_ points: Int) {
+        earnedPoints = max(0, points)
     }
 
     func validateQRPayload(_ payload: String, for step: BSDQuestStep) -> Bool {
@@ -169,6 +188,7 @@ final class BSDTourFlowModel {
         if currentStepIndex < quest.steps.count - 1 {
             currentStepIndex += 1
             prepareCurrentStep()
+            onStepChanged?(currentQuestIndex, currentStepIndex)
         } else {
             showQuestSuccess()
         }
@@ -179,16 +199,61 @@ final class BSDTourFlowModel {
 
         currentStepIndex -= 1
         prepareCurrentStep()
+        onStepChanged?(currentQuestIndex, currentStepIndex)
     }
 
     func continueAfterQuestSuccess() {
         guard isShowingQuestSuccess else { return }
 
+        let completedQuest = currentQuest
         isShowingQuestSuccess = false
-        currentQuestIndex += 1
-        currentStepIndex = 0
-        isWidgetExpanded = false
+
+        if let completedQuest, let onQuestSuccessContinued {
+            onQuestSuccessContinued(completedQuest)
+        } else {
+            currentQuestIndex += 1
+            currentStepIndex = 0
+            isWidgetExpanded = false
+            prepareCurrentStep()
+        }
+    }
+
+    func showExternalQuestSuccess(title: String, subtitle: String?) {
+        guard currentQuest != nil else { return }
+
+        stopDrawingCountdown()
+        qrValidationMessage = nil
+        questSuccessTitleOverride = title
+        questSuccessSubtitle = subtitle
+        isWaitingForGroupCompletion = false
+        groupWaitMessage = nil
+        isWidgetExpanded = true
+        isShowingQuestSuccess = true
+    }
+
+    func moveToQuest(
+        withID questID: String,
+        stepIndex: Int = 0,
+        expanded: Bool = true,
+        notifiesStepChange: Bool = true
+    ) {
+        guard let index = quests.firstIndex(where: { $0.id == questID }) else { return }
+
+        currentQuestIndex = index
+        currentStepIndex = stepIndex
+        isWidgetExpanded = expanded
+        selectedQuizOption = nil
+        qrValidationMessage = nil
+        questSuccessTitleOverride = nil
+        questSuccessSubtitle = nil
+        isShowingQuestSuccess = false
+        isWaitingForGroupCompletion = false
+        groupWaitMessage = nil
         prepareCurrentStep()
+
+        if notifiesStepChange {
+            onStepChanged?(currentQuestIndex, currentStepIndex)
+        }
     }
 
     func restart() {
@@ -202,17 +267,50 @@ final class BSDTourFlowModel {
         capturedPhotoData = [:]
         scannedQRPayloads = [:]
         qrValidationMessage = nil
+        questSuccessTitleOverride = nil
+        questSuccessSubtitle = nil
         isShowingQuestSuccess = false
+        isWaitingForGroupCompletion = false
+        groupWaitMessage = nil
         prepareCurrentStep()
     }
 
     private func showQuestSuccess() {
-        if let currentQuest {
-            earnedPoints += currentQuest.reward
+        guard let currentQuest else {
+            return
         }
 
+        if let outcome = onQuestCompletionRequested?(currentQuest) {
+            switch outcome {
+            case .showSuccess(let title, let subtitle):
+                stopDrawingCountdown()
+                qrValidationMessage = nil
+                questSuccessTitleOverride = title
+                questSuccessSubtitle = subtitle
+                isWaitingForGroupCompletion = false
+                groupWaitMessage = nil
+                isWidgetExpanded = true
+                isShowingQuestSuccess = true
+
+            case .waitForGroup(let message):
+                stopDrawingCountdown()
+                qrValidationMessage = nil
+                isWidgetExpanded = true
+                isShowingQuestSuccess = false
+                isWaitingForGroupCompletion = true
+                groupWaitMessage = message
+            }
+
+            return
+        }
+
+        earnedPoints += currentQuest.reward
         stopDrawingCountdown()
         qrValidationMessage = nil
+        questSuccessTitleOverride = nil
+        questSuccessSubtitle = nil
+        isWaitingForGroupCompletion = false
+        groupWaitMessage = nil
         isWidgetExpanded = true
         isShowingQuestSuccess = true
     }
@@ -221,6 +319,10 @@ final class BSDTourFlowModel {
         stopDrawingCountdown()
         selectedQuizOption = nil
         qrValidationMessage = nil
+        questSuccessTitleOverride = nil
+        questSuccessSubtitle = nil
+        isWaitingForGroupCompletion = false
+        groupWaitMessage = nil
 
         guard let currentStep else {
             drawingRemainingSeconds = 0

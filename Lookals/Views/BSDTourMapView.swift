@@ -10,225 +10,315 @@ import MapKit
 import SwiftUI
 
 struct BSDTourMapView: View {
+    @Environment(\.scenePhase) private var scenePhase
+
     let onBack: () -> Void
     let onLocate: () -> Void
 
-    @State private var flow: BSDTourFlowModel
+    @State private var viewModel: BSDTourViewModel
+    @State private var locationService = BSDTourLocationService()
+    @State private var shakeDetector = BSDTourShakeDetector()
     @State private var cameraStep: BSDQuestStep?
-
-    private let region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: -6.3016, longitude: 106.6519),
-        span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
-    )
+    @State private var hasStarted = false
 
     init(
+        dependencies: AppDependencies = .preview,
         onBack: @escaping () -> Void = {},
         onLocate: @escaping () -> Void = {}
     ) {
-        self._flow = State(initialValue: BSDTourFlowModel())
-        self.onBack = onBack
-        self.onLocate = onLocate
-    }
-
-    init(
-        flow: BSDTourFlowModel,
-        onBack: @escaping () -> Void = {},
-        onLocate: @escaping () -> Void = {}
-    ) {
-        self._flow = State(initialValue: flow)
+        self._viewModel = State(
+            initialValue: BSDTourViewModel(
+                persistenceStore: dependencies.bsdTourPersistenceStore
+            )
+        )
         self.onBack = onBack
         self.onLocate = onLocate
     }
 
     var body: some View {
         CustomMapView(
-            title: "BSD Quest Map",
-            region: region,
-            markers: markers,
+            title: viewModel.title,
+            region: viewModel.mapRegion,
+            markers: [],
+            coordinateMarkers: coordinateMarkers,
+            activeRoute: viewModel.activeRoute,
+            showsUserLocation: true,
             onBack: onBack,
-            onLocate: onLocate
+            onLocate: locateTapped
         ) {
-            MapCloudOverlay()
+            MapCloudOverlay(stage: viewModel.currentCloudStage)
         } bottomOverlay: {
             bottomOverlay
         }
         .sheet(item: $cameraStep) { step in
             CameraCaptureSheet { photoData in
-                flow.updateCapturedPhotoData(photoData, for: step)
+                viewModel.questFlow.updateCapturedPhotoData(photoData, for: step)
                 cameraStep = nil
-                flow.advance()
+                viewModel.questFlow.advance()
             } onCancel: {
                 cameraStep = nil
             }
         }
+        .sensoryFeedback(.success, trigger: viewModel.arrivalFeedbackTick)
+        .task {
+            guard !hasStarted else { return }
+            hasStarted = true
+            viewModel.start(locationService: locationService, shakeDetector: shakeDetector)
+            locationService.requestAuthorizationAndStart()
+        }
+        .onChange(of: locationService.authorization, initial: true) { _, newValue in
+            viewModel.updateLocationAuthorization(newValue)
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase == .active else { return }
+            viewModel.appBecameActive()
+        }
     }
 
-    private var markers: [CustomMapMarker] {
-        [
-            CustomMapMarker(id: "booth", style: .place, xRatio: 0.42, yRatio: 0.52),
-            CustomMapMarker(id: "avatar", style: .avatar, xRatio: 0.54, yRatio: 0.60),
-            CustomMapMarker(id: "l1", style: .mapBadge("L1"), xRatio: 0.24, yRatio: 0.34),
-            CustomMapMarker(id: "l2", style: .mapBadge("L2"), xRatio: 0.32, yRatio: 0.40),
-            CustomMapMarker(id: "l3", style: .mapBadge("L3"), xRatio: 0.44, yRatio: 0.45),
-            CustomMapMarker(id: "l4", style: .mapBadge("L4"), xRatio: 0.58, yRatio: 0.48),
-            CustomMapMarker(id: "l5", style: .mapBadge("L5"), xRatio: 0.68, yRatio: 0.57),
-            CustomMapMarker(id: "l6", style: .mapBadge("L6"), xRatio: 0.58, yRatio: 0.72),
-            CustomMapMarker(id: "l7", style: .mapBadge("L7"), xRatio: 0.42, yRatio: 0.76),
-            CustomMapMarker(id: "l8", style: .mapBadge("L8"), xRatio: 0.28, yRatio: 0.64)
-        ]
+    private var coordinateMarkers: [CustomCoordinateMapMarker] {
+        var markers: [CustomCoordinateMapMarker] = []
+
+        markers.append(contentsOf: checkpointMarkers)
+        markers.append(contentsOf: participantMarkers)
+
+        return markers
+    }
+
+    private var checkpointMarkers: [CustomCoordinateMapMarker] {
+        viewModel.checkpoints.compactMap { checkpoint in
+            guard let style = markerStyle(for: checkpoint) else {
+                return nil
+            }
+
+            return CustomCoordinateMapMarker(
+                id: "checkpoint-\(checkpoint.id)-\(style.accessibilityLabel)",
+                style: style,
+                coordinate: checkpoint.coordinate
+            )
+        }
+    }
+
+    private var participantMarkers: [CustomCoordinateMapMarker] {
+        viewModel.mapParticipants.map { participant in
+            CustomCoordinateMapMarker(
+                id: "participant-\(participant.id)",
+                style: .participantAvatar(
+                    imageName: participant.avatarImageName,
+                    ringColor: Color.bsdTourRingColor(named: participant.ringColorName),
+                    label: participant.name
+                ),
+                coordinate: participant.coordinate.locationCoordinate
+            )
+        }
     }
 
     @ViewBuilder
     private var bottomOverlay: some View {
         ZStack {
-            if !flow.isWidgetExpanded {
-                floatingProgressControls
+            baseControls
+
+            switch viewModel.phase {
+            case .unavailable:
+                unavailableOverlay
+
+            case .tourCompleted:
+                completionOverlay
+
+            case .tourEnded:
+                EmptyView()
+
+            default:
+                tourOverlay
             }
 
-            if flow.isComplete {
-                completionCard
-            } else {
+            debugOverlay
+        }
+    }
+
+    private var baseControls: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            HStack {
+                MapPointsBadge(points: viewModel.questFlow.earnedPoints)
+
+                Spacer()
+
+                MapCameraButton(action: {})
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, baseControlsBottomPadding)
+        }
+    }
+
+    private var baseControlsBottomPadding: CGFloat {
+        if viewModel.shouldShowQuestWidget, !viewModel.questFlow.isWidgetExpanded {
+            return 265
+        }
+
+        if viewModel.phase == .tourCompleted, !viewModel.isCompletionExpanded {
+            return 145
+        }
+
+        return 165
+    }
+
+    private var tourOverlay: some View {
+        ZStack {
+            if shouldShowStatusCard {
+                statusCard(bottomPadding: statusCardBottomPadding)
+            }
+
+            if viewModel.canShowShakeWidget {
+                shakeWidget
+            }
+
+            if viewModel.shouldShowQuestWidget {
                 BSDTourQuestWidget(
-                    flow: flow,
+                    flow: viewModel.questFlow,
                     onPhotoRequested: presentCamera
                 )
             }
         }
     }
 
-    private var floatingProgressControls: some View {
+    private var shouldShowStatusCard: Bool {
+        viewModel.shouldShowRouteCard ||
+        viewModel.phase == .waitingToShake ||
+        viewModel.phase == .joinedWaitingRoom ||
+        viewModel.shouldShowQuestWidget
+    }
+
+    private var statusCardBottomPadding: CGFloat {
+        if viewModel.canShowShakeWidget {
+            return 132
+        }
+
+        if viewModel.shouldShowQuestWidget, !viewModel.questFlow.isWidgetExpanded {
+            return 130
+        }
+
+        return 32
+    }
+
+    private func statusCard(bottomPadding: CGFloat) -> some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            BSDTourBottomStatusCard(
+                title: statusTitle,
+                subtitle: statusSubtitle,
+                progress: statusProgress,
+                isArrived: !viewModel.shouldShowRouteCard,
+                participants: viewModel.joinedParticipantsForDisplay
+            )
+            .padding(.horizontal, 20)
+            .padding(.bottom, bottomPadding)
+        }
+    }
+
+    private var statusTitle: String {
+        if viewModel.shouldShowRouteCard {
+            return viewModel.routeCardTitle
+        }
+
+        return viewModel.activeDestination?.name ?? "BSD Tour"
+    }
+
+    private var statusSubtitle: String {
+        if viewModel.shouldShowRouteCard {
+            return viewModel.routeCardSubtitle
+        }
+
+        return viewModel.arrivedCardSubtitle
+    }
+
+    private var statusProgress: Double {
+        viewModel.shouldShowRouteCard ? viewModel.routeProgress : 1
+    }
+
+    private var shakeWidget: some View {
+        ExpandableWidget(
+            isExpanded: $viewModel.isShakeWidgetExpanded,
+            collapsedMaxWidth: 392,
+            expandedMaxWidth: 360,
+            horizontalPadding: 20,
+            edgePadding: 16
+        ) {
+            ShakePhoneCollapsedContent(participants: viewModel.joinedParticipantsForDisplay)
+        } expandedContent: {
+            ShakePhoneQuestContent(participants: viewModel.joinedParticipantsForDisplay)
+        }
+    }
+
+    private var completionOverlay: some View {
+        ExpandableWidget(
+            isExpanded: $viewModel.isCompletionExpanded,
+            collapsedMaxWidth: 392,
+            expandedMaxWidth: 360,
+            horizontalPadding: 20,
+            edgePadding: 16
+        ) {
+            BSDTourCompletionCollapsedContent(points: viewModel.questFlow.earnedPoints)
+        } expandedContent: {
+            BSDTourCompletionExpandedContent(
+                points: viewModel.questFlow.earnedPoints,
+                participants: viewModel.joinedParticipantsForDisplay,
+                onFinish: viewModel.finishTour
+            )
+        }
+    }
+
+    private var unavailableOverlay: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            BSDTourUnavailableCard(onBack: onBack)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 32)
+        }
+    }
+
+    @ViewBuilder
+    private var debugOverlay: some View {
+        #if DEBUG
         VStack(spacing: 0) {
             Spacer()
 
             HStack {
-                MapPointsBadge(points: flow.earnedPoints)
-
+                BSDTourDebugControls(viewModel: viewModel, shakeDetector: shakeDetector)
                 Spacer()
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 125)
+            .padding(.bottom, 24)
         }
+        #else
+        EmptyView()
+        #endif
     }
 
-    private var completionCard: some View {
-        VStack(spacing: 0) {
-            Spacer()
-
-            VStack(spacing: 16) {
-                QuestRewardLabel(points: flow.earnedPoints)
-
-                VStack(spacing: 4) {
-                    Text("Quests Complete")
-                        .font(.title3.weight(.heavy))
-                        .foregroundStyle(.primary)
-
-                    Text("You finished the demo route.")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                }
-
-                PrimaryButton(
-                    "Restart",
-                    font: .headline.weight(.heavy),
-                    action: flow.restart
-                )
-            }
-            .frame(maxWidth: 392)
-            .padding(.horizontal, 24)
-            .padding(.vertical, 20)
-            .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
-            .shadow(color: .black.opacity(0.16), radius: 20, x: 0, y: 10)
-            .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
-            .padding(.horizontal, 20)
-            .padding(.bottom, 32)
+    private func markerStyle(for checkpoint: BSDTourCheckpoint) -> RadarMarkerStyle? {
+        if viewModel.snapshot.revealedCheckpointIDs.contains(checkpoint.id) {
+            return .landmark(imageName: checkpoint.landmarkImageName, label: checkpoint.name)
         }
+
+        if viewModel.activeDestination?.id == checkpoint.id,
+           viewModel.phase == .navigatingToMeetingPoint || viewModel.phase == .navigatingToCheckpoint {
+            return viewModel.phase == .navigatingToMeetingPoint ? .smallDestination : .unknownCheckpoint
+        }
+
+        return nil
     }
 
     private func presentCamera(for step: BSDQuestStep) {
         cameraStep = step
     }
 
+    private func locateTapped() {
+        onLocate()
+        locationService.requestAuthorizationAndStart()
+    }
 }
 
-#Preview("BSD Tour Quest Demo Map") {
+#Preview("BSD Tour Map") {
     BSDTourMapView()
-}
-
-#Preview("BSD Tour Quest Demo Map - Drawing") {
-    BSDTourMapView(
-        flow: BSDTourFlowModel(
-            currentQuestIndex: 1,
-            currentStepIndex: 1,
-            earnedPoints: 30,
-            isWidgetExpanded: true
-        )
-    )
-}
-
-#Preview("BSD Tour Quest Demo Map - Q3 Timer") {
-    BSDTourMapView(
-        flow: BSDTourFlowModel(
-            currentQuestIndex: 4,
-            currentStepIndex: 2,
-            earnedPoints: 70,
-            isWidgetExpanded: true
-        )
-    )
-}
-
-#Preview("BSD Tour Quest Demo Map - Q6 Clue") {
-    BSDTourMapView(
-        flow: BSDTourFlowModel(
-            currentQuestIndex: 7,
-            currentStepIndex: 1,
-            earnedPoints: 160,
-            isWidgetExpanded: true
-        )
-    )
-}
-
-#Preview("BSD Tour Quest Demo Map - Q6 Final Clue") {
-    BSDTourMapView(
-        flow: BSDTourFlowModel(
-            currentQuestIndex: 7,
-            currentStepIndex: 3,
-            earnedPoints: 160,
-            isWidgetExpanded: true
-        )
-    )
-}
-
-#Preview("BSD Tour Quest Demo Map - Quiz Success") {
-    BSDTourMapView(
-        flow: BSDTourFlowModel(
-            currentQuestIndex: 0,
-            currentStepIndex: 1,
-            earnedPoints: 30,
-            isWidgetExpanded: true,
-            isShowingQuestSuccess: true
-        )
-    )
-}
-
-#Preview("BSD Tour Quest Demo Map - Side Quest Success") {
-    BSDTourMapView(
-        flow: BSDTourFlowModel(
-            currentQuestIndex: 1,
-            currentStepIndex: 1,
-            earnedPoints: 35,
-            isWidgetExpanded: true,
-            isShowingQuestSuccess: true
-        )
-    )
-}
-
-#Preview("BSD Tour Quest Demo Map - Complete") {
-    BSDTourMapView(
-        flow: BSDTourFlowModel(
-            currentQuestIndex: BSDTourQuestDemoData.quests.count,
-            currentStepIndex: 0,
-            earnedPoints: BSDTourQuestDemoData.quests.reduce(0) { $0 + $1.reward },
-            isWidgetExpanded: false
-        )
-    )
 }
