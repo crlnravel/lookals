@@ -24,10 +24,19 @@ enum UserLevel: Int {
     
     var title: String {
         switch self {
-        case .level1: return "The Newcomer"
-        case .level2: return "The Explorer"
-        case .level3: return "The Enthusiast"
-        case .level4: return "The Master"
+        case .level1: return "Newcomer"
+        case .level2: return "Explorer"
+        case .level3: return "Regular"
+        case .level4: return "Lookals"
+        }
+    }
+    
+    var badgeImageName: String {
+        switch self {
+        case .level1: return "Newcomer"
+        case .level2: return "Explorer"
+        case .level3: return "Regular"
+        case .level4: return "Lookal"
         }
     }
 }
@@ -51,17 +60,20 @@ struct User {
     var gender: Gender
     var personality: Personality
     var interests: Set<Interest>
-    var points: Int
+    
+    var exp: Int      // exp buat badge
+    var points: Int   // point buat coupon
+    
     var profileImageName: String
-    var myCoupons: [Coupon] = [] // NEW: Stores the user's coupons
+    var myCoupons: [Coupon] = []
     
     // save image when user upload photo
     var customImageData: Data? = nil
     
     var level: UserLevel {
-        if points < 100 { return .level1 }
-        else if points < 300 { return .level2 }
-        else if points < 600 { return .level3 }
+        if exp < 200 { return .level1 }
+        else if exp < 400 { return .level2 }
+        else if exp < 600 { return .level3 }
         else { return .level4 }
     }
 }
@@ -75,6 +87,7 @@ extension User {
         gender: .female,
         personality: .extroverted,
         interests: [.coffeeTea, .photography, .game],
+        exp: 0,
         points: 0,
         profileImageName: "Profile Picture",
         myCoupons: []
