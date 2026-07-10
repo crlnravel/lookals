@@ -13,10 +13,11 @@ struct LookAroundQuestContent: View {
     let onNext: () -> Void
 
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 32) {
             QuestExpandedHeader(label: quest.displayLabel, title: step.title, reward: quest.reward)
+                .padding(.bottom, -24)
 
-            VStack(spacing: 4) {
+            VStack(spacing: 2) {
                 Text(step.prompt)
                     .font(.default.weight(.semibold))
                     .multilineTextAlignment(.center)
@@ -36,11 +37,19 @@ struct LookAroundQuestContent: View {
                 Image(imageName)
                     .resizable()
                     .scaledToFill()
+                    .scaleEffect(1.08) // adjust until transparent edges disappear
                     .frame(maxWidth: .infinity)
-                    .aspectRatio(0.82, contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                    .shadow(color: .black.opacity(0.18), radius: 14, x: 0, y: 8)
-                    .accessibilityLabel(step.prompt)
+                    .frame(height: 300)
+                    .clipped()
+                    .clipShape(
+                        RoundedRectangle(cornerRadius: 50, style: .continuous)
+                    )
+                    .shadow(
+                        color: .black.opacity(0.4),
+                        radius: 50,
+                        x: 0,
+                        y: 8
+                    )
             }
 
             PrimaryButton(
@@ -48,7 +57,6 @@ struct LookAroundQuestContent: View {
                 font: .headline.weight(.heavy),
                 action: onNext
             )
-            .padding(.top, 24)
         }
         .padding(.horizontal, 32)
         .padding(.top, 32)

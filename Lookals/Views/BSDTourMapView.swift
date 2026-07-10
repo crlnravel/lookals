@@ -106,7 +106,7 @@ struct BSDTourMapView: View {
                 Spacer()
             }
             .padding(.horizontal, 20)
-            .padding(.bottom, 152)
+            .padding(.bottom, 125)
         }
     }
 

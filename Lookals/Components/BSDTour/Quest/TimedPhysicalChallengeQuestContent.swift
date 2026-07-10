@@ -24,8 +24,6 @@ struct TimedPhysicalChallengeQuestContent: View {
                 .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Spacer(minLength: 24)
-
             ZStack {
                 Circle()
                     .stroke(Color.accentColor, lineWidth: 10)
@@ -39,8 +37,6 @@ struct TimedPhysicalChallengeQuestContent: View {
             .frame(width: 200, height: 200)
             .accessibilityElement(children: .combine)
 
-            Spacer(minLength: 48)
-
             PrimaryButton(
                 step.primaryActionTitle,
                 font: .headline.weight(.heavy),
@@ -51,7 +47,6 @@ struct TimedPhysicalChallengeQuestContent: View {
         .padding(.horizontal, 32)
         .padding(.top, 32)
         .padding(.bottom, 28)
-        .frame(minHeight: 620)
     }
 
     private var timerText: String {

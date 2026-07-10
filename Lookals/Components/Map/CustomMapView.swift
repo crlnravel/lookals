@@ -83,7 +83,7 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
                 Spacer()
 
                 mapHeaderButton(
-                    systemImage: "location.north.fill",
+                    systemImage: "location",
                     accessibilityLabel: "Show current location",
                     background: Color.accentColor,
                     foreground: .white,

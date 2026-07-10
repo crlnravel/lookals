@@ -1,10 +1,3 @@
-//
-//  PointRedemptionView.swift
-//  Lookals
-//
-//  Created by Kevin Halim on 08/07/26.
-//
-
 import SwiftUI
 
 struct PointRedemptionView: View {
@@ -31,7 +24,7 @@ struct PointRedemptionView: View {
                 // tab available coupons & my coupons
                 PointRedemptionTabBar(viewModel: viewModel, profileViewModel: profileViewModel)
                 if viewModel.selectedTab == .available {
-                    AvailableCouponsList(viewModel: viewModel)
+                    AvailableCouponsList(viewModel: viewModel, profileViewModel: profileViewModel)
                 } else {
                     MyCouponsList(viewModel: viewModel, profileViewModel: profileViewModel)
                 }
@@ -70,7 +63,6 @@ struct PointRedemptionView: View {
         }
     }
 }
-
 
 struct DebugPointsView: View {
     @ObservedObject var viewModel: PointRedemptionViewModel
@@ -135,12 +127,18 @@ struct PointRedemptionTabBar: View {
 
 struct AvailableCouponsList: View {
     @ObservedObject var viewModel: PointRedemptionViewModel
+    @ObservedObject var profileViewModel: ProfileViewModel
     
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
                 ForEach(dummyCoupons) { coupon in
-                    CouponCard(coupon: coupon, isOwned: false) {
+                    
+                    // 1. Calculate if the user has enough points
+                    let canRedeem = profileViewModel.user.points >= coupon.pointsRequired
+                    
+                    // 2. Pass it into the CouponCard
+                    CouponCard(coupon: coupon, isOwned: false, canRedeem: canRedeem) {
                         viewModel.attemptRedemption(for: coupon)
                     }
                 }
