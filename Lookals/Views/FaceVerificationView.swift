@@ -199,7 +199,7 @@ private struct VerificationProgressBar: View {
                     .fill(Color(.systemGray4))
 
                 Capsule()
-                    .fill(Color.accentColor)
+                    .fill(Color.accent.gradient.opacity(0.85))
                     .frame(width: max(proxy.size.height, proxy.size.width * progress))
                     .animation(.smooth(duration: 0.35), value: progress)
 
