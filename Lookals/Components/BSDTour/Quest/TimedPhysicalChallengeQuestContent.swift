@@ -68,12 +68,12 @@ struct TimedPhysicalChallengeQuestContent: View {
 
 #Preview {
     BSDQuestContentPreviewContainer(
-        quest: BSDTourQuestDemoData.quests[1],
-        step: BSDTourQuestDemoData.quests[1].steps[1]
+        quest: BSDTourQuestDemoData.quests[4],
+        step: BSDTourQuestDemoData.quests[4].steps[2]
     ) {
         TimedPhysicalChallengeQuestContent(
-            quest: BSDTourQuestDemoData.quests[1],
-            step: BSDTourQuestDemoData.quests[1].steps[1],
+            quest: BSDTourQuestDemoData.quests[4],
+            step: BSDTourQuestDemoData.quests[4].steps[2],
             remainingSeconds: 20,
             onSubmit: {}
         )

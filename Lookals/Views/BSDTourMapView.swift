@@ -82,7 +82,14 @@ struct BSDTourMapView: View {
         [
             CustomMapMarker(id: "booth", style: .place, xRatio: 0.42, yRatio: 0.52),
             CustomMapMarker(id: "avatar", style: .avatar, xRatio: 0.54, yRatio: 0.60),
-            CustomMapMarker(id: "route", style: .mapBadge("L2"), xRatio: 0.32, yRatio: 0.40)
+            CustomMapMarker(id: "l1", style: .mapBadge("L1"), xRatio: 0.24, yRatio: 0.34),
+            CustomMapMarker(id: "l2", style: .mapBadge("L2"), xRatio: 0.32, yRatio: 0.40),
+            CustomMapMarker(id: "l3", style: .mapBadge("L3"), xRatio: 0.44, yRatio: 0.45),
+            CustomMapMarker(id: "l4", style: .mapBadge("L4"), xRatio: 0.58, yRatio: 0.48),
+            CustomMapMarker(id: "l5", style: .mapBadge("L5"), xRatio: 0.68, yRatio: 0.57),
+            CustomMapMarker(id: "l6", style: .mapBadge("L6"), xRatio: 0.58, yRatio: 0.72),
+            CustomMapMarker(id: "l7", style: .mapBadge("L7"), xRatio: 0.42, yRatio: 0.76),
+            CustomMapMarker(id: "l8", style: .mapBadge("L8"), xRatio: 0.28, yRatio: 0.64)
         ]
     }
 
@@ -177,12 +184,23 @@ struct BSDTourMapView: View {
     )
 }
 
+#Preview("BSD Tour Quest Demo Map - Q3 Timer") {
+    BSDTourMapView(
+        flow: BSDTourFlowModel(
+            currentQuestIndex: 4,
+            currentStepIndex: 2,
+            earnedPoints: 70,
+            isWidgetExpanded: true
+        )
+    )
+}
+
 #Preview("BSD Tour Quest Demo Map - Complete") {
     BSDTourMapView(
         flow: BSDTourFlowModel(
             currentQuestIndex: BSDTourQuestDemoData.quests.count,
             currentStepIndex: 0,
-            earnedPoints: 70,
+            earnedPoints: BSDTourQuestDemoData.quests.reduce(0) { $0 + $1.reward },
             isWidgetExpanded: false
         )
     )
