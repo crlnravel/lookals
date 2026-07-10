@@ -198,6 +198,30 @@ struct BSDTourMapView: View {
     )
 }
 
+#Preview("BSD Tour Quest Demo Map - Quiz Success") {
+    BSDTourMapView(
+        flow: BSDTourFlowModel(
+            currentQuestIndex: 0,
+            currentStepIndex: 1,
+            earnedPoints: 30,
+            isWidgetExpanded: true,
+            isShowingQuestSuccess: true
+        )
+    )
+}
+
+#Preview("BSD Tour Quest Demo Map - Side Quest Success") {
+    BSDTourMapView(
+        flow: BSDTourFlowModel(
+            currentQuestIndex: 1,
+            currentStepIndex: 1,
+            earnedPoints: 35,
+            isWidgetExpanded: true,
+            isShowingQuestSuccess: true
+        )
+    )
+}
+
 #Preview("BSD Tour Quest Demo Map - Complete") {
     BSDTourMapView(
         flow: BSDTourFlowModel(
