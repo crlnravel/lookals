@@ -31,8 +31,25 @@ struct BSDTourQuestWidget: View {
             ) {
                 BSDTourQuestCollapsedContent(quest: quest, step: step)
             } expandedContent: {
-                expandedContent(quest: quest, step: step)
+                navigableExpandedContent(quest: quest, step: step)
             }
+        }
+    }
+
+    @ViewBuilder
+    private func navigableExpandedContent(quest: BSDQuest, step: BSDQuestStep) -> some View {
+        VStack(spacing: 0) {
+            if flow.canGoBack {
+                HStack {
+                    QuestStepBackButton(action: flow.goBack)
+
+                    Spacer()
+                }
+                .padding(.horizontal, 32)
+                .padding(.top, 24)
+            }
+
+            expandedContent(quest: quest, step: step)
         }
     }
 
