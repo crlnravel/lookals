@@ -31,7 +31,15 @@ struct BSDTourQuestWidget: View {
             ) {
                 BSDTourQuestCollapsedContent(quest: quest, step: step)
             } expandedContent: {
-                navigableExpandedContent(quest: quest, step: step)
+                if flow.isShowingQuestSuccess {
+                    BSDQuestSuccessContent(
+                        quest: quest,
+                        title: flow.questSuccessTitle,
+                        onContinue: flow.continueAfterQuestSuccess
+                    )
+                } else {
+                    navigableExpandedContent(quest: quest, step: step)
+                }
             }
         }
     }
