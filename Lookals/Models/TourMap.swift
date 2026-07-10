@@ -9,6 +9,7 @@ import Foundation
 
 struct TourMap: Identifiable, Codable, Equatable, Hashable {
     let id: UUID
+    var area: String
     var title: String
     var subtitleTags: [String]
     var summary: String
@@ -28,6 +29,7 @@ extension TourMap {
     static let sampleData: [TourMap] = [
         TourMap(
             id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
+            area: "South Tangerang",
             title: "Hype Radar Map",
             subtitleTags: ["Coffee", "Food", "Entertainment", "History"],
             summary: "See exactly where the internet is obsessing over in real time. Here's the most viral spots so you can just show up and catch the vibe.",
@@ -44,6 +46,7 @@ extension TourMap {
         ),
         TourMap(
             id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!,
+            area: "South Tangerang",
             title: "Locals' Choice",
             subtitleTags: ["Food", "Culture", "Hidden Gems"],
             summary: "The spots locals actually go to, no tourist traps allowed. Curated by the people who live here.",
@@ -60,6 +63,7 @@ extension TourMap {
         ),
         TourMap(
             id: UUID(uuidString: "00000000-0000-0000-0000-000000000003")!,
+            area: "South Tangerang",
             title: "Sweet Trail",
             subtitleTags: ["Dessert", "Cafe", "Photo Spots"],
             summary: "A sugar-dusted trail through the best dessert spots in town, made for the sweet tooth explorer.",

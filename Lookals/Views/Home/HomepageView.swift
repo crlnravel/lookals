@@ -28,9 +28,9 @@ struct HomepageView: View {
     }
 
     private let mapLayouts: [MapLayout] = [
-        MapLayout(xFraction: 0.30, yFraction: 0.36, widthFraction: 0.43, heightFraction: 0.33), // Hype Radar Map
-        MapLayout(xFraction: 0.74, yFraction: 0.24, widthFraction: 0.35, heightFraction: 0.33), // Locals' Choice
-        MapLayout(xFraction: 0.66, yFraction: 0.49, widthFraction: 0.40, heightFraction: 0.33)  // Sweet Trail
+        MapLayout(xFraction: 0.30, yFraction: 0.44, widthFraction: 0.44, heightFraction: 0.33), // Hype Radar Map
+        MapLayout(xFraction: 0.74, yFraction: 0.31, widthFraction: 0.36, heightFraction: 0.34), // Locals' Choice
+        MapLayout(xFraction: 0.66, yFraction: 0.55, widthFraction: 0.43, heightFraction: 0.34)  // Sweet Trail
     ]
 
     var body: some View {
@@ -59,6 +59,11 @@ struct HomepageView: View {
 
                 VStack {
                     topBar
+                    
+                    if let firstMap = appState.maps.first {
+                        areaTitle(area: firstMap.area)
+                    }
+
                     Spacer()
 
                     if appState.bookingStatus != .unbooked {
@@ -92,7 +97,7 @@ struct HomepageView: View {
             .navigationDestination(for: HomeRoute.self) { route in
                 switch route {
                 case .profile:
-                    LoginView()
+                    ProfileView()
                 case .ongoingItinerary:
                     LoginView()
                 case .checkAvailability(let map):
@@ -134,6 +139,15 @@ struct HomepageView: View {
         .padding(.horizontal)
         .padding(.top, 8)
     }
+    
+    private func areaTitle(area: String) -> some View {
+            Text(area)
+                .font(.title)
+                .fontWeight(.bold)
+                .foregroundColor(.primary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 100)
+        }
 
     // MARK: - Map Cards
     private var mapCardsLayer: some View {
@@ -182,6 +196,7 @@ struct HomepageView: View {
                 }
             }
             .buttonStyle(.plain)
+            .shadow(color: Color.black.opacity(0.25), radius: 6, x: 0, y: 4)
         }
 
     private func fogState(for map: TourMap, isBooked: Bool) -> Bool {

@@ -62,9 +62,10 @@ struct CheckAvailabilityView: View {
                 } label: {
                     Image(systemName: "chevron.left")
                         .foregroundColor(.black)
-                        .padding(8)
+                        .fontWeight(.bold)
                 }
             }
+            
         }
         .navigationBarBackButtonHidden(true)
         .fullScreenCover(isPresented: $showConfirmation) {

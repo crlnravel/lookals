@@ -28,7 +28,7 @@ struct ConfettiView: View {
                     .offset(y: animateY - screenHeight)
             }
             .onAppear {
-                withAnimation(.linear(duration: 6.0).repeatForever(autoreverses: false)) {
+                withAnimation(.linear(duration: 5.0).repeatForever(autoreverses: false)) {
                     animateY = screenHeight
                 }
             }

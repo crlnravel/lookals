@@ -5,7 +5,6 @@ struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
     
     var body: some View {
-        NavigationStack {
             VStack(spacing: 24) {
                 
                 // Profile Info
@@ -97,7 +96,6 @@ struct ProfileView: View {
                             .foregroundColor(.orange)
                     }.padding(.horizontal, 6)
                 }
-            }
         }
     }
     

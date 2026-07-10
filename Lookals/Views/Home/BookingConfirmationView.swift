@@ -41,7 +41,7 @@ struct BookingConfirmationView: View {
                 }
                 .padding(24)
                 
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 38))
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 38))
                 .overlay(
                     RoundedRectangle(cornerRadius: 38)
                         .strokeBorder(Color.white.opacity(0.6), lineWidth: 2)
@@ -59,7 +59,7 @@ struct BookingConfirmationView: View {
                         .font(.headline)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16) 
+                        .padding(.vertical, 16)
                         .background(Color.orange)
                         .clipShape(Capsule())
                 }
