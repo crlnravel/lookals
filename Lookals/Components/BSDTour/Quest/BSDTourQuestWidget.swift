@@ -72,6 +72,14 @@ struct BSDTourQuestWidget: View {
                 flow.advance()
             }
 
+        case .timedPhysicalChallenge:
+            TimedPhysicalChallengeQuestContent(
+                quest: quest,
+                step: step,
+                remainingSeconds: flow.drawingRemainingSeconds,
+                onSubmit: flow.advance
+            )
+
         case .findOut:
             FindOutQuestContent(
                 quest: quest,

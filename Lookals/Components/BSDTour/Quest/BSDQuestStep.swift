@@ -11,6 +11,7 @@ struct BSDQuestStep: Identifiable, Equatable {
         case quiz
         case artistIntro
         case drawingCanvas
+        case timedPhysicalChallenge
         case findOut
         case qrConfirm
     }

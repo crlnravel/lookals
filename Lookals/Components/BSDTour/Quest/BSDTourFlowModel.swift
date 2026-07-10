@@ -175,7 +175,7 @@ final class BSDTourFlowModel {
             return
         }
 
-        guard currentStep.kind == .drawingCanvas else {
+        guard currentStep.kind == .drawingCanvas || currentStep.kind == .timedPhysicalChallenge else {
             drawingRemainingSeconds = currentStep.durationSeconds ?? 0
             return
         }
