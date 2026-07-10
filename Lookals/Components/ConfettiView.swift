@@ -8,29 +8,41 @@
 import SwiftUI
 
 struct ConfettiView: View {
-    @State private var animateY: CGFloat = 0
+    @Binding var isActive: Bool
+    @State private var isFalling = false
+    @State private var startTime = Date()
+
+    private let loopDuration: TimeInterval = 5.0
 
     var body: some View {
         GeometryReader { geo in
             let screenHeight = geo.size.height
-            
-            ZStack {
-                Image("Confetti")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: geo.size.width, height: screenHeight)
-                    .offset(y: animateY)
-                
-                Image("Confetti")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: geo.size.width, height: screenHeight)
-                    .offset(y: animateY - screenHeight)
+
+            TimelineView(.animation(paused: !isActive || !isFalling)) { context in
+                let elapsed = context.date.timeIntervalSince(startTime)
+                let progress = elapsed.truncatingRemainder(dividingBy: loopDuration) / loopDuration
+                let offsetY = CGFloat(progress) * screenHeight
+
+                ZStack {
+                    Image("Confetti")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geo.size.width, height: screenHeight)
+                        .offset(y: offsetY)
+
+                    Image("Confetti")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geo.size.width, height: screenHeight)
+                        .offset(y: offsetY - screenHeight)
+                }
             }
             .onAppear {
-                withAnimation(.linear(duration: 5.0).repeatForever(autoreverses: false)) {
-                    animateY = screenHeight
-                }
+                startTime = Date()
+                isFalling = true
+            }
+            .onDisappear {
+                isFalling = false
             }
         }
         .allowsHitTesting(false)
@@ -40,6 +52,6 @@ struct ConfettiView: View {
 
 #Preview {
     ZStack {
-        ConfettiView()
+        ConfettiView(isActive: .constant(true))
     }
 }

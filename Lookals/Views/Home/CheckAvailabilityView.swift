@@ -71,7 +71,9 @@ struct CheckAvailabilityView: View {
         .fullScreenCover(isPresented: $showConfirmation) {
             BookingConfirmationView(appState: appState, map: map, date: localSelectedDate ?? Date()) {
                 showConfirmation = false
-                path.removeAll()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                    path.removeAll()
+                }
             }
         }
     }

@@ -42,7 +42,7 @@ struct FoggyMapView<Content: View>: View {
         Image(fogImageName)
             .resizable()
             .scaledToFill()
-            .scaleEffect(1.5)
+            .scaleEffect(1.3)
             .offset(x: animatePhase ? 14 : -14, y: animatePhase ? -10 : 10)
             .opacity(0.9)
     }

@@ -193,10 +193,14 @@ struct HomepageView: View {
                         .scaledToFill()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .saturation(greyed ? 0 : 1)
+                        .clipShape(RoundedRectangle(cornerRadius: 24))
+                        // Shadow is on the image itself, not the fog layered on
+                        // top of it — fog is a sibling view added afterward
+                        // inside FoggyMapView, so it never touches this shadow.
+                        .shadow(color: Color.black.opacity(0.25), radius: 6, x: 0, y: 4)
                 }
             }
             .buttonStyle(.plain)
-            .shadow(color: Color.black.opacity(0.25), radius: 6, x: 0, y: 4)
         }
 
     private func fogState(for map: TourMap, isBooked: Bool) -> Bool {
