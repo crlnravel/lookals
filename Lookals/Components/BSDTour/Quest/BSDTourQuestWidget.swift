@@ -27,7 +27,10 @@ struct BSDTourQuestWidget: View {
                 collapsedMaxWidth: 392,
                 expandedMaxWidth: 360,
                 horizontalPadding: 20,
-                edgePadding: 16
+                edgePadding: 16,
+                expandedControlSystemName: expandedControlSystemName,
+                expandedControlAccessibilityLabel: expandedControlAccessibilityLabel,
+                expandedControlAction: expandedControlAction
             ) {
                 BSDTourQuestCollapsedContent(quest: quest, step: step)
             } expandedContent: {
@@ -38,27 +41,26 @@ struct BSDTourQuestWidget: View {
                         onContinue: flow.continueAfterQuestSuccess
                     )
                 } else {
-                    navigableExpandedContent(quest: quest, step: step)
+                    expandedContent(quest: quest, step: step)
                 }
             }
         }
     }
 
-    @ViewBuilder
-    private func navigableExpandedContent(quest: BSDQuest, step: BSDQuestStep) -> some View {
-        VStack(spacing: 0) {
-            if flow.canGoBack {
-                HStack {
-                    QuestStepBackButton(action: flow.goBack)
+    private var expandedControlSystemName: String? {
+        flow.canGoBack ? "chevron.left" : nil
+    }
 
-                    Spacer()
-                }
-                .padding(.horizontal, 32)
-                .padding(.top, 24)
-            }
+    private var expandedControlAccessibilityLabel: String? {
+        flow.canGoBack ? "Previous quest section" : nil
+    }
 
-            expandedContent(quest: quest, step: step)
+    private var expandedControlAction: (() -> Void)? {
+        if flow.canGoBack {
+            return flow.goBack
         }
+
+        return nil
     }
 
     @ViewBuilder
