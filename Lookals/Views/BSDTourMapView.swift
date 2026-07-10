@@ -15,7 +15,6 @@ struct BSDTourMapView: View {
 
     @State private var flow: BSDTourFlowModel
     @State private var cameraStep: BSDQuestStep?
-    @State private var qrStep: BSDQuestStep?
 
     private let region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: -6.3016, longitude: 106.6519),
@@ -62,20 +61,6 @@ struct BSDTourMapView: View {
                 cameraStep = nil
             }
         }
-        .sheet(item: $qrStep) { step in
-            QRCodeScannerSheet { payload in
-                let isValid = flow.validateQRPayload(payload, for: step)
-                qrStep = nil
-
-                if isValid {
-                    flow.advance()
-                } else {
-                    flow.isWidgetExpanded = true
-                }
-            } onCancel: {
-                qrStep = nil
-            }
-        }
     }
 
     private var markers: [CustomMapMarker] {
@@ -105,8 +90,7 @@ struct BSDTourMapView: View {
             } else {
                 BSDTourQuestWidget(
                     flow: flow,
-                    onPhotoRequested: presentCamera,
-                    onQRScanRequested: presentQRScanner
+                    onPhotoRequested: presentCamera
                 )
             }
         }
@@ -164,9 +148,6 @@ struct BSDTourMapView: View {
         cameraStep = step
     }
 
-    private func presentQRScanner(for step: BSDQuestStep) {
-        qrStep = step
-    }
 }
 
 #Preview("BSD Tour Quest Demo Map") {

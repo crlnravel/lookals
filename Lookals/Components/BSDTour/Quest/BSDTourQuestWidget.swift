@@ -11,16 +11,13 @@ struct BSDTourQuestWidget: View {
     @Bindable var flow: BSDTourFlowModel
 
     let onPhotoRequested: (BSDQuestStep) -> Void
-    let onQRScanRequested: (BSDQuestStep) -> Void
 
     init(
         flow: BSDTourFlowModel,
-        onPhotoRequested: @escaping (BSDQuestStep) -> Void = { _ in },
-        onQRScanRequested: @escaping (BSDQuestStep) -> Void = { _ in }
+        onPhotoRequested: @escaping (BSDQuestStep) -> Void = { _ in }
     ) {
         self.flow = flow
         self.onPhotoRequested = onPhotoRequested
-        self.onQRScanRequested = onQRScanRequested
     }
 
     var body: some View {
@@ -96,7 +93,15 @@ struct BSDTourQuestWidget: View {
                 quest: quest,
                 step: step,
                 validationMessage: flow.qrValidationMessage,
-                onScan: { onQRScanRequested(step) }
+                onPayload: { payload in
+                    let isValid = flow.validateQRPayload(payload, for: step)
+
+                    if isValid {
+                        flow.advance()
+                    }
+
+                    return isValid
+                }
             )
         }
     }
