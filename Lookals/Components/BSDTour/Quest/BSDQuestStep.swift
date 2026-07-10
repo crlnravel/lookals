@@ -23,7 +23,36 @@ struct BSDQuestStep: Identifiable, Equatable {
     let imageName: String?
     let quiz: BSDQuestQuiz?
     let inputMode: BSDQuestInputMode?
+    let requiresPhoto: Bool
     let primaryActionTitle: String
     let expectedQRPayload: String?
     let durationSeconds: Int?
+
+    init(
+        id: String,
+        kind: Kind,
+        title: String,
+        prompt: String,
+        footnote: String?,
+        imageName: String?,
+        quiz: BSDQuestQuiz?,
+        inputMode: BSDQuestInputMode?,
+        requiresPhoto: Bool = false,
+        primaryActionTitle: String,
+        expectedQRPayload: String?,
+        durationSeconds: Int?
+    ) {
+        self.id = id
+        self.kind = kind
+        self.title = title
+        self.prompt = prompt
+        self.footnote = footnote
+        self.imageName = imageName
+        self.quiz = quiz
+        self.inputMode = inputMode
+        self.requiresPhoto = requiresPhoto
+        self.primaryActionTitle = primaryActionTitle
+        self.expectedQRPayload = expectedQRPayload
+        self.durationSeconds = durationSeconds
+    }
 }

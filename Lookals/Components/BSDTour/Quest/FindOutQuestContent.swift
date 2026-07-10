@@ -12,6 +12,7 @@ struct FindOutQuestContent: View {
     let step: BSDQuestStep
     @Binding var response: String
     let hasCapturedPhoto: Bool
+    let requiresPhoto: Bool
     let onPhoto: () -> Void
     let onSubmit: () -> Void
 
@@ -50,10 +51,10 @@ struct FindOutQuestContent: View {
             }
 
             PrimaryButton(
-                hasCapturedPhoto ? "Next" : step.primaryActionTitle,
+                buttonTitle,
                 font: .headline.weight(.heavy),
                 isActive: canContinue,
-                action: hasCapturedPhoto ? onSubmit : onPhoto
+                action: buttonAction
             )
         }
         .padding(.horizontal, 32)
@@ -67,6 +68,18 @@ struct FindOutQuestContent: View {
         }
 
         return !response.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private var buttonTitle: String {
+        requiresPhoto && hasCapturedPhoto ? "Next" : step.primaryActionTitle
+    }
+
+    private func buttonAction() {
+        if requiresPhoto && !hasCapturedPhoto {
+            onPhoto()
+        } else {
+            onSubmit()
+        }
     }
 }
 
@@ -84,6 +97,7 @@ struct FindOutQuestContent: View {
                     step: BSDTourQuestDemoData.quests[3].steps[0],
                     response: $response,
                     hasCapturedPhoto: false,
+                    requiresPhoto: true,
                     onPhoto: {},
                     onSubmit: {}
                 )

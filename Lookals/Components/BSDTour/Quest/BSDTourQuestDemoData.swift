@@ -123,6 +123,7 @@ enum BSDTourQuestDemoData {
                     imageName: nil,
                     quiz: nil,
                     inputMode: .text,
+                    requiresPhoto: true,
                     primaryActionTitle: "Take a Photo",
                     expectedQRPayload: nil,
                     durationSeconds: nil
@@ -160,6 +161,7 @@ enum BSDTourQuestDemoData {
                     imageName: nil,
                     quiz: nil,
                     inputMode: .currency,
+                    requiresPhoto: true,
                     primaryActionTitle: "Take a Photo",
                     expectedQRPayload: nil,
                     durationSeconds: nil

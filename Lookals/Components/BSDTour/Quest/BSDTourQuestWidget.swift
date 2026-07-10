@@ -78,6 +78,7 @@ struct BSDTourQuestWidget: View {
                 step: step,
                 response: textBinding(for: step),
                 hasCapturedPhoto: flow.hasCapturedPhoto(for: step),
+                requiresPhoto: step.requiresPhoto,
                 onPhoto: { onPhotoRequested(step) },
                 onSubmit: flow.advance
             )
