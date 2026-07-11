@@ -23,6 +23,24 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             List {
+                Section("Quest Tools") {
+                    NavigationLink(value: HomeRoute.memories) {
+                        Label {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Memories")
+                                    .font(.body.weight(.medium))
+
+                                Text("Open your quest gallery")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "photo.on.rectangle.angled")
+                                .foregroundStyle(.tint)
+                        }
+                    }
+                }
+
                 Section {
                     if let topMatch = viewModel.topMatch {
                         VStack(alignment: .leading, spacing: 8) {
@@ -83,8 +101,18 @@ struct HomeView: View {
             .refreshable {
                 await viewModel.loadMatches(refresh: true)
             }
+            .navigationDestination(for: HomeRoute.self) { route in
+                switch route {
+                case .memories:
+                    MemoriesOverviewView()
+                }
+            }
         }
     }
+}
+
+private enum HomeRoute: Hashable {
+    case memories
 }
 
 #Preview {

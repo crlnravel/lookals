@@ -23,9 +23,7 @@ extension AppDependencies {
 
     static func mock(matches: [LookalMatch] = LookalMatch.sampleMatches) -> AppDependencies {
         let service = MockLookalMatchingService(matches: matches)
-        let store = SwiftDataLookalMatchStore(
-            modelContainer: makeModelContainer(isStoredInMemoryOnly: true)
-        )
+        let store = InMemoryLookalMatchStore()
         let repository = DefaultLookalMatchRepository(service: service, store: store)
         return AppDependencies(lookalMatchRepository: repository)
     }
