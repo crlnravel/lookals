@@ -48,8 +48,8 @@ struct BookingConfirmationView: View {
                     detailRow(icon: "clock", text: map.fixedTime)
                     detailRow(icon: "calendar.badge.plus", text: formatted(date))
                 }
-                .padding()
-                .background(RoundedRectangle(cornerRadius: 24).fill(Color(.systemGray6)))
+                .padding(30)
+                .background(RoundedRectangle(cornerRadius: 38).fill(Color(.systemGray6)))
                 .padding(.horizontal)
 
                 calendarStatusRow
@@ -76,6 +76,7 @@ struct BookingConfirmationView: View {
                 .padding(.horizontal)
                 .padding(.bottom, 24)
             }
+            .padding()
         }
         .task {
             await addToCalendar()

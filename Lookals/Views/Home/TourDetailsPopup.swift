@@ -156,13 +156,8 @@ struct TourDetailsPopup: View {
 
     private func statRow(icon: String, text: String) -> some View {
         HStack(spacing: 14) {
-            Image(systemName: icon)
-                .frame(width: 20)
-                .font(.system(size: 16))
-                .foregroundColor(.primary)
-            Text(text)
-                .font(.subheadline.bold())
-                .foregroundColor(.primary)
+            Label(text, systemImage: icon)
+                .fontWeight(.semibold)
             Spacer()
         }
     }
@@ -185,7 +180,7 @@ struct TourDetailsPopup: View {
                 actionLabel("Check Availability", background: Color.orange, foreground: .white)
             }
         } else {
-            actionLabel("Check Availability", background: Color.gray.opacity(0.4), foreground: .white.opacity(0.7))
+            actionLabel("Coming Soon", background: Color.gray.opacity(0.4), foreground: .white.opacity(0.7))
         }
     }
 

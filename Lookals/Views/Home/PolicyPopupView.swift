@@ -23,12 +23,12 @@ struct PolicyPopupView: View {
             switch self {
             case .terms:
                 return """
-                Lookals acts solely as an intermediary booking platform connecting users with independent tour organizers. We do not directly operate or manage the tours.
+                    Lookals acts solely as an intermediary booking platform connecting users with independent tour organizers. We do not directly operate or manage the tours.
 
-                As a platform provider, Lookals is not liable for any personal injury, property damage, loss, or disputes that occur during the tour. Full operational and safety responsibility lies with the participants.
+                    As a platform provider, Lookals is not liable for any personal injury, property damage, loss, or disputes that occur during the tour. Full operational and safety responsibility lies with the participants.
 
-                Booking a slot is free of charge. Confirmed slots are tied to your account and are strictly non-transferable.
-                """
+                    Booking a slot is free of charge. However, all expenses incurred during the tour (including but not limited to transportation, meals, and entrance fees) are strictly personal expenses. Confirmed slots are tied to your account and are strictly non-transferable.
+                    """
             case .cancellation:
                 return """
                 If you are unable to attend, you must cancel your booking through the app at least 2 days prior to the scheduled start time.

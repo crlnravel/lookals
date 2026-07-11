@@ -15,9 +15,12 @@ enum HomeRoute: Hashable {
 
 struct HomepageView: View {
     @StateObject private var appState = HomeStateManager()
+    @StateObject private var profileViewModel = ProfileViewModel()
+    
     @State private var selectedMapForTooltip: TourMap? = nil
     @State private var detailMap: TourMap? = nil
     @State private var showTourDetails = false
+    @State private var tapLocation: CGPoint = .zero
     @State private var path: [HomeRoute] = []
 
     private struct MapLayout {
@@ -28,9 +31,9 @@ struct HomepageView: View {
     }
 
     private let mapLayouts: [MapLayout] = [
-        MapLayout(xFraction: 0.30, yFraction: 0.44, widthFraction: 0.44, heightFraction: 0.33), // Hype Radar Map
-        MapLayout(xFraction: 0.74, yFraction: 0.31, widthFraction: 0.36, heightFraction: 0.34), // Locals' Choice
-        MapLayout(xFraction: 0.66, yFraction: 0.55, widthFraction: 0.43, heightFraction: 0.34)  // Sweet Trail
+        MapLayout(xFraction: 0.30, yFraction: 0.45, widthFraction: 0.44, heightFraction: 0.35),
+        MapLayout(xFraction: 0.75, yFraction: 0.34, widthFraction: 0.44, heightFraction: 0.34),
+        MapLayout(xFraction: 0.65, yFraction: 0.59, widthFraction: 0.30, heightFraction: 0.34)
     ]
 
     var body: some View {
@@ -48,22 +51,15 @@ struct HomepageView: View {
                             selectedMapForTooltip = nil
                         }
                     }
-
+                
                 mapCardsLayer
-                    .padding(.top, 60)
-
-                if let map = selectedMapForTooltip {
-                    tooltipOverlay(for: map)
-                        .padding(.top, 60)
-                }
 
                 VStack {
-                    topBar
-                    
                     if let firstMap = appState.maps.first {
                         areaTitle(area: firstMap.area)
+                            .padding(.top, 16)
                     }
-
+                    
                     Spacer()
 
                     if appState.bookingStatus != .unbooked {
@@ -76,11 +72,15 @@ struct HomepageView: View {
                                 showTourDetails = true
                             }
                         }
-                        .padding(.bottom, 24)
                     }
                 }
 
-                testingControls
+                // testingControls
+                
+                if let map = selectedMapForTooltip {
+                    tooltipOverlay(for: map)
+                        .zIndex(50)
+                }
 
                 if showTourDetails, let map = detailMap {
                     TourDetailsPopup(
@@ -93,7 +93,52 @@ struct HomepageView: View {
                     .zIndex(100)
                 }
             }
+            .coordinateSpace(name: "HomeScreenSpace")
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
+            
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        print("Poin diklik")
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "star.fill")
+                                .font(.system(size: 10))
+                                .foregroundColor(.white)
+                                .padding(6)
+                                .background(Circle().fill(Color.orange))
+                            
+                            Text("\(profileViewModel.user.points)")
+                                .font(.subheadline)
+                                .fontWeight(.bold)
+                                .foregroundColor(.orange)
+                                .padding(.trailing, 8)
+                        }
+                        .padding(4)
+                    }
+                    .buttonStyle(.plain)
+                    .fixedSize()
+                }
+                
+                ToolbarItem(placement: .principal) {
+                    Image("Logo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 44)
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        path.append(.profile)
+                    } label: {
+                        Image(profileViewModel.user.profileImageName)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 34, height: 34)
+                    }
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: HomeRoute.self) { route in
                 switch route {
                 case .profile:
@@ -118,35 +163,25 @@ struct HomepageView: View {
                 )
                 .ignoresSafeArea()
         }
-
-    // MARK: - Top Bar
-    private var topBar: some View {
-        HStack {
-            Spacer()
-            Button {
-                path.append(.profile)
-            } label: {
-                Circle()
-                    .strokeBorder(Color.orange, lineWidth: 3)
-                    .background(Circle().fill(Color.gray.opacity(0.3)))
-                    .frame(width: 52, height: 52)
-                    .overlay(
-                        Image(systemName: "person.fill")
-                            .foregroundColor(.white)
-                    )
-            }
-        }
-        .padding(.horizontal)
-        .padding(.top, 8)
-    }
     
     private func areaTitle(area: String) -> some View {
             Text(area)
-                .font(.title)
-                .fontWeight(.bold)
-                .foregroundColor(.primary)
+            .font(.system(size: 27, weight: .heavy))
+                .lineHeight(.exact(points: 32))
+                // bikin outline
+                .shadow(color: .white, radius: 0.8, x: 2, y: 2)
+                .shadow(color: .white, radius: 0.8, x: -2, y: -2)
+                .shadow(color: .white, radius: 0.8, x: 2, y: -2)
+                .shadow(color: .white, radius: 0.8, x: -2, y: 2)
+                .shadow(color: .white, radius: 0.8, x: 0, y: 2)
+                .shadow(color: .white, radius: 0.8, x: 0, y: -2)
+                .shadow(color: .white, radius: 0.8, x: 2, y: 0)
+                .shadow(color: .white, radius: 0.8, x: -2, y: 0)
+        
+                .foregroundColor(.black)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 100)
+                .shadow(radius: 3, x: 0, y: 4)
+                .padding(.horizontal, 110)
         }
 
     // MARK: - Map Cards
@@ -184,23 +219,19 @@ struct HomepageView: View {
             default: targetFogAsset = "fogMap1"
             }
 
-            return Button {
-                handleTap(on: map, isBooked: isBooked)
-            } label: {
-                FoggyMapView(isFogged: fogged, fogImageName: targetFogAsset) {
-                    Image(map.imageName)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .saturation(greyed ? 0 : 1)
-                        .clipShape(RoundedRectangle(cornerRadius: 24))
-                        // Shadow is on the image itself, not the fog layered on
-                        // top of it — fog is a sibling view added afterward
-                        // inside FoggyMapView, so it never touches this shadow.
-                        .shadow(color: Color.black.opacity(0.25), radius: 6, x: 0, y: 4)
-                }
+            return FoggyMapView(isFogged: fogged, fogImageName: targetFogAsset) {
+                Image(map.imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .saturation(greyed ? 0 : 1)
+                    .clipShape(RoundedRectangle(cornerRadius: 24))
+                    .shadow(color: Color.black.opacity(0.25), radius: 6, x: 0, y: 4)
             }
-            .buttonStyle(.plain)
+            .contentShape(Rectangle())
+            .onTapGesture(coordinateSpace: .named("HomeScreenSpace")) { location in
+                handleTap(on: map, isBooked: isBooked, location: location)
+            }
         }
 
     private func fogState(for map: TourMap, isBooked: Bool) -> Bool {
@@ -223,41 +254,41 @@ struct HomepageView: View {
         }
     }
 
-    private func handleTap(on map: TourMap, isBooked: Bool) {
+    private func handleTap(on map: TourMap, isBooked: Bool, location: CGPoint) {
         if appState.bookingStatus != .unbooked && !isBooked {
             return
         }
         withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-            selectedMapForTooltip = (selectedMapForTooltip?.id == map.id) ? nil : map
+            if selectedMapForTooltip?.id == map.id {
+                selectedMapForTooltip = nil
+            } else {
+                selectedMapForTooltip = map
+                tapLocation = location
+            }
         }
     }
 
     // MARK: - Tooltip
     @ViewBuilder
     private func tooltipOverlay(for map: TourMap) -> some View {
-        if let index = appState.maps.firstIndex(where: { $0.id == map.id }),
-           mapLayouts.indices.contains(index) {
-            let layout = mapLayouts[index]
-            let isBooked = map.id == appState.bookedMapId
+        let isBooked = map.id == appState.bookedMapId
 
-            GeometryReader { geo in
-                CustomTooltipBubble(
-                    title: map.title,
-                    points: map.pointCost,
-                    badge: badgeText(isBooked: isBooked),
-                    subtitle: subtitleText(isBooked: isBooked),
-                    buttonTitle: "View"
-                ) {
-                    detailMap = map
-                    showTourDetails = true
-                    selectedMapForTooltip = nil
-                }
-                .frame(width: 180)
-                .position(
-                    x: geo.size.width * layout.xFraction,
-                    y: geo.size.height * layout.yFraction
-                )
+        GeometryReader { _ in
+            CustomTooltipBubble(
+                title: map.title,
+                points: map.pointCost,
+                badge: badgeText(isBooked: isBooked),
+                subtitle: subtitleText(isBooked: isBooked),
+                buttonTitle: "View"
+            ) {
+                detailMap = map
+                showTourDetails = true
+                selectedMapForTooltip = nil
             }
+            .frame(width: 180)
+            .position(x: tapLocation.x, y: tapLocation.y - 70)
+            .id(map.id)
+            .transition(.scale(scale: 0.8).combined(with: .opacity))
         }
     }
 
