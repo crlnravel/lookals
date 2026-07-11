@@ -10,4 +10,5 @@ import Foundation
 enum MemoryImageSource: Hashable {
     case asset(String)
     case captured(UUID)
+    case cloud(UUID)
 }

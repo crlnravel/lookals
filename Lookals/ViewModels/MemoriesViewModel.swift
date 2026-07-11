@@ -13,16 +13,29 @@ import UIKit
 @Observable
 final class MemoriesViewModel {
     private(set) var albums: [MemoryAlbum]
-    private(set) var capturedImages: [UUID: UIImage]
+    private(set) var memoryImages: [UUID: UIImage]
+    private(set) var syncingAlbumIDs: Set<UUID>
+    private(set) var cloudErrorMessage: String?
+
+    private let cloudMemoryService: CloudMemoryService
 
     init() {
         self.albums = [.sampleHypeRadarMap]
-        self.capturedImages = [:]
+        self.memoryImages = [:]
+        self.syncingAlbumIDs = []
+        self.cloudErrorMessage = nil
+        self.cloudMemoryService = .shared
     }
 
-    init(albums: [MemoryAlbum]) {
+    init(
+        albums: [MemoryAlbum],
+        cloudMemoryService: CloudMemoryService = .shared
+    ) {
         self.albums = albums
-        self.capturedImages = [:]
+        self.memoryImages = [:]
+        self.syncingAlbumIDs = []
+        self.cloudErrorMessage = nil
+        self.cloudMemoryService = cloudMemoryService
     }
 
     func album(for id: UUID) -> MemoryAlbum? {
@@ -42,28 +55,88 @@ final class MemoriesViewModel {
         }
     }
 
-    func capturedImage(for id: UUID) -> UIImage? {
-        capturedImages[id]
+    func memoryImage(for id: UUID) -> UIImage? {
+        memoryImages[id]
     }
 
     @discardableResult
-    func addCapturedPhoto(_ image: UIImage, to albumID: UUID) -> MemoryPhoto? {
+    func addCapturedPhoto(_ image: UIImage, to albumID: UUID) async -> MemoryPhoto? {
         guard let albumIndex = albums.firstIndex(where: { $0.id == albumID }) else {
             return nil
         }
 
-        let imageID = UUID()
-        capturedImages[imageID] = image
+        let album = albums[albumIndex]
+        let createdAt = Date.now
 
-        let photo = MemoryPhoto(
-            title: albums[albumIndex].title,
-            time: Self.captureTimeString(from: Date.now),
-            source: .captured(imageID),
-            accessibilityLabel: "Captured memory photo"
+        do {
+            let cloudPhoto = try await cloudMemoryService.saveMemoryPhoto(
+                image: image,
+                albumPartitionID: album.partitionID,
+                title: album.title,
+                createdAt: createdAt
+            )
+            let photo = memoryPhoto(from: cloudPhoto, fallbackImage: image)
+
+            insertOrReplace(photo, in: albumID)
+            cloudErrorMessage = nil
+            return photo
+        } catch {
+            cloudErrorMessage = error.localizedDescription
+            return nil
+        }
+    }
+
+    func loadCloudPhotos(for albumID: UUID) async {
+        guard let album = album(for: albumID),
+              !syncingAlbumIDs.contains(albumID) else {
+            return
+        }
+
+        syncingAlbumIDs.insert(albumID)
+        defer {
+            syncingAlbumIDs.remove(albumID)
+        }
+
+        do {
+            let cloudPhotos = try await cloudMemoryService.fetchMemoryPhotos(
+                albumPartitionID: album.partitionID
+            )
+            cloudPhotos
+                .map { memoryPhoto(from: $0) }
+                .forEach { insertOrReplace($0, in: albumID) }
+            cloudErrorMessage = nil
+        } catch {
+            cloudErrorMessage = error.localizedDescription
+        }
+    }
+
+    private func memoryPhoto(
+        from cloudPhoto: CloudMemoryPhoto,
+        fallbackImage: UIImage? = nil
+    ) -> MemoryPhoto {
+        if let image = UIImage(data: cloudPhoto.imageData) ?? fallbackImage {
+            memoryImages[cloudPhoto.id] = image
+        }
+
+        return MemoryPhoto(
+            id: cloudPhoto.id,
+            title: cloudPhoto.title,
+            time: Self.captureTimeString(from: cloudPhoto.createdAt),
+            source: .cloud(cloudPhoto.id),
+            accessibilityLabel: "Cloud memory photo"
         )
+    }
 
-        albums[albumIndex].photos.insert(photo, at: 0)
-        return photo
+    private func insertOrReplace(_ photo: MemoryPhoto, in albumID: UUID) {
+        guard let albumIndex = albums.firstIndex(where: { $0.id == albumID }) else {
+            return
+        }
+
+        if let photoIndex = albums[albumIndex].photos.firstIndex(where: { $0.id == photo.id }) {
+            albums[albumIndex].photos[photoIndex] = photo
+        } else {
+            albums[albumIndex].photos.insert(photo, at: 0)
+        }
     }
 
     private static func captureTimeString(from date: Date) -> String {
@@ -76,6 +149,8 @@ final class MemoriesViewModel {
 private extension MemoryAlbum {
     static var sampleHypeRadarMap: MemoryAlbum {
         MemoryAlbum(
+            id: UUID(uuidString: "8CE8D91C-C8A0-42FC-9610-62DF35A0C60D")!,
+            partitionID: "hype-radar-map",
             title: "Hype Radar Map",
             coverSource: .asset("Memory Album Cover"),
             photos: [

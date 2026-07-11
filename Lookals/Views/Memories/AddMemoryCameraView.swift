@@ -15,6 +15,8 @@ struct AddMemoryCameraView: View {
 
     @State private var cameraManager: CameraManager
     @State private var lastAddedCaptureCount = 0
+    @State private var isSavingCapture = false
+    @State private var uploadErrorMessage: String?
 
     @MainActor
     init(albumID: UUID, viewModel: MemoriesViewModel) {
@@ -25,31 +27,22 @@ struct AddMemoryCameraView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ZStack(alignment: .bottom) {
+            Group {
                 if cameraManager.isCameraAvailable {
-                    CameraPreviewView(manager: cameraManager)
+                    CameraPreviewView(session: cameraManager.session)
+                        .onAppear {
+                            cameraManager.startSession()
+                        }
+                        .onDisappear {
+                            cameraManager.stopSession()
+                        }
                 } else {
                     MemoryImageView(
                         source: .asset("Memory Photo 1"),
                         viewModel: viewModel,
                         accessibilityLabel: "Sample camera preview"
                     )
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .clipped()
                 }
-
-                Button("Capture memory", systemImage: "camera.fill", action: capturePhoto)
-                    .font(.title3.bold())
-                    .foregroundStyle(.white)
-                    .labelStyle(.iconOnly)
-                    .frame(width: 64, height: 64)
-                    .background(Color.accentColor, in: Circle())
-                    .overlay {
-                        Circle()
-                            .stroke(.white, lineWidth: 2)
-                    }
-                    .offset(y: 32)
-                    .zIndex(1)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .clipped()
@@ -59,11 +52,14 @@ struct AddMemoryCameraView: View {
                 latestImage: cameraManager.latestImage,
                 fallbackSource: latestMemorySource,
                 viewModel: viewModel,
+                galleryDestination: .album(albumID),
                 canFlipCamera: cameraManager.canSwitchCamera,
+                isSavingCapture: isSavingCapture,
+                capturePhoto: capturePhoto,
                 flipCamera: cameraManager.flipCamera
             )
             .padding(.horizontal, 40)
-            .padding(.top, 40)
+            .padding(.top, 24)
             .padding(.bottom, 24)
             .background(Color(.systemBackground))
         }
@@ -81,7 +77,16 @@ struct AddMemoryCameraView: View {
             }
         }
         .onChange(of: cameraManager.captureCount) {
-            addLatestCaptureIfNeeded()
+            Task {
+                await addLatestCaptureIfNeeded()
+            }
+        }
+        .alert("Memory upload failed", isPresented: isShowingUploadError) {
+            Button("OK", role: .cancel) {
+                uploadErrorMessage = nil
+            }
+        } message: {
+            Text(uploadErrorMessage ?? "")
         }
     }
 
@@ -90,19 +95,37 @@ struct AddMemoryCameraView: View {
     }
 
     private func capturePhoto() {
+        guard !isSavingCapture else { return }
         cameraManager.capturePhoto()
     }
 
-    private func addLatestCaptureIfNeeded() {
+    private var isShowingUploadError: Binding<Bool> {
+        Binding(
+            get: { uploadErrorMessage != nil },
+            set: { isShowing in
+                if !isShowing {
+                    uploadErrorMessage = nil
+                }
+            }
+        )
+    }
+
+    private func addLatestCaptureIfNeeded() async {
         guard cameraManager.captureCount != lastAddedCaptureCount,
               let image = cameraManager.latestImage else {
             return
         }
 
         lastAddedCaptureCount = cameraManager.captureCount
+        isSavingCapture = true
+        defer {
+            isSavingCapture = false
+        }
 
-        if viewModel.addCapturedPhoto(image, to: albumID) != nil {
+        if await viewModel.addCapturedPhoto(image, to: albumID) != nil {
             dismiss()
+        } else {
+            uploadErrorMessage = viewModel.cloudErrorMessage
         }
     }
 }

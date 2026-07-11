@@ -33,8 +33,8 @@ struct MemoryImageView: View {
                     .resizable()
                     .aspectRatio(contentMode: contentMode)
 
-            case .captured(let imageID):
-                if let image = viewModel.capturedImage(for: imageID) {
+            case .captured(let imageID), .cloud(let imageID):
+                if let image = viewModel.memoryImage(for: imageID) {
                     Image(uiImage: image)
                         .resizable()
                         .aspectRatio(contentMode: contentMode)

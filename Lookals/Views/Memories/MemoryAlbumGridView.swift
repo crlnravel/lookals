@@ -43,6 +43,9 @@ struct MemoryAlbumGridView: View {
         }
         .background(Color(.systemBackground))
         .navigationBarBackButtonHidden()
+        .task(id: albumID) {
+            await viewModel.loadCloudPhotos(for: albumID)
+        }
         .toolbarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {

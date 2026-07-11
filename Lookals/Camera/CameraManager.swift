@@ -6,40 +6,35 @@
 //
 
 import Observation
+import AVFoundation
 import UIKit
 
 @MainActor
 @Observable
 final class CameraManager {
-    @ObservationIgnored private weak var picker: UIImagePickerController?
+    @ObservationIgnored private let cameraSession = CameraSessionController()
 
     private(set) var latestImage: UIImage?
     private(set) var captureCount = 0
 
-    var cameraDevice: UIImagePickerController.CameraDevice = .rear {
-        didSet {
-            guard UIImagePickerController.isCameraDeviceAvailable(cameraDevice) else { return }
-            picker?.cameraDevice = cameraDevice
-        }
+    var session: AVCaptureSession {
+        cameraSession.session
     }
 
     var isCameraAvailable: Bool {
-        UIImagePickerController.isSourceTypeAvailable(.camera)
+        cameraSession.isCameraAvailable
     }
 
     var canSwitchCamera: Bool {
-        UIImagePickerController.isCameraDeviceAvailable(.front)
-            && UIImagePickerController.isCameraDeviceAvailable(.rear)
+        cameraSession.canSwitchCamera
     }
 
-    func attach(_ picker: UIImagePickerController) {
-        self.picker = picker
-        picker.cameraDevice = cameraDevice
+    func startSession() {
+        cameraSession.start()
     }
 
-    func detach(_ picker: UIImagePickerController) {
-        guard self.picker === picker else { return }
-        self.picker = nil
+    func stopSession() {
+        cameraSession.stop()
     }
 
     func capturePhoto() {
@@ -48,12 +43,17 @@ final class CameraManager {
             return
         }
 
-        picker?.takePicture()
+        cameraSession.capturePhoto { [weak self] data in
+            Task { @MainActor in
+                guard let image = UIImage(data: data) else { return }
+                self?.receiveCapturedPhoto(image)
+            }
+        }
     }
 
     func flipCamera() {
         guard canSwitchCamera else { return }
-        cameraDevice = cameraDevice == .rear ? .front : .rear
+        cameraSession.flipCamera()
     }
 
     func receiveCapturedPhoto(_ image: UIImage) {

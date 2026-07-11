@@ -5,38 +5,43 @@
 //  Created by Codex on 08/07/26.
 //
 
+import AVFoundation
 import SwiftUI
 import UIKit
 
-struct CameraPreviewView: UIViewControllerRepresentable {
-    let manager: CameraManager
+struct CameraPreviewView: UIViewRepresentable {
+    let session: AVCaptureSession
 
-    func makeCoordinator() -> CameraPreviewCoordinator {
-        CameraPreviewCoordinator(manager: manager)
+    func makeUIView(context: Context) -> CameraPreviewUIView {
+        let view = CameraPreviewUIView()
+        view.previewLayer.session = session
+        return view
     }
 
-    func makeUIViewController(context: Context) -> UIImagePickerController {
-        let picker = UIImagePickerController()
-        picker.sourceType = .camera
-        picker.cameraCaptureMode = .photo
-        picker.cameraDevice = manager.cameraDevice
-        picker.showsCameraControls = false
-        picker.allowsEditing = false
-        picker.delegate = context.coordinator
-        picker.modalPresentationStyle = .fullScreen
-        manager.attach(picker)
-        return picker
+    func updateUIView(_ view: CameraPreviewUIView, context: Context) {
+        guard view.previewLayer.session !== session else { return }
+        view.previewLayer.session = session
+    }
+}
+
+final class CameraPreviewUIView: UIView {
+    override class var layerClass: AnyClass {
+        AVCaptureVideoPreviewLayer.self
     }
 
-    func updateUIViewController(_ picker: UIImagePickerController, context: Context) {
-        guard UIImagePickerController.isCameraDeviceAvailable(manager.cameraDevice) else { return }
-        picker.cameraDevice = manager.cameraDevice
+    var previewLayer: AVCaptureVideoPreviewLayer {
+        layer as! AVCaptureVideoPreviewLayer
     }
 
-    static func dismantleUIViewController(
-        _ picker: UIImagePickerController,
-        coordinator: CameraPreviewCoordinator
-    ) {
-        coordinator.manager.detach(picker)
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = .black
+        previewLayer.videoGravity = .resizeAspectFill
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        backgroundColor = .black
+        previewLayer.videoGravity = .resizeAspectFill
     }
 }
