@@ -141,8 +141,8 @@ struct HomepageView: View {
                     } label: {
                         Image(profileViewModel.user.profileImageName)
                             .resizable()
-                            .scaledToFill()
-                            .frame(width: 34, height: 34)
+                            .scaledToFit()
+                            .frame(width: 33, height: 33)
                     }
                 }
             }
@@ -190,7 +190,7 @@ struct HomepageView: View {
         
                 .foregroundColor(.black)
                 .multilineTextAlignment(.center)
-                .shadow(radius: 3, x: 0, y: 4)
+                .shadow(radius: 2, x: 1, y: 2)
                 .padding(.horizontal, 110)
         }
 
