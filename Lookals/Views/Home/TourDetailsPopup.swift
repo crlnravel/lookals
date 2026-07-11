@@ -55,7 +55,7 @@ struct TourDetailsPopup: View {
     private var headerImage: some View {
         ZStack(alignment: .top) {
 
-            Image("backgroundMap1")
+            Image(map.image)
                 .resizable()
                 .scaledToFill()
                 .frame(height: 220)

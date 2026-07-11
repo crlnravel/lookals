@@ -14,6 +14,7 @@ struct TourMap: Identifiable, Codable, Equatable, Hashable {
     var subtitleTags: [String]
     var summary: String
     var imageName: String
+    var image: String
     var pointCost: Int
     var quests: Int
     var landmarks: Int
@@ -34,6 +35,7 @@ extension TourMap {
             subtitleTags: ["Plants", "Coffee", "Pasta", "Entertainment", "History", "Tea"],
             summary: "See exactly where BSD actually lives, not the malls, the people running it. Eight stops, real locals, one map. Show up and leave your mark.",
             imageName: "Map1",
+            image: "tourMap1",
             pointCost: 250,
             quests: 10,
             landmarks: 8,
@@ -51,6 +53,7 @@ extension TourMap {
             subtitleTags: ["Urban", "Coffee", "History", "Pastry", "Park"],
             summary: "See exactly where the internet is obsessing over in real time. Here’s the most viral spots so you can just show up and catch the vibe.",
             imageName: "Map2",
+            image: "tourMap2",
             pointCost: 220,
             quests: 9,
             landmarks: 6,
@@ -68,6 +71,7 @@ extension TourMap {
             subtitleTags: ["Culture", "Local Foods", "Spice", "Wellness", "Community"],
             summary: "Forget the tourist traps, the locals are the one who run the city. These are the hidden nodes and daily staples keeping the neighborhood alive.",
             imageName: "Map3",
+            image: "tourMap3",
             pointCost: 220,
             quests: 10,
             landmarks: 7,

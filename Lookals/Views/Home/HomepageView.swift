@@ -11,6 +11,7 @@ enum HomeRoute: Hashable {
     case profile
     case ongoingItinerary
     case checkAvailability(TourMap)
+    case gallery
 }
 
 struct HomepageView: View {
@@ -31,7 +32,7 @@ struct HomepageView: View {
     }
 
     private let mapLayouts: [MapLayout] = [
-        MapLayout(xFraction: 0.30, yFraction: 0.45, widthFraction: 0.44, heightFraction: 0.35),
+        MapLayout(xFraction: 0.29, yFraction: 0.45, widthFraction: 0.44, heightFraction: 0.4),
         MapLayout(xFraction: 0.75, yFraction: 0.34, widthFraction: 0.44, heightFraction: 0.34),
         MapLayout(xFraction: 0.65, yFraction: 0.59, widthFraction: 0.30, heightFraction: 0.34)
     ]
@@ -51,8 +52,15 @@ struct HomepageView: View {
                             selectedMapForTooltip = nil
                         }
                     }
-                
+                                
                 mapCardsLayer
+                                
+                if appState.hasCompletedTour {
+                    MapPhotoPinView(position: CGPoint(x: 100, y: 400)) {
+                        path.append(.gallery)
+                    }
+                    .zIndex(20)
+                }
 
                 VStack {
                     if let firstMap = appState.maps.first {
@@ -75,7 +83,7 @@ struct HomepageView: View {
                     }
                 }
 
-                // testingControls
+                 testingControls
                 
                 if let map = selectedMapForTooltip {
                     tooltipOverlay(for: map)
@@ -147,6 +155,8 @@ struct HomepageView: View {
                     LoginView()
                 case .checkAvailability(let map):
                     CheckAvailabilityView(appState: appState, map: map, path: $path)
+                case .gallery:
+                    HomepageView()
                 }
             }
             .navigationBarBackButtonHidden(false)
@@ -235,24 +245,32 @@ struct HomepageView: View {
         }
 
     private func fogState(for map: TourMap, isBooked: Bool) -> Bool {
-        switch appState.bookingStatus {
-        case .unbooked:
-            return true
-        case .upcoming:
-            return true
-        case .ongoing:
-            return !isBooked
+            if appState.completedMapIds.contains(map.id) {
+                return false
+            }
+            
+            switch appState.bookingStatus {
+            case .unbooked:
+                return true
+            case .upcoming:
+                return true
+            case .ongoing:
+                return !isBooked
+            }
         }
-    }
 
-    private func greyState(for map: TourMap, isBooked: Bool) -> Bool {
-        switch appState.bookingStatus {
-        case .unbooked:
-            return false
-        case .upcoming, .ongoing:
-            return !isBooked
+        private func greyState(for map: TourMap, isBooked: Bool) -> Bool {
+            if appState.completedMapIds.contains(map.id) {
+                return false
+            }
+            
+            switch appState.bookingStatus {
+            case .unbooked:
+                return false
+            case .upcoming, .ongoing:
+                return !isBooked
+            }
         }
-    }
 
     private func handleTap(on map: TourMap, isBooked: Bool, location: CGPoint) {
         if appState.bookingStatus != .unbooked && !isBooked {
@@ -326,6 +344,9 @@ struct HomepageView: View {
                     }
                     Button("Trigger D-Day (Ongoing)") {
                         appState.triggerDDay()
+                    }
+                    Button("Finish Tour (Show Memory)") {
+                        appState.finishTour()
                     }
                 } label: {
                     Image(systemName: "hammer.circle.fill")
