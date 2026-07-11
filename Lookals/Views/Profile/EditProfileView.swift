@@ -1,5 +1,5 @@
 import SwiftUI
-import PhotosUI // 1. Import the framework
+import PhotosUI
 
 struct EditProfileView: View {
     @Environment(\.dismiss) var dismiss
@@ -7,7 +7,6 @@ struct EditProfileView: View {
     
     @State private var draftUser: User
     
-    // 2. Add State for the photo picker
     @State private var selectedPhotoItem: PhotosPickerItem? = nil
     @State private var customProfileImage: Image? = nil
     
@@ -24,32 +23,30 @@ struct EditProfileView: View {
                     // Profile Picture
                     PhotosPicker(selection: $selectedPhotoItem, matching: .images, photoLibrary: .shared()) {
                         ZStack(alignment: .bottomTrailing) {
-                            
-                            // 🔥 CHANGED: Now looking at draftUser instead of viewModel.user
-                            if let imageData = draftUser.customImageData,
-                               let uiImage = UIImage(data: imageData) {
-                                
-                                // Show the custom uploaded photo
-                                Image(uiImage: uiImage)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 100, height: 100)
-                                    .clipShape(Circle())
-                                    .padding(4)
-                                    .background(Circle().stroke(Color.orange, lineWidth: 2))
+                            ZStack {
+                                if let imageData = draftUser.customImageData,
+                                   let uiImage = UIImage(data: imageData) {
                                     
-                            } else {
+                                    Image(uiImage: uiImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 100, height: 100)
+                                        .clipShape(Circle())
+                                    
+                                } else {
+                                    Image(draftUser.profileImageName)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 100, height: 100)
+                                        .foregroundColor(.gray)
+                                        .clipShape(Circle())
+                                }
                                 
-                                // 🔥 CHANGED: Now looking at draftUser instead of viewModel.user
-                                // Show the default asset image
-                                Image(draftUser.profileImageName)
+                                // badge overlay
+                                Image(draftUser.level.badgeImageName)
                                     .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 100, height: 100)
-                                    .foregroundColor(.gray)
-                                    .clipShape(Circle())
-                                    .padding(4)
-                                    .background(Circle().stroke(Color.orange, lineWidth: 2))
+                                    .scaledToFit()
+                                    .frame(width: 148, height: 148)
                             }
                             
                             Image(systemName: "camera.fill")
@@ -59,12 +56,11 @@ struct EditProfileView: View {
                                 .background(Circle().fill(Color.white))
                                 .shadow(radius: 2)
                                 .offset(x: -5, y: -5)
+                            
                         }
                     }
                 }
                 .padding(.bottom, 10)
-                .padding(.top, 20)
-                // 4. Load the image data when the user picks a photo
                 .onChange(of: selectedPhotoItem) { newItem in
                     Task {
                         // Attempt to load the selected image as raw Data
@@ -92,6 +88,7 @@ struct EditProfileView: View {
                 // Interests
                 InterestSelectionView(selectedInterests: $draftUser.interests)
                 
+                // Personality Dropdown
                 CustomDropdown(title: "Personality", selection: $draftUser.personality)
             }
             .padding(.horizontal)
