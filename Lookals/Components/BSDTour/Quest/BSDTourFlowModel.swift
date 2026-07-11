@@ -77,7 +77,7 @@ final class BSDTourFlowModel {
     }
 
     var canGoBack: Bool {
-        guard !isShowingQuestSuccess else {
+        guard !isShowingQuestSuccess, !isWaitingForGroupCompletion else {
             return false
         }
 
