@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		72E76D7F2FFE4CE100F9E8C5 /* test_jul.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72E76D7E2FFE4CDD00F9E8C5 /* test_jul.swift */; };
 		F7B8230AF2FF3E3F8001FE59B /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F7B82304F2FF3E3F8001FE59B /* XCTest.framework */; };
 /* End PBXBuildFile section */
 
@@ -22,7 +21,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		72E76D7E2FFE4CDD00F9E8C5 /* test_jul.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = test_jul.swift; sourceTree = "<group>"; };
 		F7B822ED2FF3E3F7001FE59B /* Lookals.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lookals.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F7B823002FF3E3F8001FE59B /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 		F7B82303F2FF3E3F8001FE59B /* LookalsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LookalsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -85,7 +83,6 @@
 		F7B822E42FF3E3F7001FE59B = {
 			isa = PBXGroup;
 			children = (
-				72E76D7E2FFE4CDD00F9E8C5 /* test_jul.swift */,
 				F7B823012FF3E3F8001FE59B /* Config */,
 				F7B822EF2FF3E3F7001FE59B /* Lookals */,
 				F7B82305F2FF3E3F8001FE59B /* LookalsTests */,
@@ -225,7 +222,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				72E76D7F2FFE4CE100F9E8C5 /* test_jul.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
