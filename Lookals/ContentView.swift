@@ -17,22 +17,22 @@ struct ContentView: View {
     }
 
     var body: some View {
-        switch screen {
-        case .login:
-            LoginView(
-                onGetStarted: showIntro,
-                onSignIn: showHome
-            )
-        case .intro:
-            IntroView(onFinish: showFaceVerification)
-        case .faceVerification:
-            FaceVerificationView(
-                onBack: showIntro,
-                onDone: showHome
-            )
-        case .home:
-            HomepageView()
-        }
+//        switch screen {
+//        case .login:
+//            LoginView(
+//                onGetStarted: showIntro,
+//                onSignIn: showHome
+//            )
+//        case .intro:
+//            IntroView(onFinish: showFaceVerification)
+//        case .faceVerification:
+//            FaceVerificationView(
+//                onBack: showIntro,
+//                onDone: showHome
+//            )
+//        case .home:
+//            HomepageView()
+//        }
     }
 
     private func showIntro() {

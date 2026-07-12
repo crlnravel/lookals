@@ -116,7 +116,7 @@ struct HomepageView: View {
             .navigationDestination(for: HomeRoute.self) { route in
                 switch route {
                 case .profile: ProfileView()
-                case .ongoingItinerary: LoginView()
+                case .ongoingItinerary: SignInView()
                 case .checkAvailability(let map): CheckAvailabilityView(appState: appState, map: map, path: $path)
                 case .memories, .gallery: MemoriesOverviewView(viewModel: memoriesViewModel)
                 }
