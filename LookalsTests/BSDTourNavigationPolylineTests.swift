@@ -39,6 +39,20 @@ final class BSDTourNavigationPolylineTests: XCTestCase {
 
         XCTAssertTrue(result === routePolyline)
     }
+
+    func testNavigationPolylineIsUnavailableAfterArrivalAndDuringQuest() {
+        let viewModel = BSDTourViewModel(persistenceStore: TestBSDTourPersistenceStore())
+
+        viewModel.simulateArrival()
+
+        XCTAssertEqual(viewModel.phase, .waitingToShake)
+        XCTAssertNil(viewModel.navigationPolyline)
+
+        viewModel.joinAllParticipants()
+
+        XCTAssertEqual(viewModel.phase, .quest)
+        XCTAssertNil(viewModel.navigationPolyline)
+    }
 }
 
 private extension MKPolyline {

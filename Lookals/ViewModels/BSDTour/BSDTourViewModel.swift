@@ -175,7 +175,11 @@ final class BSDTourViewModel {
     }
 
     var navigationPolyline: MKPolyline? {
-        Self.navigationPolyline(
+        guard phase == .navigatingToMeetingPoint || phase == .navigatingToCheckpoint else {
+            return nil
+        }
+
+        return Self.navigationPolyline(
             routePolyline: activeRoute?.polyline,
             source: currentUserCoordinate,
             destination: activeDestination?.coordinate
