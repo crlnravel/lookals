@@ -48,7 +48,11 @@ class PointRedemptionViewModel: ObservableObject {
         }
     }
         
-    func addDebugPoints() { profileViewModel.user.points += 50 }
+    func addDebugPoints() {
+        let amountEarned = 50
+        profileViewModel.user.points += amountEarned
+        profileViewModel.user.exp += amountEarned
+    }
     func resetDebugPoints() { profileViewModel.user.points = 0 }
         
     func alertTitle() -> String {

@@ -2,6 +2,12 @@
 // Generate local overrides with: ./scripts/setup-signing.sh
 
 LOOKALS_DEVELOPMENT_TEAM =
-LOOKALS_BUNDLE_IDENTIFIER = appledev.Lookals
+LOOKALS_BUNDLE_IDENTIFIER = com.lookals.local
+LOOKALS_CODE_SIGN_ENTITLEMENTS = Lookals/Lookals.entitlements
+LOOKALS_SWIFT_ACTIVE_COMPILATION_CONDITIONS =
+
+// To test the real CloudKit backend, put these overrides in Signing.local.xcconfig:
+// LOOKALS_CODE_SIGN_ENTITLEMENTS = Lookals/LookalsCloudKit.entitlements
+// LOOKALS_SWIFT_ACTIVE_COMPILATION_CONDITIONS = LOOKALS_CLOUDKIT
 
 #include? "Signing.local.xcconfig"

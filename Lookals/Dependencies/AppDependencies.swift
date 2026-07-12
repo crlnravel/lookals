@@ -11,12 +11,15 @@ import SwiftData
 struct AppDependencies: Sendable {
     let lookalMatchRepository: any LookalMatchRepository
     let bsdTourPersistenceStore: any BSDTourPersistenceStore
+    let memoryPhotoService: any MemoryPhotoServicing
 
     init(
         lookalMatchRepository: any LookalMatchRepository,
+        memoryPhotoService: any MemoryPhotoServicing,
         bsdTourPersistenceStore: any BSDTourPersistenceStore
     ) {
         self.lookalMatchRepository = lookalMatchRepository
+        self.memoryPhotoService = memoryPhotoService
         self.bsdTourPersistenceStore = bsdTourPersistenceStore
     }
 }
@@ -32,13 +35,12 @@ extension AppDependencies {
     ) -> AppDependencies {
         let service = MockLookalMatchingService(matches: matches)
         let modelContainer = makeModelContainer(isStoredInMemoryOnly: isStoredInMemoryOnly)
-        let store = SwiftDataLookalMatchStore(
-            modelContainer: modelContainer
-        )
+        let store = InMemoryLookalMatchStore()
         let repository = DefaultLookalMatchRepository(service: service, store: store)
         let tourStore = SwiftDataBSDTourPersistenceStore(modelContainer: modelContainer)
         return AppDependencies(
             lookalMatchRepository: repository,
+            memoryPhotoService: LocalMemoryPhotoService.shared,
             bsdTourPersistenceStore: tourStore
         )
     }
@@ -54,8 +56,17 @@ extension AppDependencies {
         let tourStore = SwiftDataBSDTourPersistenceStore(modelContainer: modelContainer)
         return AppDependencies(
             lookalMatchRepository: repository,
+            memoryPhotoService: configuredMemoryPhotoService,
             bsdTourPersistenceStore: tourStore
         )
+    }
+
+    private static var configuredMemoryPhotoService: any MemoryPhotoServicing {
+        #if LOOKALS_CLOUDKIT
+        CloudMemoryService.shared
+        #else
+        LocalMemoryPhotoService.shared
+        #endif
     }
 
     private static func makeModelContainer(isStoredInMemoryOnly: Bool) -> ModelContainer {

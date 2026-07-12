@@ -10,19 +10,47 @@ import SwiftUI
 struct HomeView: View {
     @State private var viewModel: HomeViewModel
 
+    private let memoryPhotoService: any MemoryPhotoServicing
+
     init(dependencies: AppDependencies = .preview) {
+        self.memoryPhotoService = dependencies.memoryPhotoService
         _viewModel = State(
             initialValue: HomeViewModel(repository: dependencies.lookalMatchRepository)
         )
     }
 
     init(viewModel: HomeViewModel) {
+        self.memoryPhotoService = LocalMemoryPhotoService.shared
         _viewModel = State(initialValue: viewModel)
+    }
+    
+    // Definisi Rute Navigasi
+    enum HomeViewRoute: Hashable {
+        case memories
+        // Tambahkan case lain di sini jika ada, contoh: case profile
     }
 
     var body: some View {
         NavigationStack {
             List {
+                Section("Quest Tools") {
+                    NavigationLink(value: HomeViewRoute.memories) {
+                        Label {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Memories")
+                                    .font(.body.weight(.medium))
+
+                                Text("Open your quest gallery")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "photo.on.rectangle.angled")
+                                .foregroundStyle(.tint)
+                        }
+                    }
+                }
+
                 Section {
                     if let topMatch = viewModel.topMatch {
                         VStack(alignment: .leading, spacing: 8) {
@@ -83,6 +111,12 @@ struct HomeView: View {
             .refreshable {
                 await viewModel.loadMatches(refresh: true)
             }
+//            .navigationDestination(for: HomeRoute.self) { route in
+//                switch route {
+//                case .memories:
+//                    MemoriesOverviewView()
+//                }
+//            }
         }
     }
 }

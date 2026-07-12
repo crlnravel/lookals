@@ -6,7 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		72E76D7F2FFE4CE100F9E8C5 /* test_jul.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72E76D7E2FFE4CDD00F9E8C5 /* test_jul.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		72E76D7E2FFE4CDD00F9E8C5 /* test_jul.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = test_jul.swift; sourceTree = "<group>"; };
 		F7B822ED2FF3E3F7001FE59B /* Lookals.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lookals.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F7B823002FF3E3F8001FE59B /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 		F7B82303F2FF3E3F8001FE59B /* LookalsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LookalsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -27,9 +32,22 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		72B1D61930023FA1003FA2C7 /* Exceptions for "Lookals" folder in "Lookals" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = F7B822EC2FF3E3F7001FE59B /* Lookals */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		F7B822EF2FF3E3F7001FE59B /* Lookals */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				72B1D61930023FA1003FA2C7 /* Exceptions for "Lookals" folder in "Lookals" target */,
+			);
 			path = Lookals;
 			sourceTree = "<group>";
 		};
@@ -62,6 +80,7 @@
 		F7B822E42FF3E3F7001FE59B = {
 			isa = PBXGroup;
 			children = (
+				72E76D7E2FFE4CDD00F9E8C5 /* test_jul.swift */,
 				F7B823012FF3E3F8001FE59B /* Config */,
 				F7B822EF2FF3E3F7001FE59B /* Lookals */,
 				F7B82305F2FF3E3F8001FE59B /* LookalsTests */,
@@ -146,6 +165,11 @@
 				TargetAttributes = {
 					F7B822EC2FF3E3F7001FE59B = {
 						CreatedOnToolsVersion = 26.6;
+						SystemCapabilities = {
+							com.apple.iCloud = {
+								enabled = 1;
+							};
+						};
 					};
 					F7B82308F2FF3E3F8001FE59B = {
 						CreatedOnToolsVersion = 26.6;
@@ -195,6 +219,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				72E76D7F2FFE4CE100F9E8C5 /* test_jul.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -347,12 +372,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "$(LOOKALS_CODE_SIGN_ENTITLEMENTS)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "$(LOOKALS_DEVELOPMENT_TEAM)";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = "Lookals uses the camera to scan quest proof QR codes.";
+				INFOPLIST_FILE = Lookals/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Lookals uses the camera to add photos to your memories.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Lookals uses your location to confirm meeting-point and checkpoint arrivals during guided tours.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -369,6 +396,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) $(LOOKALS_SWIFT_ACTIVE_COMPILATION_CONDITIONS)";
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
@@ -383,12 +411,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "$(LOOKALS_CODE_SIGN_ENTITLEMENTS)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "$(LOOKALS_DEVELOPMENT_TEAM)";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = "Lookals uses the camera to scan quest proof QR codes.";
+				INFOPLIST_FILE = Lookals/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Lookals uses the camera to add photos to your memories.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Lookals uses your location to confirm meeting-point and checkpoint arrivals during guided tours.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -405,6 +435,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) $(LOOKALS_SWIFT_ACTIVE_COMPILATION_CONDITIONS)";
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
