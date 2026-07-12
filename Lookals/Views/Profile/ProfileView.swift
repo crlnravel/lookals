@@ -5,18 +5,11 @@ struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
     
     var body: some View {
-<<<<<<< HEAD
-            VStack(spacing: 24) {
-                
-                // Profile Info
-                VStack(spacing: 8) {
-=======
         VStack(spacing: 24) {
             
             VStack(spacing: 8) {
                 // Updated: Profile Picture with Badge Overlay
                 ZStack {
->>>>>>> e026eedde09bde776821067af14b211a27fe60cf
                     if let imageData = viewModel.user.customImageData,
                        let uiImage = UIImage(data: imageData) {
                         
@@ -41,8 +34,6 @@ struct ProfileView: View {
                         .scaledToFit()
                         .frame(width: 148, height: 148)
                 }
-<<<<<<< HEAD
-=======
                 
                 Text(viewModel.user.nickname)
                     .font(.title)
@@ -128,7 +119,6 @@ struct ProfileView: View {
                         .foregroundColor(.orange)
                 }.padding(.horizontal, 6)
             }
->>>>>>> e026eedde09bde776821067af14b211a27fe60cf
         }
     }
     

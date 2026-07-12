@@ -101,18 +101,14 @@ struct HomeView: View {
             .refreshable {
                 await viewModel.loadMatches(refresh: true)
             }
-            .navigationDestination(for: HomeRoute.self) { route in
-                switch route {
-                case .memories:
-                    MemoriesOverviewView()
-                }
-            }
+//            .navigationDestination(for: HomeRoute.self) { route in
+//                switch route {
+//                case .memories:
+//                    MemoriesOverviewView()
+//                }
+//            }
         }
     }
-}
-
-private enum HomeRoute: Hashable {
-    case memories
 }
 
 #Preview {

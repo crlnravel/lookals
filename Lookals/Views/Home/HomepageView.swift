@@ -11,7 +11,7 @@ enum HomeRoute: Hashable {
     case profile
     case ongoingItinerary
     case checkAvailability(TourMap)
-    case gallery
+    case memories
 }
 
 struct HomepageView: View {
@@ -57,7 +57,7 @@ struct HomepageView: View {
                                 
                 if appState.hasCompletedTour {
                     MapPhotoPinView(position: CGPoint(x: 100, y: 400)) {
-                        path.append(.gallery)
+                        path.append(.memories)
                     }
                     .zIndex(20)
                 }
@@ -139,11 +139,30 @@ struct HomepageView: View {
                     Button {
                         path.append(.profile)
                     } label: {
-                        Image(profileViewModel.user.profileImageName)
-                            .resizable()
-                            .scaledToFit()
+                        ZStack {
+                            Group {
+                                if let imageData = profileViewModel.user.customImageData,
+                                   let uiImage = UIImage(data: imageData) {
+                                    Image(uiImage: uiImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                } else {
+                                    Image(profileViewModel.user.profileImageName)
+                                        .resizable()
+                                        .scaledToFill()
+                                }
+                            }
                             .frame(width: 33, height: 33)
+                            .clipShape(Circle())
+                            
+                            Image(profileViewModel.user.level.badgeImageName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 49, height: 49)
+                        }
+                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(.plain)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -155,8 +174,8 @@ struct HomepageView: View {
                     LoginView()
                 case .checkAvailability(let map):
                     CheckAvailabilityView(appState: appState, map: map, path: $path)
-                case .gallery:
-                    HomepageView()
+                case .memories:
+                    MemoriesOverviewView()
                 }
             }
             .navigationBarBackButtonHidden(false)

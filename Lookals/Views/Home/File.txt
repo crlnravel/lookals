@@ -1,0 +1,31 @@
+ToolbarItem(placement: .navigationBarTrailing) {
+    Button {
+        path.append(.profile)
+    } label: {
+        ZStack {
+            // 1. Profile Picture (Handles both default and custom uploaded photos)
+            Group {
+                if let imageData = profileViewModel.user.customImageData,
+                   let uiImage = UIImage(data: imageData) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    Image(profileViewModel.user.profileImageName)
+                        .resizable()
+                        .scaledToFill()
+                }
+            }
+            .frame(width: 33, height: 33)
+            .clipShape(Circle())
+            
+            // 2. Badge Overlay (Scaled proportionally for the 33x33 profile image)
+            Image(profileViewModel.user.level.badgeImageName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 49, height: 49)
+        }
+        // Forces the entire ZStack area to be a tappable button
+        .contentShape(Rectangle()) 
+    }
+}
