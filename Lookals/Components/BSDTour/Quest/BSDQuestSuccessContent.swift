@@ -30,8 +30,8 @@ struct BSDQuestSuccessContent: View {
             ConfettiBurstView()
                 .allowsHitTesting(false)
 
-            VStack(spacing: 40) {
-                VStack(spacing: 28) {
+            VStack(spacing: 32) {
+                VStack(spacing: 10) {
                     Text(quest.displayLabel)
                         .font(.subheadline.weight(.bold))
                         .foregroundStyle(.primary)
@@ -50,15 +50,12 @@ struct BSDQuestSuccessContent: View {
                             .lineSpacing(4)
                     }
                 }
-                .padding(.top, 88)
+                .padding(.top, 20)
 
-                Spacer(minLength: 24)
-
-                SuccessAvatarCluster()
+                SuccessAvatarCluster(participants: BSDTourConfiguration.participants)
 
                 QuestSuccessRewardLabel(points: quest.reward)
 
-                Spacer(minLength: 32)
 
                 PrimaryButton(
                     "Continue",
@@ -67,9 +64,7 @@ struct BSDQuestSuccessContent: View {
                 )
             }
             .padding(.horizontal, 32)
-            .padding(.bottom, 28)
         }
-        .frame(minHeight: 620)
         .accessibilityElement(children: .contain)
     }
 }
@@ -86,28 +81,31 @@ private struct QuestSuccessRewardLabel: View {
 }
 
 private struct SuccessAvatarCluster: View {
-    private let avatars: [AvatarToken] = [
-        AvatarToken(color: .accentColor, icon: "person.crop.circle.fill", xOffset: -48, yOffset: 20, size: 64),
-        AvatarToken(color: .orange, icon: "face.smiling.fill", xOffset: -20, yOffset: -16, size: 64),
-        AvatarToken(color: .blue, icon: "person.crop.circle.fill", xOffset: 28, yOffset: -28, size: 76),
-        AvatarToken(color: .yellow, icon: "person.crop.circle.fill", xOffset: 12, yOffset: 28, size: 56),
-        AvatarToken(color: .mint, icon: "person.crop.circle.fill", xOffset: 58, yOffset: 22, size: 64)
+    let participants: [BSDTourParticipant]
+
+    private let placements: [(x: CGFloat, y: CGFloat, size: CGFloat)] = [
+        (-48, 20, 64),
+        (-20, -16, 64),
+        (28, -28, 76),
+        (12, 28, 56),
+        (58, 22, 64)
     ]
 
     var body: some View {
         ZStack {
-            ForEach(avatars) { avatar in
-                Image(systemName: avatar.icon)
+            ForEach(Array(participants.prefix(placements.count).enumerated()), id: \.element.id) { index, participant in
+                let placement = placements[index]
+
+                Image(participant.avatarImageName ?? "AvatarPlaceholder")
                     .resizable()
-                    .scaledToFit()
-                    .foregroundStyle(Color(.systemBackground), avatar.color)
-                    .frame(width: avatar.size, height: avatar.size)
-                    .background(avatar.color, in: Circle())
+                    .scaledToFill()
+                    .frame(width: placement.size, height: placement.size)
+                    .clipShape(Circle())
                     .overlay {
                         Circle()
-                            .stroke(avatar.color, lineWidth: 5)
+                            .stroke(Color.bsdTourRingColor(named: participant.ringColorName), lineWidth: 5)
                     }
-                    .offset(x: avatar.xOffset, y: avatar.yOffset)
+                    .offset(x: placement.x, y: placement.y)
             }
         }
         .frame(width: 180, height: 128)
@@ -116,46 +114,18 @@ private struct SuccessAvatarCluster: View {
 }
 
 private struct ConfettiBurstView: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var isAnimating = false
-
     private let pieces = ConfettiPiece.samples
 
     var body: some View {
         GeometryReader { proxy in
             ZStack {
                 ForEach(pieces) { piece in
-                    RoundedRectangle(cornerRadius: 1.5, style: .continuous)
-                        .fill(piece.color)
-                        .frame(width: piece.width, height: piece.height)
-                        .rotationEffect(.degrees(isAnimating ? piece.endRotation : piece.startRotation))
-                        .offset(
-                            x: isAnimating ? piece.endX * proxy.size.width : 0,
-                            y: isAnimating ? piece.endY * proxy.size.height : -40
-                        )
-                        .opacity(reduceMotion ? 0.75 : (isAnimating ? 0.95 : 0))
-                        .animation(
-                            .easeOut(duration: piece.duration).delay(piece.delay),
-                            value: isAnimating
-                        )
+                    ConfettiPieceView(piece: piece, containerSize: proxy.size)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .onAppear {
-                guard !reduceMotion else { return }
-                isAnimating = true
-            }
         }
     }
-}
-
-private struct AvatarToken: Identifiable {
-    let id = UUID()
-    let color: Color
-    let icon: String
-    let xOffset: CGFloat
-    let yOffset: CGFloat
-    let size: CGFloat
 }
 
 private struct ConfettiPiece: Identifiable {
@@ -184,6 +154,42 @@ private struct ConfettiPiece: Identifiable {
         ConfettiPiece(color: .blue, width: 9, height: 24, startRotation: 26, endRotation: -116, endX: 0.20, endY: -0.30, delay: 0.04, duration: 1.00),
         ConfettiPiece(color: .mint, width: 9, height: 26, startRotation: -24, endRotation: 104, endX: -0.18, endY: -0.28, delay: 0.06, duration: 0.95)
     ]
+}
+
+private struct ConfettiPieceView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    let piece: ConfettiPiece
+    let containerSize: CGSize
+
+    @State private var isAnimating = false
+    @State private var isVisible = true
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+            .fill(piece.color)
+            .frame(width: piece.width, height: piece.height)
+            .rotationEffect(.degrees(isAnimating ? piece.endRotation : piece.startRotation))
+            .offset(
+                x: isAnimating ? piece.endX * containerSize.width : 0,
+                y: isAnimating ? piece.endY * containerSize.height : -40
+            )
+            .opacity(isVisible && !reduceMotion ? 0.95 : 0)
+            .animation(
+                .easeOut(duration: piece.duration).delay(piece.delay),
+                value: isAnimating
+            )
+            .animation(.easeIn(duration: 0.12), value: isVisible)
+            .task {
+                guard !reduceMotion else { return }
+                isAnimating = true
+
+                let totalDuration = piece.delay + piece.duration
+                try? await Task.sleep(for: .seconds(totalDuration))
+
+                guard !Task.isCancelled else { return }
+                isVisible = false
+            }
+    }
 }
 
 #Preview {
