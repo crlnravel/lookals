@@ -72,7 +72,7 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		04BB31ED3003F5DF004E3C2A /* Recovered References */ = {
+		F777C083300409F700F06423 /* Recovered References */ = {
 			isa = PBXGroup;
 			children = (
 				F7B82304F2FF3E3F8001FE59B /* XCTest.framework */,
@@ -87,7 +87,7 @@
 				F7B822EF2FF3E3F7001FE59B /* Lookals */,
 				F7B82305F2FF3E3F8001FE59B /* LookalsTests */,
 				F7B822EE2FF3E3F7001FE59B /* Products */,
-				04BB31ED3003F5DF004E3C2A /* Recovered References */,
+				F777C083300409F700F06423 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
