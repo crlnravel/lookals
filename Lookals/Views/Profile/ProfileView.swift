@@ -2,7 +2,11 @@ import SwiftUI
 
 struct ProfileView: View {
     @Environment(\.dismiss) var dismiss
-    @StateObject private var viewModel = ProfileViewModel()
+    @ObservedObject var viewModel: ProfileViewModel
+
+    init(viewModel: ProfileViewModel) {
+        self.viewModel = viewModel
+    }
     
     // NEW: State to control the log out alert
     @State private var showingLogoutAlert = false
@@ -194,6 +198,6 @@ struct SegmentedProgressBar: View {
 
 #Preview {
     NavigationStack {
-        ProfileView()
+        ProfileView(viewModel: ProfileViewModel())
     }
 }

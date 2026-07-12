@@ -19,7 +19,11 @@ final class MemoriesViewModel {
 
     private let memoryPhotoService: any MemoryPhotoServicing
 
-    init(memoryPhotoService: any MemoryPhotoServicing = LocalMemoryPhotoService.shared) {
+    convenience init() {
+        self.init(memoryPhotoService: LocalMemoryPhotoService.shared)
+    }
+
+    init(memoryPhotoService: any MemoryPhotoServicing) {
         self.albums = [Self.sampleAlbum(for: Self.defaultTourMap)]
         self.memoryImages = [:]
         self.syncingAlbumIDs = []
@@ -27,9 +31,15 @@ final class MemoriesViewModel {
         self.memoryPhotoService = memoryPhotoService
     }
 
+    convenience init(
+        albums: [MemoryAlbum]
+    ) {
+        self.init(albums: albums, memoryPhotoService: LocalMemoryPhotoService.shared)
+    }
+
     init(
         albums: [MemoryAlbum],
-        memoryPhotoService: any MemoryPhotoServicing = LocalMemoryPhotoService.shared
+        memoryPhotoService: any MemoryPhotoServicing
     ) {
         self.albums = albums
         self.memoryImages = [:]

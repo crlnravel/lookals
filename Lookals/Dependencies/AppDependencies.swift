@@ -12,14 +12,17 @@ struct AppDependencies: Sendable {
     let lookalMatchRepository: any LookalMatchRepository
     let bsdTourPersistenceStore: any BSDTourPersistenceStore
     let memoryPhotoService: any MemoryPhotoServicing
+    let profileService: any ProfileServicing
 
     init(
         lookalMatchRepository: any LookalMatchRepository,
         memoryPhotoService: any MemoryPhotoServicing,
+        profileService: any ProfileServicing,
         bsdTourPersistenceStore: any BSDTourPersistenceStore
     ) {
         self.lookalMatchRepository = lookalMatchRepository
         self.memoryPhotoService = memoryPhotoService
+        self.profileService = profileService
         self.bsdTourPersistenceStore = bsdTourPersistenceStore
     }
 }
@@ -41,6 +44,7 @@ extension AppDependencies {
         return AppDependencies(
             lookalMatchRepository: repository,
             memoryPhotoService: LocalMemoryPhotoService.shared,
+            profileService: LocalProfileService.shared,
             bsdTourPersistenceStore: tourStore
         )
     }
@@ -57,6 +61,7 @@ extension AppDependencies {
         return AppDependencies(
             lookalMatchRepository: repository,
             memoryPhotoService: configuredMemoryPhotoService,
+            profileService: configuredProfileService,
             bsdTourPersistenceStore: tourStore
         )
     }
@@ -66,6 +71,14 @@ extension AppDependencies {
         CloudMemoryService.shared
         #else
         LocalMemoryPhotoService.shared
+        #endif
+    }
+
+    private static var configuredProfileService: any ProfileServicing {
+        #if LOOKALS_CLOUDKIT
+        CloudProfileService.shared
+        #else
+        LocalProfileService.shared
         #endif
     }
 
