@@ -10,13 +10,17 @@ import SwiftUI
 struct HomeView: View {
     @State private var viewModel: HomeViewModel
 
+    private let memoryPhotoService: any MemoryPhotoServicing
+
     init(dependencies: AppDependencies = .preview) {
+        self.memoryPhotoService = dependencies.memoryPhotoService
         _viewModel = State(
             initialValue: HomeViewModel(repository: dependencies.lookalMatchRepository)
         )
     }
 
     init(viewModel: HomeViewModel) {
+        self.memoryPhotoService = LocalMemoryPhotoService.shared
         _viewModel = State(initialValue: viewModel)
     }
 
@@ -104,7 +108,7 @@ struct HomeView: View {
             .navigationDestination(for: HomeViewRoute.self) { route in
                 switch route {
                 case .memories:
-                    MemoriesOverviewView()
+                    MemoriesOverviewView(memoryPhotoService: memoryPhotoService)
                 }
             }
         }
