@@ -24,7 +24,7 @@ struct HomeView: View {
         NavigationStack {
             List {
                 Section("Quest Tools") {
-                    NavigationLink(value: HomeRoute.memories) {
+                    NavigationLink(value: HomeViewRoute.memories) {
                         Label {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Memories")
