@@ -19,6 +19,8 @@ final class BSDTourViewModel {
     @ObservationIgnored private let routeProvider: any BSDTourRouteProvider
     @ObservationIgnored private let clock: any BSDTourClock
     @ObservationIgnored private var waitingRoomCutoffTask: Task<Void, Never>?
+    @ObservationIgnored private var routeRefreshTask: Task<Void, Never>?
+    @ObservationIgnored private var lastKnownLocation: CLLocation?
 
     private(set) var snapshot: BSDTourSnapshot
     private(set) var checkpoints: [BSDTourCheckpoint]
@@ -66,6 +68,7 @@ final class BSDTourViewModel {
 
     deinit {
         waitingRoomCutoffTask?.cancel()
+        routeRefreshTask?.cancel()
     }
 
     var phase: BSDTourPhase {
@@ -191,7 +194,7 @@ final class BSDTourViewModel {
             return navigationPolyline.boundingMapRect.paddedRegion
         }
 
-        let center = activeDestination?.coordinate ?? CLLocationCoordinate2D(latitude: -6.30467, longitude: 106.68180)
+        let center = activeDestination?.coordinate ?? checkpoints[0].coordinate
         return MKCoordinateRegion(
             center: center,
             span: MKCoordinateSpan(latitudeDelta: 0.015, longitudeDelta: 0.015)
@@ -239,9 +242,17 @@ final class BSDTourViewModel {
     }
 
     func handleLocationUpdate(_ location: CLLocation) {
+        lastKnownLocation = location
         updateCurrentUserCoordinate(location.coordinate)
+        activeRoute = nil
+        routeErrorMessage = nil
         updateRouteProgress(for: location.coordinate)
         validateArrival(using: location)
+
+        routeRefreshTask?.cancel()
+        routeRefreshTask = Task { [weak self] in
+            await self?.refreshRouteIfNeeded()
+        }
     }
 
     func handleShake() {
@@ -319,6 +330,9 @@ final class BSDTourViewModel {
         waitingRoomCutoffTask?.cancel()
         waitingRoomCutoffTask = nil
         snapshot = Self.makeDefaultSnapshot(checkpoints: checkpoints)
+        if let lastKnownLocation {
+            updateCurrentUserCoordinate(lastKnownLocation.coordinate)
+        }
         isShakeWidgetExpanded = false
         isCompletionExpanded = false
         questFlow.setEarnedPoints(0)
@@ -591,7 +605,10 @@ final class BSDTourViewModel {
             ?? CLLocationCoordinate2D(latitude: destination.coordinate.latitude - 0.004, longitude: destination.coordinate.longitude - 0.004)
 
         do {
-            activeRoute = try await routeProvider.route(from: source, to: destination.coordinate)
+            let route = try await routeProvider.route(from: source, to: destination.coordinate)
+            guard !Task.isCancelled else { return }
+
+            activeRoute = route
             routeErrorMessage = nil
             updateRouteProgress(for: source)
         } catch {

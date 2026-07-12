@@ -96,11 +96,6 @@ struct RadarMarker: View {
             .scaledToFit()
             .frame(width: 44, height: 44)
             .padding(8)
-            .background(Color.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 8))
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color.brown.opacity(0.82), lineWidth: 4)
-            )
             .shadow(color: .black.opacity(0.12), radius: 8, x: 0, y: 4)
     }
 
@@ -110,12 +105,8 @@ struct RadarMarker: View {
             .scaledToFit()
             .frame(width: 44, height: 44)
             .padding(8)
-            .background(Color.white.opacity(0.94), in: RoundedRectangle(cornerRadius: 8))
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color(.systemGray), lineWidth: 3)
-            )
             .shadow(color: .black.opacity(0.12), radius: 8, x: 0, y: 4)
+            .offset(y: 8)
     }
 
     private func mapBadge(_ label: String) -> some View {
