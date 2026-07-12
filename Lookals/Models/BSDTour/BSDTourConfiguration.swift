@@ -25,7 +25,7 @@ enum BSDTourConfiguration {
             ringColorName: "orange",
             isCurrentUser: true,
             status: .invited,
-            coordinate: BSDTourCoordinate(latitude: -6.30490, longitude: 106.67835)
+            coordinate: BSDTourCoordinate(latitude: -6.29900, longitude: 106.68190)
         ),
         BSDTourParticipant(
             id: "gisella",
