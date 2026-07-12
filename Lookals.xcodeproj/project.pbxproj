@@ -6,14 +6,32 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		72E76D7F2FFE4CE100F9E8C5 /* test_jul.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72E76D7E2FFE4CDD00F9E8C5 /* test_jul.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		72E76D7E2FFE4CDD00F9E8C5 /* test_jul.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = test_jul.swift; sourceTree = "<group>"; };
 		F7B822ED2FF3E3F7001FE59B /* Lookals.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lookals.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F7B823002FF3E3F8001FE59B /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		72B1D61930023FA1003FA2C7 /* Exceptions for "Lookals" folder in "Lookals" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = F7B822EC2FF3E3F7001FE59B /* Lookals */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		F7B822EF2FF3E3F7001FE59B /* Lookals */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				72B1D61930023FA1003FA2C7 /* Exceptions for "Lookals" folder in "Lookals" target */,
+			);
 			path = Lookals;
 			sourceTree = "<group>";
 		};
@@ -33,6 +51,7 @@
 		F7B822E42FF3E3F7001FE59B = {
 			isa = PBXGroup;
 			children = (
+				72E76D7E2FFE4CDD00F9E8C5 /* test_jul.swift */,
 				F7B823012FF3E3F8001FE59B /* Config */,
 				F7B822EF2FF3E3F7001FE59B /* Lookals */,
 				F7B822EE2FF3E3F7001FE59B /* Products */,
@@ -92,6 +111,11 @@
 				TargetAttributes = {
 					F7B822EC2FF3E3F7001FE59B = {
 						CreatedOnToolsVersion = 26.6;
+						SystemCapabilities = {
+							com.apple.iCloud = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -129,6 +153,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				72E76D7F2FFE4CE100F9E8C5 /* test_jul.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -171,7 +196,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "$(LOOKALS_DEVELOPMENT_TEAM)";
+				DEVELOPMENT_TEAM = 9G77XRDUT8;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -236,7 +261,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "$(LOOKALS_DEVELOPMENT_TEAM)";
+				DEVELOPMENT_TEAM = 9G77XRDUT8;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -264,13 +289,16 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Lookals/Lookals.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "$(LOOKALS_DEVELOPMENT_TEAM)";
+				DEVELOPMENT_TEAM = 9G77XRDUT8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "Lookals uses your calendar to add your booked tours so you don't miss them.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Lookals uses the camera to scan quest proof QR codes.";
+				INFOPLIST_FILE = Lookals/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Lookals uses the camera to add photos to your memories.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Lookals uses your location to confirm meeting-point and checkpoint arrivals during guided tours.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -283,7 +311,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "$(LOOKALS_BUNDLE_IDENTIFIER)";
+				PRODUCT_BUNDLE_IDENTIFIER = appledev.julian.lookals;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -301,6 +329,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Lookals/Lookals.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "$(LOOKALS_DEVELOPMENT_TEAM)";
@@ -308,6 +337,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "Lookals uses your calendar to add your booked tours so you don't miss them.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Lookals uses the camera to scan quest proof QR codes.";
+				INFOPLIST_FILE = Lookals/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Lookals uses the camera to add photos to your memories.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Lookals uses your location to confirm meeting-point and checkpoint arrivals during guided tours.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -320,7 +351,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "$(LOOKALS_BUNDLE_IDENTIFIER)";
+				PRODUCT_BUNDLE_IDENTIFIER = appledev.julian.lookals;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
