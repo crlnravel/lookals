@@ -24,7 +24,7 @@ struct HomeView: View {
         NavigationStack {
             List {
                 Section("Quest Tools") {
-                    NavigationLink(value: HomeRoute.memories) {
+                    NavigationLink(value: HomeViewRoute.memories) {
                         Label {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Memories")
@@ -101,7 +101,7 @@ struct HomeView: View {
             .refreshable {
                 await viewModel.loadMatches(refresh: true)
             }
-            .navigationDestination(for: HomeRoute.self) { route in
+            .navigationDestination(for: HomeViewRoute.self) { route in
                 switch route {
                 case .memories:
                     MemoriesOverviewView()
@@ -111,7 +111,7 @@ struct HomeView: View {
     }
 }
 
-private enum HomeRoute: Hashable {
+private enum HomeViewRoute: Hashable {
     case memories
 }
 
