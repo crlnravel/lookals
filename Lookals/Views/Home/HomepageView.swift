@@ -12,6 +12,7 @@ enum HomeRoute: Hashable {
     case ongoingItinerary
     case checkAvailability(TourMap)
     case memories
+    case gallery
 }
 
 struct HomepageView: View {
@@ -105,6 +106,9 @@ struct HomepageView: View {
                         .zIndex(100)
                 }
             }
+            .onAppear {
+                prepareCurrentTourMemoryAlbum()
+            }
             .coordinateSpace(name: "HomeScreenSpace")
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
@@ -114,7 +118,7 @@ struct HomepageView: View {
                 case .profile: ProfileView()
                 case .ongoingItinerary: LoginView()
                 case .checkAvailability(let map): CheckAvailabilityView(appState: appState, map: map, path: $path)
-                case .memories: MemoriesOverviewView()
+                case .memories, .gallery: MemoriesOverviewView(viewModel: memoriesViewModel)
                 }
             }
         }
@@ -155,7 +159,7 @@ struct HomepageView: View {
             Spacer()
 
             Button {
-                path.append(.profile)
+                path.append(HomeRoute.profile)
             } label: {
                 ZStack {
                     Group {
@@ -171,39 +175,8 @@ struct HomepageView: View {
                     Image(profileViewModel.user.level.badgeImageName)
                         .resizable()
                         .scaledToFit()
-                        .frame(height: 44)
+                    .frame(height: 44)
                 }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        path.append(HomeRoute.profile)
-                    } label: {
-                        Image(profileViewModel.user.profileImageName)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 33, height: 33)
-                    }
-                }
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(for: HomeRoute.self) { route in
-                switch route {
-                case .profile:
-                    ProfileView()
-                case .ongoingItinerary:
-                    LoginView()
-                case .checkAvailability(let map):
-                    CheckAvailabilityView(appState: appState, map: map, path: $path)
-                case .gallery:
-                    MemoriesOverviewView(viewModel: memoriesViewModel)
-                }
-            }
-            .navigationDestination(for: MemoriesRoute.self) { route in
-                MemoriesDestinationView(route: route, viewModel: memoriesViewModel)
-            }
-            .navigationBarBackButtonHidden(false)
-            .onAppear {
-                prepareCurrentTourMemoryAlbum()
             }
         }
     }
