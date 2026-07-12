@@ -48,7 +48,7 @@ struct BSDQuestSuccessContent: View {
             }
             .padding(.top, 32)
 
-            SuccessAvatarCluster(participants: BSDTourConfiguration.participants)
+            QuestParticipantAvatarCluster(participants: BSDTourConfiguration.participants)
 
             QuestSuccessRewardLabel(points: quest.reward)
 
@@ -79,39 +79,6 @@ private struct QuestSuccessRewardLabel: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
             .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-    }
-}
-
-private struct SuccessAvatarCluster: View {
-    let participants: [BSDTourParticipant]
-
-    private let placements: [(x: CGFloat, y: CGFloat, size: CGFloat)] = [
-        (-40, 16, 56),
-        (-16, -12, 56),
-        (24, -24, 64),
-        (8, 24, 48),
-        (48, 18, 56)
-    ]
-
-    var body: some View {
-        ZStack {
-            ForEach(Array(participants.prefix(placements.count).enumerated()), id: \.element.id) { index, participant in
-                let placement = placements[index]
-
-                Image(participant.avatarImageName ?? "AvatarPlaceholder")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: placement.size, height: placement.size)
-                    .clipShape(Circle())
-                    .overlay {
-                        Circle()
-                            .stroke(Color.bsdTourRingColor(named: participant.ringColorName), lineWidth: 5)
-                    }
-                    .offset(x: placement.x, y: placement.y)
-            }
-        }
-        .frame(width: 148, height: 104)
-        .accessibilityLabel("Quest team")
     }
 }
 

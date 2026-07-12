@@ -1,12 +1,12 @@
 {
   "images" : [
     {
-      "filename" : "PhoneShakeSmall.png",
+      "filename" : "Shake Phone.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "PhoneShakeAsset.png",
+      "filename" : "Shake Phone2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },

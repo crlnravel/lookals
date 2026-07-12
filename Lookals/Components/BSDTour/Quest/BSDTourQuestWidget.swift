@@ -25,7 +25,7 @@ struct BSDTourQuestWidget: View {
             ExpandableWidget(
                 isExpanded: $flow.isWidgetExpanded,
                 collapsedMaxWidth: 392,
-                expandedMaxWidth: flow.isShowingQuestSuccess ? 340 : 360,
+                expandedMaxWidth: flow.isShowingQuestSuccess || flow.isShowingQuestWrongAnswer ? 340 : 360,
                 horizontalPadding: 20,
                 edgePadding: 16,
                 expandedControlSystemName: expandedControlSystemName,
@@ -40,6 +40,11 @@ struct BSDTourQuestWidget: View {
                         title: flow.questSuccessTitle,
                         subtitle: flow.questSuccessSubtitle,
                         onContinue: flow.continueAfterQuestSuccess
+                    )
+                } else if flow.isShowingQuestWrongAnswer, let quiz = step.quiz {
+                    BSDQuestWrongAnswerContent(
+                        correctAnswer: quiz.correctOption,
+                        onContinue: flow.continueAfterWrongAnswer
                     )
                 } else if flow.isWaitingForGroupCompletion {
                     BSDQuestWaitingContent(
@@ -84,7 +89,7 @@ struct BSDTourQuestWidget: View {
                     options: quiz.options,
                     selectedOption: $flow.selectedQuizOption,
                     reward: quest.reward,
-                    onSubmit: flow.advance
+                    onSubmit: { flow.submitQuiz(quiz) }
                 )
             }
 
