@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct CloudMemoryPhoto: Identifiable, Hashable {
+struct CloudMemoryPhoto: Identifiable, Hashable, Sendable {
     let id: UUID
     let recordName: String
     let albumPartitionID: String

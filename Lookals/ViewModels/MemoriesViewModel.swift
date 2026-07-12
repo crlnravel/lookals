@@ -17,25 +17,25 @@ final class MemoriesViewModel {
     private(set) var syncingAlbumIDs: Set<UUID>
     private(set) var cloudErrorMessage: String?
 
-    private let cloudMemoryService: CloudMemoryService
+    private let memoryPhotoService: any MemoryPhotoServicing
 
-    init() {
+    init(memoryPhotoService: any MemoryPhotoServicing = LocalMemoryPhotoService.shared) {
         self.albums = [.sampleHypeRadarMap]
         self.memoryImages = [:]
         self.syncingAlbumIDs = []
         self.cloudErrorMessage = nil
-        self.cloudMemoryService = .shared
+        self.memoryPhotoService = memoryPhotoService
     }
 
     init(
         albums: [MemoryAlbum],
-        cloudMemoryService: CloudMemoryService = .shared
+        memoryPhotoService: any MemoryPhotoServicing = LocalMemoryPhotoService.shared
     ) {
         self.albums = albums
         self.memoryImages = [:]
         self.syncingAlbumIDs = []
         self.cloudErrorMessage = nil
-        self.cloudMemoryService = cloudMemoryService
+        self.memoryPhotoService = memoryPhotoService
     }
 
     func album(for id: UUID) -> MemoryAlbum? {
@@ -69,7 +69,7 @@ final class MemoriesViewModel {
         let createdAt = Date.now
 
         do {
-            let cloudPhoto = try await cloudMemoryService.saveMemoryPhoto(
+            let cloudPhoto = try await memoryPhotoService.saveMemoryPhoto(
                 image: image,
                 albumPartitionID: album.partitionID,
                 title: album.title,
@@ -98,7 +98,7 @@ final class MemoriesViewModel {
         }
 
         do {
-            let cloudPhotos = try await cloudMemoryService.fetchMemoryPhotos(
+            let cloudPhotos = try await memoryPhotoService.fetchMemoryPhotos(
                 albumPartitionID: album.partitionID
             )
             cloudPhotos
