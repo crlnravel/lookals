@@ -11,7 +11,7 @@ struct TourDetailsPopup: View {
     @ObservedObject var appState: HomeStateManager
     let map: TourMap
     @Binding var isPresented: Bool
-    @Binding var path: [HomeRoute]
+    @Binding var path: NavigationPath
 
     @State private var showCancelAlert = false
 
@@ -175,7 +175,7 @@ struct TourDetailsPopup: View {
         } else if map.isAvailable {
             Button {
                 isPresented = false
-                path.append(.checkAvailability(map))
+                path.append(HomeRoute.checkAvailability(map))
             } label: {
                 actionLabel("Check Availability", background: Color.orange, foreground: .white)
             }

@@ -31,7 +31,7 @@ struct ContentView: View {
                 onDone: showHome
             )
         case .home:
-            HomeView(dependencies: dependencies)
+            HomepageView()
         }
     }
 
