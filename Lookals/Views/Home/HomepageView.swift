@@ -16,7 +16,7 @@ enum HomeRoute: Hashable {
 
 struct HomepageView: View {
     @StateObject private var appState = HomeStateManager()
-    @StateObject private var profileViewModel = ProfileViewModel()
+    @StateObject private var profileViewModel: ProfileViewModel
     @State private var memoriesViewModel: MemoriesViewModel
     
     @State private var selectedMapForTooltip: TourMap? = nil
@@ -27,11 +27,28 @@ struct HomepageView: View {
 
     @MainActor
     init() {
-        self.init(memoryPhotoService: Self.defaultMemoryPhotoService)
+        self.init(
+            memoryPhotoService: Self.defaultMemoryPhotoService,
+            profileService: Self.defaultProfileService
+        )
     }
 
     @MainActor
     init(memoryPhotoService: any MemoryPhotoServicing) {
+        self.init(
+            memoryPhotoService: memoryPhotoService,
+            profileService: Self.defaultProfileService
+        )
+    }
+
+    @MainActor
+    init(
+        memoryPhotoService: any MemoryPhotoServicing,
+        profileService: any ProfileServicing
+    ) {
+        _profileViewModel = StateObject(
+            wrappedValue: ProfileViewModel(profileService: profileService)
+        )
         _memoriesViewModel = State(
             initialValue: MemoriesViewModel(memoryPhotoService: memoryPhotoService)
         )
@@ -157,10 +174,7 @@ struct HomepageView: View {
                     Button {
                         path.append(HomeRoute.profile)
                     } label: {
-                        Image(profileViewModel.user.profileImageName)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 33, height: 33)
+                        toolbarProfileImage
                     }
                 }
             }
@@ -168,7 +182,7 @@ struct HomepageView: View {
             .navigationDestination(for: HomeRoute.self) { route in
                 switch route {
                 case .profile:
-                    ProfileView()
+                    ProfileView(viewModel: profileViewModel)
                 case .ongoingItinerary:
                     LoginView()
                 case .checkAvailability(let map):
@@ -193,6 +207,31 @@ struct HomepageView: View {
         #else
         LocalMemoryPhotoService.shared
         #endif
+    }
+
+    private static var defaultProfileService: any ProfileServicing {
+        #if LOOKALS_CLOUDKIT
+        CloudProfileService.shared
+        #else
+        LocalProfileService.shared
+        #endif
+    }
+
+    @ViewBuilder
+    private var toolbarProfileImage: some View {
+        if let imageData = profileViewModel.user.customImageData,
+           let image = UIImage(data: imageData) {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 33, height: 33)
+                .clipShape(Circle())
+        } else {
+            Image(profileViewModel.user.profileImageName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 33, height: 33)
+        }
     }
 
     private var currentMemoryMap: TourMap? {

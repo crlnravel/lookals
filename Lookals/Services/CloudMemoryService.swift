@@ -18,8 +18,8 @@ actor CloudMemoryService: MemoryPhotoServicing {
         static let image = "image"
     }
 
-    private static let recordType = "MemoryPhoto"
-    private static let desiredKeys = [
+    nonisolated private static let recordType = "MemoryPhoto"
+    nonisolated private static let desiredKeys = [
         Field.albumPartitionID,
         Field.title,
         Field.createdAt,
@@ -99,7 +99,7 @@ actor CloudMemoryService: MemoryPhotoServicing {
         return records
     }
 
-    private static func successfulRecords(
+    nonisolated private static func successfulRecords(
         from matchResults: [(CKRecord.ID, Result<CKRecord, Error>)]
     ) -> [CKRecord] {
         matchResults.compactMap { _, result in
@@ -107,7 +107,7 @@ actor CloudMemoryService: MemoryPhotoServicing {
         }
     }
 
-    private static func memoryPhoto(from record: CKRecord) throws -> CloudMemoryPhoto {
+    nonisolated private static func memoryPhoto(from record: CKRecord) throws -> CloudMemoryPhoto {
         guard let albumPartitionID = record[Field.albumPartitionID] as? String,
               let title = record[Field.title] as? String,
               let createdAt = record[Field.createdAt] as? Date,
@@ -129,7 +129,7 @@ actor CloudMemoryService: MemoryPhotoServicing {
         )
     }
 
-    private static func writeJPEGAsset(_ image: UIImage, photoID: UUID) throws -> URL {
+    nonisolated private static func writeJPEGAsset(_ image: UIImage, photoID: UUID) throws -> URL {
         guard let data = image.jpegData(compressionQuality: 0.86) else {
             throw MemoryPhotoServiceError.imageEncodingFailed
         }

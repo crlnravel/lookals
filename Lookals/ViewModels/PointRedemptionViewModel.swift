@@ -25,7 +25,8 @@ enum RedemptionAlert: Identifiable {
     }
 }
 
-class PointRedemptionViewModel: ObservableObject {
+@MainActor
+final class PointRedemptionViewModel: ObservableObject {
     // 1. UI State
     @Published var selectedTab: PointRedemptionTab = .available
     @Published var activeAlert: RedemptionAlert? = nil
@@ -39,9 +40,7 @@ class PointRedemptionViewModel: ObservableObject {
     }
         
     func attemptRedemption(for coupon: Coupon) {
-        if profileViewModel.user.points >= coupon.pointsRequired {
-            profileViewModel.user.points -= coupon.pointsRequired
-            profileViewModel.user.myCoupons.append(coupon)
+        if profileViewModel.redeem(coupon) {
             activeAlert = .success(coupon)
         } else {
             activeAlert = .insufficient
@@ -49,11 +48,12 @@ class PointRedemptionViewModel: ObservableObject {
     }
         
     func addDebugPoints() {
-        let amountEarned = 50
-        profileViewModel.user.points += amountEarned
-        profileViewModel.user.exp += amountEarned
+        profileViewModel.addDebugPoints()
     }
-    func resetDebugPoints() { profileViewModel.user.points = 0 }
+
+    func resetDebugPoints() {
+        profileViewModel.resetDebugPoints()
+    }
         
     func alertTitle() -> String {
         switch activeAlert {

@@ -2,7 +2,11 @@ import SwiftUI
 
 struct ProfileView: View {
     @Environment(\.dismiss) var dismiss
-    @StateObject private var viewModel = ProfileViewModel()
+    @ObservedObject var viewModel: ProfileViewModel
+
+    init(viewModel: ProfileViewModel) {
+        self.viewModel = viewModel
+    }
     
     var body: some View {
         VStack(spacing: 24) {
@@ -170,6 +174,6 @@ struct SegmentedProgressBar: View {
 
 #Preview {
     NavigationStack {
-        ProfileView()
+        ProfileView(viewModel: ProfileViewModel())
     }
 }
