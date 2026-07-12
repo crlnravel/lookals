@@ -3,29 +3,88 @@
 //  Lookals
 //
 //  Created by Carleano Ravelza Wongso on 08/07/26.
-//
+//  izin timpa -zee
 
 import SwiftUI
 
 struct IntroView: View {
+    
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var selectedPage = 0
+    @State private var isAnimating: Bool = false
 
     let onFinish: () -> Void
 
     private let pages = [
-        IntroPage(imageName: "Intro Phone 1", accessibilityLabel: "Shake your phone to confirm meetups."),
-        IntroPage(imageName: "Intro Phone 2", accessibilityLabel: "Find the landmark on the hype radar map."),
-        IntroPage(imageName: "Intro Phone 3", accessibilityLabel: "Finish the quest and continue.")
+        IntroPage(
+            title: "This city is full of people,\nand still a stranger to it?",
+            pageNum: "1",
+            mainImageName: "intro-asset-1",
+            backgroundImageName: "crowdImage",
+            backgroundColor: .black,
+            hasCurvedBottom: true,
+            buttonText: "Continue",
+            buttonColor: nil,
+            buttonTextColor: nil,
+            accessibilityLabel: "This city is full of people, and still stranger to it?"
+        ),
+        IntroPage(
+            title: "You sleep here,\nbut you're not part of it.",
+            pageNum: "2",
+            mainImageName: nil,
+            backgroundImageName: nil,
+            backgroundColor: .black,
+            hasCurvedBottom: false,
+            buttonText: "Continue",
+            buttonColor: nil,
+            buttonTextColor: nil,
+            accessibilityLabel: "You sleep here,\nbut you're not part of it."
+        ),
+        IntroPage(
+            title: "This city has a version of\nitself you've never seen.",
+            pageNum: "3",
+            mainImageName: "intro-asset-2",
+            backgroundImageName: nil,
+            backgroundColor: .black,
+            hasCurvedBottom: false,
+            buttonText: "Continue",
+            buttonColor: nil,
+            buttonTextColor: nil,
+            accessibilityLabel: "This city has a version of itself you've never seen."
+        ),
+        IntroPage(
+            title: "Best stories aren't solo ones.\n5 strangers. One map.",
+            pageNum: "4",
+            mainImageName: "intro-asset-3",
+            backgroundImageName: nil,
+            backgroundColor: .accentColor,
+            hasCurvedBottom: true,
+            buttonText: "Continue",
+            buttonColor: nil,
+            buttonTextColor: nil,
+            accessibilityLabel: "Best stories aren't solo ones.\n5 strangers. One map."
+        ),
+        IntroPage(
+            title: "Pick a time.\nWe planned the rest.",
+            pageNum: "5",
+            mainImageName: "intro-asset-4",
+            backgroundImageName: nil,
+            backgroundColor: .accentColor,
+            hasCurvedBottom: false,
+            buttonText: "Start Exploring",
+            buttonColor: .black,
+            buttonTextColor: .white,
+            accessibilityLabel: "Pick a time.\nWe planned the rest."
+        )
     ]
-
+    
     init(onFinish: @escaping () -> Void = {}) {
         self.onFinish = onFinish
     }
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
+            ZStack {
                 TabView(selection: $selectedPage) {
                     ForEach(pages.indices, id: \.self) { index in
                         IntroPageView(page: pages[index])
@@ -34,14 +93,18 @@ struct IntroView: View {
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(reduceMotion ? nil : .snappy(duration: 0.3), value: selectedPage)
+                .ignoresSafeArea()
+                
+                VStack(spacing: 20) {
+                    Spacer()
+                    pageIndicator
+                        .frame(height: 50)
 
-                pageIndicator
-                    .frame(height: 44)
-
-                continueButton
+                    continueButton
+                        .padding(.bottom, 16)
+                }
             }
-            .background(Color(.systemBackground))
-            .navigationTitle("How to use Lookals")
+            .toolbarBackground(.hidden, for: .navigationBar)
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -60,7 +123,7 @@ struct IntroView: View {
         HStack(spacing: 8) {
             ForEach(pages.indices, id: \.self) { index in
                 Circle()
-                    .fill(index == selectedPage ? Color.primary : Color(.systemGray3))
+                    .fill(index == selectedPage ? Color(.systemGray) : Color(.systemGray5))
                     .frame(width: 10, height: 10)
                     .accessibilityHidden(true)
             }
@@ -70,10 +133,12 @@ struct IntroView: View {
     }
 
     private var continueButton: some View {
-        PrimaryButton(
-            "Continue",
+        ButtonColor(
+            selectedPage == pages.count - 1 ? "Start Exploring" : "Continue",
             accessibilityLabel: selectedPage == pages.count - 1 ? "Finish intro" : "Continue",
             font: .default.weight(.heavy),
+            buttonColor: selectedPage == pages.count - 1 ? .black : .accent,
+            textColor: .white,
             action: continueTapped
         )
         .padding([.horizontal], 16)
@@ -118,25 +183,133 @@ struct IntroView: View {
 }
 
 private struct IntroPage: Identifiable {
-    var id: String { imageName }
-
-    let imageName: String
+    let id = UUID()
+    let title: String
+    let pageNum: String
+    let mainImageName: String?
+    let backgroundImageName: String?
+    let backgroundColor: Color
+    let hasCurvedBottom: Bool
+    let buttonText: String
+    let buttonColor: Color?
+    let buttonTextColor: Color?
     let accessibilityLabel: String
 }
 
 private struct IntroPageView: View {
     let page: IntroPage
-
+    
     var body: some View {
-        GeometryReader { proxy in
-            Image(page.imageName)
-                .resizable()
-                .scaledToFit()
-                .frame(maxWidth: proxy.size.width, maxHeight: proxy.size.height)
-                .frame(width: proxy.size.width, height: proxy.size.height)
-                .accessibilityLabel(page.accessibilityLabel)
+        ZStack {
+            page.backgroundColor
+                .ignoresSafeArea()
+            
+            if let bgImage = page.backgroundImageName {
+                Image(bgImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity)
+                    .ignoresSafeArea()
+            }
+            
+            if page.hasCurvedBottom {
+                VStack {
+                    Spacer()
+                    if page.pageNum == "1" {
+                        Ellipse()
+                            .fill(Color.white)
+                            .frame(width: 900, height: 900)
+                            .offset(y: 415)
+                    }
+                    else if page.pageNum == "4" {
+                        Ellipse()
+                            .fill(Color.white)
+                            .frame(width: 900, height: 900)
+                            .offset(y: 500)
+                    }
+                }
+                .ignoresSafeArea()
+            }
+            
+            VStack(spacing: 40) {
+                Spacer()
+                
+                if let mainImage = page.mainImageName {
+                    if page.pageNum == "1" {
+                        Image(mainImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 220)
+                            .offset(y: 85)
+                    }
+                    else if page.pageNum == "3" {
+                        Image(mainImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 260)
+                            .padding(.trailing, 20)
+                    }
+                    else if page.pageNum == "4" {
+                        Image(mainImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 350)
+                    }
+                    else if page.pageNum == "5" {
+                        Image(mainImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 320)
+                            .offset(y: 90)
+                    }
+                }
+                
+                if page.pageNum == "1" {
+                    Text(page.title)
+                        .font(.system(size: 20, weight: .bold))
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(page.hasCurvedBottom ? .black : .white)
+                        .padding(.horizontal, 32)
+                        .padding(.top, 105)
+                }
+                else if page.pageNum == "2" {
+                    Text(page.title)
+                        .font(.system(size: 20, weight: .bold))
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(page.hasCurvedBottom ? .black : .white)
+                        .padding(.horizontal, 32)
+                        .padding(.top, 110)
+                }
+                
+                else if page.pageNum == "3" {
+                    Text(page.title)
+                        .font(.system(size: 20, weight: .bold))
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(page.hasCurvedBottom ? .black : .white)
+                        .padding(.horizontal, 32)
+                        .fixedSize()
+                }
+                
+                else if page.pageNum == "4" {
+                    Text(page.title)
+                        .font(.system(size: 20, weight: .bold))
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(page.hasCurvedBottom ? .black : .white)
+                        .padding(.horizontal, 32)
+                        .padding(.top, 35)
+                }
+                else if page.pageNum == "5" {
+                    Text(page.title)
+                        .font(.system(size: 20, weight: .bold))
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 32)
+                        .padding(.top, 70)
+                }
+                Spacer()
+                Spacer()
+            }
         }
-        .padding(.horizontal, 16)
     }
 }
 
