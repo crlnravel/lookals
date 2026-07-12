@@ -109,7 +109,7 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
                     accessibilityLabel: "Show current location",
                     background: Color.accentColor,
                     foreground: .white,
-                    action: onLocate
+                    action: locateUser
                 )
             }
             .padding(.horizontal, 32)
@@ -137,6 +137,19 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
         .buttonStyle(.plain)
         .glassEffect()
         .accessibilityLabel(accessibilityLabel)
+    }
+
+    private func locateUser() {
+        onLocate()
+
+        guard showsUserLocation else { return }
+
+        withAnimation(.smooth(duration: 0.35)) {
+            cameraPosition = .userLocation(
+                followsHeading: false,
+                fallback: .region(cameraRegion)
+            )
+        }
     }
 
     private var mapBackground: some View {
