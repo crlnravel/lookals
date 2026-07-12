@@ -17,12 +17,25 @@ enum HomeRoute: Hashable {
 struct HomepageView: View {
     @StateObject private var appState = HomeStateManager()
     @StateObject private var profileViewModel = ProfileViewModel()
+    @State private var memoriesViewModel: MemoriesViewModel
     
     @State private var selectedMapForTooltip: TourMap? = nil
     @State private var detailMap: TourMap? = nil
     @State private var showTourDetails = false
     @State private var tapLocation: CGPoint = .zero
-    @State private var path: [HomeRoute] = []
+    @State private var path = NavigationPath()
+
+    @MainActor
+    init() {
+        self.init(memoryPhotoService: Self.defaultMemoryPhotoService)
+    }
+
+    @MainActor
+    init(memoryPhotoService: any MemoryPhotoServicing) {
+        _memoriesViewModel = State(
+            initialValue: MemoriesViewModel(memoryPhotoService: memoryPhotoService)
+        )
+    }
 
     private struct MapLayout {
         let xFraction: CGFloat
@@ -57,9 +70,14 @@ struct HomepageView: View {
                                 
                 if appState.hasCompletedTour {
                     MapPhotoPinView(position: CGPoint(x: 100, y: 400)) {
-                        path.append(.gallery)
+                        openCurrentTourMemories()
                     }
                     .zIndex(20)
+                }
+
+                if appState.bookingStatus == .ongoing {
+                    ongoingMemoryCameraButton
+                        .zIndex(30)
                 }
 
                 VStack {
@@ -74,7 +92,7 @@ struct HomepageView: View {
                         FloatingBottomCard(appState: appState) {
                             guard let booked = appState.bookedMap else { return }
                             if appState.bookingStatus == .ongoing {
-                                path.append(.ongoingItinerary)
+                                path.append(HomeRoute.ongoingItinerary)
                             } else {
                                 detailMap = booked
                                 showTourDetails = true
@@ -137,7 +155,7 @@ struct HomepageView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        path.append(.profile)
+                        path.append(HomeRoute.profile)
                     } label: {
                         Image(profileViewModel.user.profileImageName)
                             .resizable()
@@ -156,10 +174,76 @@ struct HomepageView: View {
                 case .checkAvailability(let map):
                     CheckAvailabilityView(appState: appState, map: map, path: $path)
                 case .gallery:
-                    HomepageView()
+                    MemoriesOverviewView(viewModel: memoriesViewModel)
                 }
             }
+            .navigationDestination(for: MemoriesRoute.self) { route in
+                MemoriesDestinationView(route: route, viewModel: memoriesViewModel)
+            }
             .navigationBarBackButtonHidden(false)
+            .onAppear {
+                prepareCurrentTourMemoryAlbum()
+            }
+        }
+    }
+
+    private static var defaultMemoryPhotoService: any MemoryPhotoServicing {
+        #if LOOKALS_CLOUDKIT
+        CloudMemoryService.shared
+        #else
+        LocalMemoryPhotoService.shared
+        #endif
+    }
+
+    private var currentMemoryMap: TourMap? {
+        if let bookedMap = appState.bookedMap {
+            return bookedMap
+        }
+
+        return appState.completedMapIds
+            .reversed()
+            .compactMap { completedMapId in
+                appState.maps.first { $0.id == completedMapId }
+            }
+            .first ?? appState.maps.first
+    }
+
+    @discardableResult
+    private func prepareCurrentTourMemoryAlbum() -> UUID? {
+        guard let currentMemoryMap else {
+            return memoriesViewModel.albums.first?.id
+        }
+
+        return memoriesViewModel.prepareAlbum(for: currentMemoryMap)
+    }
+
+    private func openCurrentTourMemories() {
+        prepareCurrentTourMemoryAlbum()
+        path.append(HomeRoute.gallery)
+    }
+
+    private var ongoingMemoryCameraButton: some View {
+        VStack {
+            Spacer()
+
+            HStack {
+                Spacer()
+
+                Button {
+                    guard let albumID = prepareCurrentTourMemoryAlbum() else { return }
+                    path.append(MemoriesRoute.addMemory(albumID))
+                } label: {
+                    Image(systemName: "camera.fill")
+                        .font(.title3.bold())
+                        .foregroundColor(.white)
+                        .frame(width: 56, height: 56)
+                        .background(Circle().fill(Color.orange))
+                        .shadow(color: .black.opacity(0.16), radius: 8, y: 4)
+                }
+                .accessibilityLabel("Add memory")
+            }
+            .padding(.trailing, 24)
+            .padding(.bottom, 164)
         }
     }
 
