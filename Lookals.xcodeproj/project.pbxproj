@@ -295,6 +295,8 @@
 				DEVELOPMENT_TEAM = 9G77XRDUT8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "Lookals uses your calendar to add your booked tours so you don't miss them.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Lookals uses the camera to scan quest proof QR codes.";
 				INFOPLIST_FILE = Lookals/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Lookals uses the camera to add photos to your memories.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Lookals uses your location to confirm meeting-point and checkpoint arrivals during guided tours.";
@@ -333,6 +335,8 @@
 				DEVELOPMENT_TEAM = "$(LOOKALS_DEVELOPMENT_TEAM)";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "Lookals uses your calendar to add your booked tours so you don't miss them.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Lookals uses the camera to scan quest proof QR codes.";
 				INFOPLIST_FILE = Lookals/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Lookals uses the camera to add photos to your memories.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Lookals uses your location to confirm meeting-point and checkpoint arrivals during guided tours.";
