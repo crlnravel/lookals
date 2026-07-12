@@ -30,6 +30,7 @@ final class BSDTourFlowModel {
     var scannedQRPayloads: [String: String]
     var qrValidationMessage: String?
     var isShowingQuestSuccess: Bool
+    var isShowingQuestWrongAnswer: Bool
     var questSuccessTitleOverride: String?
     var questSuccessSubtitle: String?
     var isWaitingForGroupCompletion: Bool
@@ -56,6 +57,7 @@ final class BSDTourFlowModel {
         self.scannedQRPayloads = [:]
         self.qrValidationMessage = nil
         self.isShowingQuestSuccess = isShowingQuestSuccess
+        self.isShowingQuestWrongAnswer = false
         self.questSuccessTitleOverride = nil
         self.questSuccessSubtitle = nil
         self.isWaitingForGroupCompletion = false
@@ -77,7 +79,7 @@ final class BSDTourFlowModel {
     }
 
     var canGoBack: Bool {
-        guard !isShowingQuestSuccess, !isWaitingForGroupCompletion else {
+        guard !isShowingQuestSuccess, !isShowingQuestWrongAnswer, !isWaitingForGroupCompletion else {
             return false
         }
 
@@ -183,7 +185,7 @@ final class BSDTourFlowModel {
     }
 
     func advance() {
-        guard !isShowingQuestSuccess, let quest = currentQuest else { return }
+        guard !isShowingQuestSuccess, !isShowingQuestWrongAnswer, let quest = currentQuest else { return }
 
         if currentStepIndex < quest.steps.count - 1 {
             currentStepIndex += 1
@@ -218,6 +220,26 @@ final class BSDTourFlowModel {
         }
     }
 
+    func submitQuiz(_ quiz: BSDQuestQuiz) {
+        guard !isShowingQuestSuccess, !isShowingQuestWrongAnswer else { return }
+
+        guard selectedQuizOption == quiz.correctOption else {
+            isShowingQuestWrongAnswer = true
+            isWidgetExpanded = true
+            return
+        }
+
+        advance()
+    }
+
+    func continueAfterWrongAnswer() {
+        guard isShowingQuestWrongAnswer else { return }
+
+        isShowingQuestWrongAnswer = false
+        selectedQuizOption = nil
+        isWidgetExpanded = true
+    }
+
     func showExternalQuestSuccess(title: String, subtitle: String?) {
         guard currentQuest != nil else { return }
 
@@ -229,6 +251,7 @@ final class BSDTourFlowModel {
         groupWaitMessage = nil
         isWidgetExpanded = true
         isShowingQuestSuccess = true
+        isShowingQuestWrongAnswer = false
     }
 
     func moveToQuest(
@@ -247,6 +270,7 @@ final class BSDTourFlowModel {
         questSuccessTitleOverride = nil
         questSuccessSubtitle = nil
         isShowingQuestSuccess = false
+        isShowingQuestWrongAnswer = false
         isWaitingForGroupCompletion = false
         groupWaitMessage = nil
         prepareCurrentStep()
@@ -270,6 +294,7 @@ final class BSDTourFlowModel {
         questSuccessTitleOverride = nil
         questSuccessSubtitle = nil
         isShowingQuestSuccess = false
+        isShowingQuestWrongAnswer = false
         isWaitingForGroupCompletion = false
         groupWaitMessage = nil
         prepareCurrentStep()
