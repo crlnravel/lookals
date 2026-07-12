@@ -56,14 +56,6 @@ struct MemoryAlbumGridView: View {
                 Text(viewModel.album(for: albumID)?.title ?? "Memories")
                     .font(.headline)
             }
-
-            ToolbarItem(placement: .topBarTrailing) {
-                NavigationLink(value: MemoriesRoute.addMemory(albumID)) {
-                    Label("Add memory", systemImage: "camera.fill")
-                        .labelStyle(.iconOnly)
-                }
-                .buttonStyle(CircleToolbarButtonStyle())
-            }
         }
     }
 }
