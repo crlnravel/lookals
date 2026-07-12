@@ -26,45 +26,47 @@ struct BSDQuestSuccessContent: View {
     }
 
     var body: some View {
-        ZStack {
+        VStack(spacing: 28) {
+            VStack(spacing: 8) {
+                Text(quest.displayLabel)
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(.primary)
+
+                Text(title)
+                    .font(.largeTitle.weight(.heavy))
+                    .foregroundStyle(.primary)
+                    .multilineTextAlignment(.center)
+                    .minimumScaleFactor(0.82)
+
+                if let subtitle {
+                    Text(subtitle)
+                        .font(.headline.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(4)
+                }
+            }
+            .padding(.top, 32)
+
+            SuccessAvatarCluster(participants: BSDTourConfiguration.participants)
+
+            QuestSuccessRewardLabel(points: quest.reward)
+
+
+            PrimaryButton(
+                "Continue",
+                font: .headline.weight(.heavy),
+                action: onContinue
+            )
+        }
+        .frame(minHeight: 520)
+        .padding(.horizontal, 24)
+        .padding(.bottom, 24)
+        .overlay {
             ConfettiBurstView()
                 .allowsHitTesting(false)
-
-            VStack(spacing: 32) {
-                VStack(spacing: 10) {
-                    Text(quest.displayLabel)
-                        .font(.subheadline.weight(.bold))
-                        .foregroundStyle(.primary)
-
-                    Text(title)
-                        .font(.largeTitle.weight(.heavy))
-                        .foregroundStyle(.primary)
-                        .multilineTextAlignment(.center)
-                        .minimumScaleFactor(0.82)
-
-                    if let subtitle {
-                        Text(subtitle)
-                            .font(.headline.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                            .lineSpacing(4)
-                    }
-                }
-                .padding(.top, 20)
-
-                SuccessAvatarCluster(participants: BSDTourConfiguration.participants)
-
-                QuestSuccessRewardLabel(points: quest.reward)
-
-
-                PrimaryButton(
-                    "Continue",
-                    font: .headline.weight(.heavy),
-                    action: onContinue
-                )
-            }
-            .padding(.horizontal, 32)
         }
+        .clipped()
         .accessibilityElement(children: .contain)
     }
 }
@@ -84,11 +86,11 @@ private struct SuccessAvatarCluster: View {
     let participants: [BSDTourParticipant]
 
     private let placements: [(x: CGFloat, y: CGFloat, size: CGFloat)] = [
-        (-48, 20, 64),
-        (-20, -16, 64),
-        (28, -28, 76),
-        (12, 28, 56),
-        (58, 22, 64)
+        (-40, 16, 56),
+        (-16, -12, 56),
+        (24, -24, 64),
+        (8, 24, 48),
+        (48, 18, 56)
     ]
 
     var body: some View {
@@ -108,7 +110,7 @@ private struct SuccessAvatarCluster: View {
                     .offset(x: placement.x, y: placement.y)
             }
         }
-        .frame(width: 180, height: 128)
+        .frame(width: 148, height: 104)
         .accessibilityLabel("Quest team")
     }
 }

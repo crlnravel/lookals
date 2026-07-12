@@ -11,6 +11,7 @@ struct TimedPhysicalChallengeQuestContent: View {
     let quest: BSDQuest
     let step: BSDQuestStep
     let remainingSeconds: Int
+    let totalSeconds: Int
     let onSubmit: () -> Void
 
     var body: some View {
@@ -26,7 +27,16 @@ struct TimedPhysicalChallengeQuestContent: View {
 
             ZStack {
                 Circle()
-                    .stroke(Color.accentColor, lineWidth: 10)
+                    .stroke(Color(.systemGray5), lineWidth: 10)
+
+                Circle()
+                    .trim(from: 0, to: timerProgress)
+                    .stroke(
+                        Color.accentColor,
+                        style: StrokeStyle(lineWidth: 10, lineCap: .round)
+                    )
+                    .rotationEffect(.degrees(-90))
+                    .animation(.linear(duration: 1), value: remainingSeconds)
 
                 Text(timerText)
                     .font(.system(size: 44, weight: .heavy, design: .monospaced))
@@ -47,6 +57,11 @@ struct TimedPhysicalChallengeQuestContent: View {
         .padding(.horizontal, 32)
         .padding(.top, 32)
         .padding(.bottom, 28)
+    }
+
+    private var timerProgress: CGFloat {
+        guard totalSeconds > 0 else { return 0 }
+        return CGFloat(remainingSeconds) / CGFloat(totalSeconds)
     }
 
     private var timerText: String {
@@ -70,6 +85,7 @@ struct TimedPhysicalChallengeQuestContent: View {
             quest: BSDTourQuestDemoData.quests[4],
             step: BSDTourQuestDemoData.quests[4].steps[2],
             remainingSeconds: 20,
+            totalSeconds: 20,
             onSubmit: {}
         )
     }
