@@ -23,6 +23,12 @@ struct HomeView: View {
         self.memoryPhotoService = LocalMemoryPhotoService.shared
         _viewModel = State(initialValue: viewModel)
     }
+    
+    // Definisi Rute Navigasi
+    enum HomeViewRoute: Hashable {
+        case memories
+        // Tambahkan case lain di sini jika ada, contoh: case profile
+    }
 
     var body: some View {
         NavigationStack {
@@ -105,18 +111,14 @@ struct HomeView: View {
             .refreshable {
                 await viewModel.loadMatches(refresh: true)
             }
-            .navigationDestination(for: HomeViewRoute.self) { route in
-                switch route {
-                case .memories:
-                    MemoriesOverviewView(memoryPhotoService: memoryPhotoService)
-                }
-            }
+//            .navigationDestination(for: HomeRoute.self) { route in
+//                switch route {
+//                case .memories:
+//                    MemoriesOverviewView()
+//                }
+//            }
         }
     }
-}
-
-private enum HomeViewRoute: Hashable {
-    case memories
 }
 
 #Preview {
