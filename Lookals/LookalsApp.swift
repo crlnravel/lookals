@@ -13,7 +13,6 @@ struct LookalsApp: App {
 
     var body: some Scene {
         WindowGroup {
-//            HomeView().preferredColorScheme(.light)
             ContentView(dependencies: dependencies).preferredColorScheme(.light)
         }
     }
