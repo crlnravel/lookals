@@ -7,18 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		72E76D7F2FFE4CE100F9E8C5 /* test_jul.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72E76D7E2FFE4CDD00F9E8C5 /* test_jul.swift */; };
-/* End PBXBuildFile section */
-
-/* Begin PBXFileReference section */
-		72E76D7E2FFE4CDD00F9E8C5 /* test_jul.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = test_jul.swift; sourceTree = "<group>"; };
-		F7B822ED2FF3E3F7001FE59B /* Lookals.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lookals.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		F7B823002FF3E3F8001FE59B /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
-		F7B82303F2FF3E3F8001FE59B /* LookalsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LookalsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		F7B82304F2FF3E3F8001FE59B /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
-/* End PBXFileReference section */
-
-/* Begin PBXBuildFile section */
 		F7B8230AF2FF3E3F8001FE59B /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F7B82304F2FF3E3F8001FE59B /* XCTest.framework */; };
 /* End PBXBuildFile section */
 
@@ -31,6 +19,13 @@
 			remoteInfo = Lookals;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		F7B822ED2FF3E3F7001FE59B /* Lookals.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lookals.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F7B823002FF3E3F8001FE59B /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
+		F7B82303F2FF3E3F8001FE59B /* LookalsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LookalsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F7B82304F2FF3E3F8001FE59B /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
 		72B1D61930023FA1003FA2C7 /* Exceptions for "Lookals" folder in "Lookals" target */ = {
@@ -77,14 +72,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		04BB31ED3003F5DF004E3C2A /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				F7B82304F2FF3E3F8001FE59B /* XCTest.framework */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
 		F7B822E42FF3E3F7001FE59B = {
 			isa = PBXGroup;
 			children = (
-				72E76D7E2FFE4CDD00F9E8C5 /* test_jul.swift */,
 				F7B823012FF3E3F8001FE59B /* Config */,
 				F7B822EF2FF3E3F7001FE59B /* Lookals */,
 				F7B82305F2FF3E3F8001FE59B /* LookalsTests */,
 				F7B822EE2FF3E3F7001FE59B /* Products */,
+				04BB31ED3003F5DF004E3C2A /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -219,7 +222,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				72E76D7F2FFE4CE100F9E8C5 /* test_jul.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -395,8 +397,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "$(LOOKALS_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) $(LOOKALS_SWIFT_ACTIVE_COMPILATION_CONDITIONS)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
@@ -434,8 +436,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "$(LOOKALS_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) $(LOOKALS_SWIFT_ACTIVE_COMPILATION_CONDITIONS)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;

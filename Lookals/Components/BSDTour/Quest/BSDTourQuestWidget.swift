@@ -25,7 +25,7 @@ struct BSDTourQuestWidget: View {
             ExpandableWidget(
                 isExpanded: $flow.isWidgetExpanded,
                 collapsedMaxWidth: 392,
-                expandedMaxWidth: 360,
+                expandedMaxWidth: flow.isShowingQuestSuccess ? 340 : 360,
                 horizontalPadding: 20,
                 edgePadding: 16,
                 expandedControlSystemName: expandedControlSystemName,
@@ -107,6 +107,7 @@ struct BSDTourQuestWidget: View {
                 quest: quest,
                 step: step,
                 remainingSeconds: flow.drawingRemainingSeconds,
+                totalSeconds: step.durationSeconds ?? flow.drawingRemainingSeconds,
                 onSubmit: flow.advance
             )
 
