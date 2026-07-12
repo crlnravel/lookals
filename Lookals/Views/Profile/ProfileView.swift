@@ -5,10 +5,6 @@ struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
     
     var body: some View {
-            VStack(spacing: 24) {
-                
-                // Profile Info
-                VStack(spacing: 8) {
         VStack(spacing: 24) {
             
             VStack(spacing: 8) {
