@@ -9,11 +9,10 @@ import SwiftUI
 
 @main
 struct LookalsApp: App {
-    private let dependencies = AppDependencies.preview
+    private let dependencies = AppDependencies.mock(isStoredInMemoryOnly: false)
 
     var body: some Scene {
         WindowGroup {
-//            HomeView().preferredColorScheme(.light)
             ContentView(dependencies: dependencies).preferredColorScheme(.light)
         }
     }

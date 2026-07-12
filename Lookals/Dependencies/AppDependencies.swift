@@ -10,17 +10,20 @@ import SwiftData
 
 struct AppDependencies: Sendable {
     let lookalMatchRepository: any LookalMatchRepository
+    let bsdTourPersistenceStore: any BSDTourPersistenceStore
     let memoryPhotoService: any MemoryPhotoServicing
     let profileService: any ProfileServicing
 
     init(
         lookalMatchRepository: any LookalMatchRepository,
         memoryPhotoService: any MemoryPhotoServicing,
-        profileService: any ProfileServicing
+        profileService: any ProfileServicing,
+        bsdTourPersistenceStore: any BSDTourPersistenceStore
     ) {
         self.lookalMatchRepository = lookalMatchRepository
         self.memoryPhotoService = memoryPhotoService
         self.profileService = profileService
+        self.bsdTourPersistenceStore = bsdTourPersistenceStore
     }
 }
 
@@ -29,28 +32,37 @@ extension AppDependencies {
         mock()
     }
 
-    static func mock(matches: [LookalMatch] = LookalMatch.sampleMatches) -> AppDependencies {
+    static func mock(
+        matches: [LookalMatch] = LookalMatch.sampleMatches,
+        isStoredInMemoryOnly: Bool = true
+    ) -> AppDependencies {
         let service = MockLookalMatchingService(matches: matches)
+        let modelContainer = makeModelContainer(isStoredInMemoryOnly: isStoredInMemoryOnly)
         let store = InMemoryLookalMatchStore()
         let repository = DefaultLookalMatchRepository(service: service, store: store)
+        let tourStore = SwiftDataBSDTourPersistenceStore(modelContainer: modelContainer)
         return AppDependencies(
             lookalMatchRepository: repository,
             memoryPhotoService: LocalMemoryPhotoService.shared,
-            profileService: LocalProfileService.shared
+            profileService: LocalProfileService.shared,
+            bsdTourPersistenceStore: tourStore
         )
     }
 
     static func live(baseURL: URL) -> AppDependencies {
         let apiClient = URLSessionAPIClient(baseURL: baseURL)
         let service = RemoteLookalMatchingService(apiClient: apiClient)
+        let modelContainer = makeModelContainer(isStoredInMemoryOnly: false)
         let store = SwiftDataLookalMatchStore(
-            modelContainer: makeModelContainer(isStoredInMemoryOnly: false)
+            modelContainer: modelContainer
         )
         let repository = DefaultLookalMatchRepository(service: service, store: store)
+        let tourStore = SwiftDataBSDTourPersistenceStore(modelContainer: modelContainer)
         return AppDependencies(
             lookalMatchRepository: repository,
             memoryPhotoService: configuredMemoryPhotoService,
-            profileService: configuredProfileService
+            profileService: configuredProfileService,
+            bsdTourPersistenceStore: tourStore
         )
     }
 
@@ -75,6 +87,7 @@ extension AppDependencies {
             let configuration = ModelConfiguration(isStoredInMemoryOnly: isStoredInMemoryOnly)
             return try ModelContainer(
                 for: LookalMatchRecord.self,
+                BSDTourStateRecord.self,
                 configurations: configuration
             )
         } catch {

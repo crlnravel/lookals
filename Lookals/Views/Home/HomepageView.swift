@@ -11,6 +11,7 @@ enum HomeRoute: Hashable {
     case profile
     case ongoingItinerary
     case checkAvailability(TourMap)
+    case memories
     case gallery
 }
 
@@ -62,29 +63,24 @@ struct HomepageView: View {
     }
 
     private let mapLayouts: [MapLayout] = [
-        MapLayout(xFraction: 0.29, yFraction: 0.45, widthFraction: 0.44, heightFraction: 0.4),
-        MapLayout(xFraction: 0.75, yFraction: 0.34, widthFraction: 0.44, heightFraction: 0.34),
-        MapLayout(xFraction: 0.65, yFraction: 0.59, widthFraction: 0.30, heightFraction: 0.34)
+        MapLayout(xFraction: 0.29, yFraction: 0.48, widthFraction: 0.44, heightFraction: 0.4),
+        MapLayout(xFraction: 0.75, yFraction: 0.37, widthFraction: 0.44, heightFraction: 0.34),
+        MapLayout(xFraction: 0.65, yFraction: 0.61, widthFraction: 0.30, heightFraction: 0.34)
     ]
 
     var body: some View {
         NavigationStack(path: $path) {
             ZStack(alignment: .top) {
-                backgroundMap
-                    .overlay{
-                        Image("Fog")
-                    }
-
+                backgroundMap.overlay{ Image("Fog") }
+                
                 Color.clear
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            selectedMapForTooltip = nil
-                        }
+                        withAnimation(.easeOut(duration: 0.2)) { selectedMapForTooltip = nil }
                     }
-                                
+                
                 mapCardsLayer
-                                
+                
                 if appState.hasCompletedTour {
                     MapPhotoPinView(position: CGPoint(x: 100, y: 400)) {
                         openCurrentTourMemories()
@@ -98,13 +94,12 @@ struct HomepageView: View {
                 }
 
                 VStack {
-                    if let firstMap = appState.maps.first {
-                        areaTitle(area: firstMap.area)
-                            .padding(.top, 16)
-                    }
+                    customTopBar
                     
+                    if let firstMap = appState.maps.first {
+                        areaTitle(area: firstMap.area).padding(.top, 5)
+                    }
                     Spacer()
-
                     if appState.bookingStatus != .unbooked {
                         FloatingBottomCard(appState: appState) {
                             guard let booked = appState.bookedMap else { return }
@@ -117,28 +112,22 @@ struct HomepageView: View {
                         }
                     }
                 }
-
-                 testingControls
                 
-                if let map = selectedMapForTooltip {
-                    tooltipOverlay(for: map)
-                        .zIndex(50)
-                }
-
+                testingControls
+                
+                if let map = selectedMapForTooltip { tooltipOverlay(for: map).zIndex(50) }
+                
                 if showTourDetails, let map = detailMap {
-                    TourDetailsPopup(
-                        appState: appState,
-                        map: map,
-                        isPresented: $showTourDetails,
-                        path: $path
-                    )
-                    .transition(.scale(scale: 0.9).combined(with: .opacity))
-                    .zIndex(100)
+                    TourDetailsPopup(appState: appState, map: map, isPresented: $showTourDetails, path: $path)
+                        .transition(.scale(scale: 0.9).combined(with: .opacity))
+                        .zIndex(100)
                 }
             }
+            .onAppear {
+                prepareCurrentTourMemoryAlbum()
+            }
             .coordinateSpace(name: "HomeScreenSpace")
-            .background(Color(.systemGroupedBackground).ignoresSafeArea())
-            
+            .background(Color(.systemGroupedBackground).ignoresSafeArea())            
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button {
@@ -187,16 +176,66 @@ struct HomepageView: View {
                     LoginView()
                 case .checkAvailability(let map):
                     CheckAvailabilityView(appState: appState, map: map, path: $path)
-                case .gallery:
+                case .memories, .gallery:
                     MemoriesOverviewView(viewModel: memoriesViewModel)
                 }
             }
-            .navigationDestination(for: MemoriesRoute.self) { route in
-                MemoriesDestinationView(route: route, viewModel: memoriesViewModel)
+        }
+    }
+    
+    private var customTopBar: some View {
+        HStack {
+            Button { print("Poin diklik") } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 10))
+                        .foregroundColor(.white)
+                        .padding(6)
+                        .background(Circle().fill(Color.orange))
+                    Text("\(profileViewModel.user.points)")
+                        .font(.subheadline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.orange)
+                }
+                .padding(.leading, 12)
+                .padding(.trailing, 12)
+                .padding(.vertical, 10)
+                .background(
+                    Capsule()
+                        .fill(Color.white)
+                        .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
+                )
             }
-            .navigationBarBackButtonHidden(false)
-            .onAppear {
-                prepareCurrentTourMemoryAlbum()
+            .buttonStyle(.plain)
+
+            Spacer()
+
+            Image("Logo")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 44)
+
+            Spacer()
+
+            Button {
+                path.append(HomeRoute.profile)
+            } label: {
+                ZStack {
+                    Group {
+                        if let imageData = profileViewModel.user.customImageData, let uiImage = UIImage(data: imageData) {
+                            Image(uiImage: uiImage).resizable().scaledToFill()
+                        } else {
+                            Image(profileViewModel.user.profileImageName).resizable().scaledToFill()
+                        }
+                    }
+                    .frame(width: 44, height: 44)
+                    .clipShape(Circle())
+
+                    Image(profileViewModel.user.level.badgeImageName)
+                        .resizable()
+                        .scaledToFit()
+                    .frame(height: 44)
+                }
             }
         }
     }
@@ -284,6 +323,7 @@ struct HomepageView: View {
             .padding(.trailing, 24)
             .padding(.bottom, 164)
         }
+        .padding(.horizontal, 16)
     }
 
     private var backgroundMap: some View {

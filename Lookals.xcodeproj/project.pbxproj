@@ -7,13 +7,24 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		72E76D7F2FFE4CE100F9E8C5 /* test_jul.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72E76D7E2FFE4CDD00F9E8C5 /* test_jul.swift */; };
+		F7B8230AF2FF3E3F8001FE59B /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F7B82304F2FF3E3F8001FE59B /* XCTest.framework */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		F7B8230BF2FF3E3F8001FE59B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F7B822E52FF3E3F7001FE59B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F7B822EC2FF3E3F7001FE59B;
+			remoteInfo = Lookals;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
-		72E76D7E2FFE4CDD00F9E8C5 /* test_jul.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = test_jul.swift; sourceTree = "<group>"; };
 		F7B822ED2FF3E3F7001FE59B /* Lookals.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lookals.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F7B823002FF3E3F8001FE59B /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
+		F7B82303F2FF3E3F8001FE59B /* LookalsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LookalsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F7B82304F2FF3E3F8001FE59B /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -35,6 +46,11 @@
 			path = Lookals;
 			sourceTree = "<group>";
 		};
+		F7B82305F2FF3E3F8001FE59B /* LookalsTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = LookalsTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -45,16 +61,33 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F7B82306F2FF3E3F8001FE59B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F7B8230AF2FF3E3F8001FE59B /* XCTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		F777C083300409F700F06423 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				F7B82304F2FF3E3F8001FE59B /* XCTest.framework */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
 		F7B822E42FF3E3F7001FE59B = {
 			isa = PBXGroup;
 			children = (
-				72E76D7E2FFE4CDD00F9E8C5 /* test_jul.swift */,
 				F7B823012FF3E3F8001FE59B /* Config */,
 				F7B822EF2FF3E3F7001FE59B /* Lookals */,
+				F7B82305F2FF3E3F8001FE59B /* LookalsTests */,
 				F7B822EE2FF3E3F7001FE59B /* Products */,
+				F777C083300409F700F06423 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -62,6 +95,7 @@
 			isa = PBXGroup;
 			children = (
 				F7B822ED2FF3E3F7001FE59B /* Lookals.app */,
+				F7B82303F2FF3E3F8001FE59B /* LookalsTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -99,6 +133,29 @@
 			productReference = F7B822ED2FF3E3F7001FE59B /* Lookals.app */;
 			productType = "com.apple.product-type.application";
 		};
+		F7B82308F2FF3E3F8001FE59B /* LookalsTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F7B82312F2FF3E3F8001FE59B /* Build configuration list for PBXNativeTarget "LookalsTests" */;
+			buildPhases = (
+				F7B82307F2FF3E3F8001FE59B /* Sources */,
+				F7B82306F2FF3E3F8001FE59B /* Frameworks */,
+				F7B8230CF2FF3E3F8001FE59B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F7B8230DF2FF3E3F8001FE59B /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				F7B82305F2FF3E3F8001FE59B /* LookalsTests */,
+			);
+			name = LookalsTests;
+			packageProductDependencies = (
+			);
+			productName = LookalsTests;
+			productReference = F7B82303F2FF3E3F8001FE59B /* LookalsTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -117,6 +174,10 @@
 							};
 						};
 					};
+					F7B82308F2FF3E3F8001FE59B = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = F7B822EC2FF3E3F7001FE59B;
+					};
 				};
 			};
 			buildConfigurationList = F7B822E82FF3E3F7001FE59B /* Build configuration list for PBXProject "Lookals" */;
@@ -134,12 +195,20 @@
 			projectRoot = "";
 			targets = (
 				F7B822EC2FF3E3F7001FE59B /* Lookals */,
+				F7B82308F2FF3E3F8001FE59B /* LookalsTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		F7B822EB2FF3E3F7001FE59B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F7B8230CF2FF3E3F8001FE59B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -153,11 +222,25 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				72E76D7F2FFE4CE100F9E8C5 /* test_jul.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F7B82307F2FF3E3F8001FE59B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F7B8230DF2FF3E3F8001FE59B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F7B822EC2FF3E3F7001FE59B /* Lookals */;
+			targetProxy = F7B8230BF2FF3E3F8001FE59B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		F7B822F62FF3E3F8001FE59B /* Debug */ = {
@@ -214,6 +297,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Lookals uses the camera to scan quest QR codes and take quest photos.";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -273,6 +357,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Lookals uses the camera to scan quest QR codes and take quest photos.";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -295,8 +380,6 @@
 				DEVELOPMENT_TEAM = "$(LOOKALS_DEVELOPMENT_TEAM)";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "Lookals uses your calendar to add your booked tours so you don't miss them.";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Lookals uses the camera to scan quest proof QR codes.";
 				INFOPLIST_FILE = Lookals/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Lookals uses the camera to add photos to your memories.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Lookals uses your location to confirm meeting-point and checkpoint arrivals during guided tours.";
@@ -314,8 +397,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "$(LOOKALS_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) $(LOOKALS_SWIFT_ACTIVE_COMPILATION_CONDITIONS)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
@@ -336,8 +419,6 @@
 				DEVELOPMENT_TEAM = "$(LOOKALS_DEVELOPMENT_TEAM)";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "Lookals uses your calendar to add your booked tours so you don't miss them.";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Lookals uses the camera to scan quest proof QR codes.";
 				INFOPLIST_FILE = Lookals/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Lookals uses the camera to add photos to your memories.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Lookals uses your location to confirm meeting-point and checkpoint arrivals during guided tours.";
@@ -355,13 +436,61 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "$(LOOKALS_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) $(LOOKALS_SWIFT_ACTIVE_COMPILATION_CONDITIONS)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		F7B8230EF2FF3E3F8001FE59B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = F7B823002FF3E3F8001FE59B /* Signing.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "$(LOOKALS_DEVELOPMENT_TEAM)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(LOOKALS_BUNDLE_IDENTIFIER).tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Lookals.app/Lookals";
+			};
+			name = Debug;
+		};
+		F7B8230FF2FF3E3F8001FE59B /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = F7B823002FF3E3F8001FE59B /* Signing.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "$(LOOKALS_DEVELOPMENT_TEAM)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(LOOKALS_BUNDLE_IDENTIFIER).tests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Lookals.app/Lookals";
 			};
 			name = Release;
 		};
@@ -382,6 +511,15 @@
 			buildConfigurations = (
 				F7B822F92FF3E3F8001FE59B /* Debug */,
 				F7B822FA2FF3E3F8001FE59B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F7B82312F2FF3E3F8001FE59B /* Build configuration list for PBXNativeTarget "LookalsTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F7B8230EF2FF3E3F8001FE59B /* Debug */,
+				F7B8230FF2FF3E3F8001FE59B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

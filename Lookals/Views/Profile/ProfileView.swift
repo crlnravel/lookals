@@ -8,11 +8,14 @@ struct ProfileView: View {
         self.viewModel = viewModel
     }
     
+    // NEW: State to control the log out alert
+    @State private var showingLogoutAlert = false
+    
     var body: some View {
         VStack(spacing: 24) {
             
             VStack(spacing: 8) {
-                // Updated: Profile Picture with Badge Overlay
+                // Profile Picture with Badge Overlay
                 ZStack {
                     if let imageData = viewModel.user.customImageData,
                        let uiImage = UIImage(data: imageData) {
@@ -51,7 +54,7 @@ struct ProfileView: View {
             
             // MARK: - Progress Bar
             VStack(spacing: 6) {
-                // Updated: Calculate EXP progress
+                // Calculate EXP progress
                 let currentLevelExp = viewModel.user.exp % 200
                 let currentProgress = min(Double(currentLevelExp) / 200.0, 1.0)
                 
@@ -59,7 +62,7 @@ struct ProfileView: View {
                     .padding(.horizontal, 40)
                     .animation(.spring(response: 0.5, dampingFraction: 0.8), value: currentProgress)
                 
-                // Updated: Total cumulative EXP display
+                // Total cumulative EXP display
                 Text("You've reached \(viewModel.user.exp) cumulative points!")
                     .font(.caption)
                     .foregroundColor(.gray)
@@ -87,6 +90,16 @@ struct ProfileView: View {
                 // Point Redemption
                 NavigationLink(destination: PointRedemptionView(profileViewModel: viewModel)) {
                     menuRow(icon: "medal", title: "Point Redemption")
+                }
+                
+                Divider()
+                
+                // Log Out Button
+                Button(action: {
+                    showingLogoutAlert = true
+                }) {
+                    // Using the new color parameter to make it red
+                    menuRow(icon: "rectangle.portrait.and.arrow.right", title: "Log Out", color: .red)
                 }
                 
                 Divider()
@@ -124,16 +137,27 @@ struct ProfileView: View {
                 }.padding(.horizontal, 6)
             }
         }
+        .alert("Sure you want to log out?", isPresented: $showingLogoutAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Log Out", role: .destructive) {
+                // Add your actual log out logic here later!
+                print("User initiated log out.")
+            }
+        } message: {
+            Text("You can always log back in later to pick up where you left off.")
+        }
     }
     
-    private func menuRow(icon: String, title: String) -> some View {
+    // UPDATED: Added a color parameter with a default value of .black
+    private func menuRow(icon: String, title: String, color: Color = .black) -> some View {
         HStack {
             Image(systemName: icon)
-                .foregroundColor(.black)
+                .foregroundColor(color)
                 .frame(width: 30)
             Text(title)
-                .foregroundColor(.black)
+                .foregroundColor(color)
             Spacer()
+            // Kept the chevron for consistency, but you could hide it conditionally if desired
             Image(systemName: "chevron.right")
                 .foregroundColor(.gray)
         }

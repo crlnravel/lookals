@@ -44,14 +44,12 @@ struct IntroView: View {
             .navigationTitle("How to use Lookals")
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button(action: backTapped) {
-                        Label("", systemImage: "chevron.left")
-                    }
-                    .accessibilityLabel("Next intro image")
-                    .padding()
-                    .glassEffect()
-                }
+                ToolbarIconButton(
+                    placement: .topBarLeading,
+                    systemImage: "chevron.left",
+                    accessibilityLabel: "Previous intro image",
+                    action: backTapped
+                )
             }
         }
     }
