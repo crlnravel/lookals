@@ -10,9 +10,14 @@ import SwiftData
 
 struct AppDependencies: Sendable {
     let lookalMatchRepository: any LookalMatchRepository
+    let memoryPhotoService: any MemoryPhotoServicing
 
-    init(lookalMatchRepository: any LookalMatchRepository) {
+    init(
+        lookalMatchRepository: any LookalMatchRepository,
+        memoryPhotoService: any MemoryPhotoServicing
+    ) {
         self.lookalMatchRepository = lookalMatchRepository
+        self.memoryPhotoService = memoryPhotoService
     }
 }
 
@@ -25,7 +30,10 @@ extension AppDependencies {
         let service = MockLookalMatchingService(matches: matches)
         let store = InMemoryLookalMatchStore()
         let repository = DefaultLookalMatchRepository(service: service, store: store)
-        return AppDependencies(lookalMatchRepository: repository)
+        return AppDependencies(
+            lookalMatchRepository: repository,
+            memoryPhotoService: LocalMemoryPhotoService.shared
+        )
     }
 
     static func live(baseURL: URL) -> AppDependencies {
@@ -35,7 +43,18 @@ extension AppDependencies {
             modelContainer: makeModelContainer(isStoredInMemoryOnly: false)
         )
         let repository = DefaultLookalMatchRepository(service: service, store: store)
-        return AppDependencies(lookalMatchRepository: repository)
+        return AppDependencies(
+            lookalMatchRepository: repository,
+            memoryPhotoService: configuredMemoryPhotoService
+        )
+    }
+
+    private static var configuredMemoryPhotoService: any MemoryPhotoServicing {
+        #if LOOKALS_CLOUDKIT
+        CloudMemoryService.shared
+        #else
+        LocalMemoryPhotoService.shared
+        #endif
     }
 
     private static func makeModelContainer(isStoredInMemoryOnly: Bool) -> ModelContainer {

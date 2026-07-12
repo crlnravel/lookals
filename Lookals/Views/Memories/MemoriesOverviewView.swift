@@ -11,8 +11,10 @@ struct MemoriesOverviewView: View {
     @State private var viewModel: MemoriesViewModel
 
     @MainActor
-    init() {
-        _viewModel = State(initialValue: MemoriesViewModel())
+    init(memoryPhotoService: any MemoryPhotoServicing = LocalMemoryPhotoService.shared) {
+        _viewModel = State(
+            initialValue: MemoriesViewModel(memoryPhotoService: memoryPhotoService)
+        )
     }
 
     @MainActor
