@@ -27,7 +27,7 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
     let onLocate: () -> Void
     let markers: [CustomMapMarker]
     let coordinateMarkers: [CustomCoordinateMapMarker]
-    let activeRoute: MKRoute?
+    let navigationPolyline: MKPolyline?
     let showsUserLocation: Bool
     let cameraRegion: MKCoordinateRegion
     let overlay: () -> Overlay
@@ -40,7 +40,7 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
         region: MKCoordinateRegion,
         markers: [CustomMapMarker] = [],
         coordinateMarkers: [CustomCoordinateMapMarker] = [],
-        activeRoute: MKRoute? = nil,
+        navigationPolyline: MKPolyline? = nil,
         showsUserLocation: Bool = false,
         onBack: @escaping () -> Void = {},
         onLocate: @escaping () -> Void = {},
@@ -52,7 +52,7 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
         self.onLocate = onLocate
         self.markers = markers
         self.coordinateMarkers = coordinateMarkers
-        self.activeRoute = activeRoute
+        self.navigationPolyline = navigationPolyline
         self.showsUserLocation = showsUserLocation
         self.cameraRegion = region
         self.overlay = overlay
@@ -141,8 +141,8 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
 
     private var mapBackground: some View {
         Map(position: $cameraPosition, interactionModes: .all) {
-            if let activeRoute {
-                MapPolyline(activeRoute.polyline)
+            if let navigationPolyline {
+                MapPolyline(navigationPolyline)
                     .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round))
             }
 

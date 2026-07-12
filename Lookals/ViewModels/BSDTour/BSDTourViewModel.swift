@@ -174,9 +174,17 @@ final class BSDTourViewModel {
         return "\(Int(max(0, remaining).rounded()))m"
     }
 
+    var navigationPolyline: MKPolyline? {
+        Self.navigationPolyline(
+            routePolyline: activeRoute?.polyline,
+            source: currentUserCoordinate,
+            destination: activeDestination?.coordinate
+        )
+    }
+
     var mapRegion: MKCoordinateRegion {
-        if let activeRoute {
-            return activeRoute.polyline.boundingMapRect.paddedRegion
+        if let navigationPolyline {
+            return navigationPolyline.boundingMapRect.paddedRegion
         }
 
         let center = activeDestination?.coordinate ?? CLLocationCoordinate2D(latitude: -6.30467, longitude: 106.68180)
@@ -604,6 +612,27 @@ final class BSDTourViewModel {
     private func updateCurrentUserCoordinate(_ coordinate: CLLocationCoordinate2D) {
         guard let index = snapshot.participants.firstIndex(where: \.isCurrentUser) else { return }
         snapshot.participants[index].coordinate = BSDTourCoordinate(coordinate)
+    }
+
+    private var currentUserCoordinate: CLLocationCoordinate2D? {
+        snapshot.participants.first(where: \.isCurrentUser)?.coordinate.locationCoordinate
+    }
+
+    static func navigationPolyline(
+        routePolyline: MKPolyline?,
+        source: CLLocationCoordinate2D?,
+        destination: CLLocationCoordinate2D?
+    ) -> MKPolyline? {
+        if let routePolyline {
+            return routePolyline
+        }
+
+        guard let source, let destination else {
+            return nil
+        }
+
+        var coordinates = [source, destination]
+        return MKPolyline(coordinates: &coordinates, count: coordinates.count)
     }
 
     private func completionRule(for quest: BSDQuest) -> BSDQuestCompletionRule {

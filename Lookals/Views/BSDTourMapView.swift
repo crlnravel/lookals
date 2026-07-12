@@ -41,7 +41,7 @@ struct BSDTourMapView: View {
             region: viewModel.mapRegion,
             markers: [],
             coordinateMarkers: coordinateMarkers,
-            activeRoute: viewModel.activeRoute,
+            navigationPolyline: viewModel.navigationPolyline,
             showsUserLocation: true,
             onBack: onBack,
             onLocate: locateTapped
