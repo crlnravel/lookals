@@ -10,14 +10,24 @@ import SwiftUI
 struct HomeView: View {
     @State private var viewModel: HomeViewModel
 
+    private let memoryPhotoService: any MemoryPhotoServicing
+
     init(dependencies: AppDependencies = .preview) {
+        self.memoryPhotoService = dependencies.memoryPhotoService
         _viewModel = State(
             initialValue: HomeViewModel(repository: dependencies.lookalMatchRepository)
         )
     }
 
     init(viewModel: HomeViewModel) {
+        self.memoryPhotoService = LocalMemoryPhotoService.shared
         _viewModel = State(initialValue: viewModel)
+    }
+    
+    // Definisi Rute Navigasi
+    enum HomeViewRoute: Hashable {
+        case memories
+        // Tambahkan case lain di sini jika ada, contoh: case profile
     }
 
     var body: some View {
@@ -101,18 +111,14 @@ struct HomeView: View {
             .refreshable {
                 await viewModel.loadMatches(refresh: true)
             }
-            .navigationDestination(for: HomeViewRoute.self) { route in
-                switch route {
-                case .memories:
-                    MemoriesOverviewView()
-                }
-            }
+//            .navigationDestination(for: HomeRoute.self) { route in
+//                switch route {
+//                case .memories:
+//                    MemoriesOverviewView()
+//                }
+//            }
         }
     }
-}
-
-private enum HomeViewRoute: Hashable {
-    case memories
 }
 
 #Preview {

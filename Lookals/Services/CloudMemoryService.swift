@@ -8,7 +8,7 @@
 import CloudKit
 import UIKit
 
-actor CloudMemoryService {
+actor CloudMemoryService: MemoryPhotoServicing {
     static let shared = CloudMemoryService()
 
     private enum Field {
@@ -113,7 +113,7 @@ actor CloudMemoryService {
               let createdAt = record[Field.createdAt] as? Date,
               let asset = record[Field.image] as? CKAsset,
               let fileURL = asset.fileURL else {
-            throw CloudMemoryServiceError.invalidRecord
+            throw MemoryPhotoServiceError.invalidRecord
         }
 
         let imageData = try Data(contentsOf: fileURL)
@@ -131,26 +131,12 @@ actor CloudMemoryService {
 
     private static func writeJPEGAsset(_ image: UIImage, photoID: UUID) throws -> URL {
         guard let data = image.jpegData(compressionQuality: 0.86) else {
-            throw CloudMemoryServiceError.imageEncodingFailed
+            throw MemoryPhotoServiceError.imageEncodingFailed
         }
 
         let fileURL = FileManager.default.temporaryDirectory
             .appending(path: "\(photoID.uuidString).jpg")
         try data.write(to: fileURL, options: [.atomic])
         return fileURL
-    }
-}
-
-enum CloudMemoryServiceError: LocalizedError {
-    case imageEncodingFailed
-    case invalidRecord
-
-    var errorDescription: String? {
-        switch self {
-        case .imageEncodingFailed:
-            "Lookals could not prepare this photo for upload."
-        case .invalidRecord:
-            "Lookals received an incomplete memory photo from CloudKit."
-        }
     }
 }
