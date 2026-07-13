@@ -14,6 +14,7 @@ struct BSDTourMapView: View {
 
     let onBack: () -> Void
     let onLocate: () -> Void
+    let onOpenMemoryCamera: () -> Void
 
     @State private var viewModel: BSDTourViewModel
     @State private var locationService = BSDTourLocationService()
@@ -24,7 +25,8 @@ struct BSDTourMapView: View {
     init(
         dependencies: AppDependencies = .preview,
         onBack: @escaping () -> Void = {},
-        onLocate: @escaping () -> Void = {}
+        onLocate: @escaping () -> Void = {},
+        onOpenMemoryCamera: @escaping () -> Void = {}
     ) {
         self._viewModel = State(
             initialValue: BSDTourViewModel(
@@ -33,6 +35,7 @@ struct BSDTourMapView: View {
         )
         self.onBack = onBack
         self.onLocate = onLocate
+        self.onOpenMemoryCamera = onOpenMemoryCamera
     }
 
     var body: some View {
@@ -50,6 +53,7 @@ struct BSDTourMapView: View {
         } bottomOverlay: {
             bottomOverlay
         }
+        .toolbar(.hidden, for: .navigationBar)
         .sheet(item: $cameraStep) { step in
             CameraCaptureSheet { photoData in
                 viewModel.questFlow.updateCapturedPhotoData(photoData, for: step)
@@ -144,7 +148,7 @@ struct BSDTourMapView: View {
 
                 Spacer()
 
-                MapCameraButton(action: {})
+                MapCameraButton(action: onOpenMemoryCamera)
             }
             .padding(.horizontal, 20)
             .padding(.bottom, baseControlsBottomPadding)

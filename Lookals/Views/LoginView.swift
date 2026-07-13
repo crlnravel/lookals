@@ -97,5 +97,5 @@ struct LoginView: View {
 }
 
 #Preview {
-    LoginView()
+    ContentView(dependencies: .preview)
 }

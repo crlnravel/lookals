@@ -24,7 +24,7 @@ struct ContentView: View {
                 onSignIn: showHome
             )
         case .intro:
-            IntroView(onFinish: showFaceVerification)
+            IntroView(onFinish: showHomepage)
         case .faceVerification:
             FaceVerificationView(
                 onBack: showIntro,
@@ -32,6 +32,8 @@ struct ContentView: View {
             )
         case .home:
             HomeView(dependencies: dependencies)
+        case .homepage:
+            HomepageView()
         case .bsdTour:
             BSDTourMapView(dependencies: dependencies, onBack: showHome)
         }
@@ -49,6 +51,10 @@ struct ContentView: View {
         screen = .home
     }
 
+    private func showHomepage() {
+        screen = .homepage
+    }
+
     private func showBSDTour() {
         screen = .bsdTour
     }
@@ -59,6 +65,7 @@ private enum AppScreen {
     case intro
     case faceVerification
     case home
+    case homepage
     case bsdTour
 }
 
