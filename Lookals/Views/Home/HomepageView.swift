@@ -15,6 +15,12 @@ enum HomeRoute: Hashable {
     case gallery
 }
 
+private struct MemoryCameraRequest: Identifiable {
+    let albumID: UUID
+
+    var id: UUID { albumID }
+}
+
 struct HomepageView: View {
     @StateObject private var appState = HomeStateManager()
     @StateObject private var profileViewModel: ProfileViewModel
@@ -25,6 +31,7 @@ struct HomepageView: View {
     @State private var showTourDetails = false
     @State private var tapLocation: CGPoint = .zero
     @State private var path = NavigationPath()
+    @State private var activeMemoryCamera: MemoryCameraRequest?
     
     @State private var showSignIn = false
     
@@ -34,7 +41,8 @@ struct HomepageView: View {
     init() {
         self.init(
             memoryPhotoService: Self.defaultMemoryPhotoService,
-            profileService: Self.defaultProfileService
+            profileService: Self.defaultProfileService,
+            cloudProfileService: Self.defaultCloudProfileService
         )
     }
 
@@ -42,7 +50,8 @@ struct HomepageView: View {
     init(memoryPhotoService: any MemoryPhotoServicing) {
         self.init(
             memoryPhotoService: memoryPhotoService,
-            profileService: Self.defaultProfileService
+            profileService: Self.defaultProfileService,
+            cloudProfileService: Self.defaultCloudProfileService
         )
     }
 
@@ -50,7 +59,7 @@ struct HomepageView: View {
     init(
         memoryPhotoService: any MemoryPhotoServicing,
         profileService: any ProfileServicing,
-        cloudProfileService: any ProfileServicing = CloudProfileService.shared
+        cloudProfileService: (any ProfileServicing)?
     ) {
         _profileViewModel = StateObject(
             wrappedValue: ProfileViewModel(
@@ -96,10 +105,10 @@ struct HomepageView: View {
                     .zIndex(20)
                 }
 
-                if appState.bookingStatus == .ongoing {
-                    ongoingMemoryCameraButton
-                        .zIndex(30)
-                }
+//                if appState.bookingStatus == .ongoing {
+//                    ongoingMemoryCameraButton
+//                        .zIndex(30)
+//                }
 
                 VStack {
                     customTopBar
@@ -137,6 +146,14 @@ struct HomepageView: View {
             .fullScreenCover(isPresented: $showSignIn) {
                 SignInView()
             }
+            .sheet(item: $activeMemoryCamera) { request in
+                NavigationStack {
+                    AddMemoryCameraView(
+                        albumID: request.albumID,
+                        viewModel: memoriesViewModel
+                    )
+                }
+            }
             .coordinateSpace(name: "HomeScreenSpace")
             .background(Color(.systemGroupedBackground).ignoresSafeArea())            
 
@@ -144,7 +161,8 @@ struct HomepageView: View {
             .navigationDestination(for: HomeRoute.self) { route in
                 switch route {
                 case .profile: ProfileView(viewModel: profileViewModel)
-                case .ongoingItinerary: SignInView()
+                case .ongoingItinerary:
+                    BSDTourMapView(onBack: { path.removeLast() })
                 case .checkAvailability(let map): CheckAvailabilityView(appState: appState, map: map, path: $path)
                 case .memories, .gallery: MemoriesOverviewView(viewModel: memoriesViewModel)
                 }
@@ -241,6 +259,14 @@ struct HomepageView: View {
         #endif
     }
 
+    private static var defaultCloudProfileService: (any ProfileServicing)? {
+        #if LOOKALS_CLOUDKIT
+        CloudProfileService.shared
+        #else
+        nil
+        #endif
+    }
+
     @ViewBuilder
     private var toolbarProfileImage: some View {
         if let imageData = profileViewModel.user.customImageData,
@@ -285,6 +311,11 @@ struct HomepageView: View {
         path.append(HomeRoute.gallery)
     }
 
+    private func presentCurrentTourMemoryCamera() {
+        guard let albumID = prepareCurrentTourMemoryAlbum() else { return }
+        activeMemoryCamera = MemoryCameraRequest(albumID: albumID)
+    }
+
     private var ongoingMemoryCameraButton: some View {
         VStack {
             Spacer()
@@ -293,8 +324,7 @@ struct HomepageView: View {
                 Spacer()
 
                 Button {
-                    guard let albumID = prepareCurrentTourMemoryAlbum() else { return }
-                    path.append(MemoriesRoute.addMemory(albumID))
+                    presentCurrentTourMemoryCamera()
                 } label: {
                     Image(systemName: "camera.fill")
                         .font(.title3.bold())

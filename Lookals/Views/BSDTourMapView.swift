@@ -20,6 +20,7 @@ struct BSDTourMapView: View {
     @State private var shakeDetector = BSDTourShakeDetector()
     @State private var cameraStep: BSDQuestStep?
     @State private var hasStarted = false
+    @State private var isDebugControlsPresented = false
 
     init(
         dependencies: AppDependencies = .preview,
@@ -44,12 +45,14 @@ struct BSDTourMapView: View {
             navigationPolyline: viewModel.navigationPolyline,
             showsUserLocation: true,
             onBack: onBack,
-            onLocate: locateTapped
+            onLocate: locateTapped,
+            trailingAction: trailingMapHeaderAction
         ) {
             MapCloudOverlay(stage: viewModel.currentCloudStage)
         } bottomOverlay: {
             bottomOverlay
         }
+        .toolbar(.hidden, for: .navigationBar)
         .sheet(item: $cameraStep) { step in
             CameraCaptureSheet { photoData in
                 viewModel.questFlow.updateCapturedPhotoData(photoData, for: step)
@@ -286,7 +289,13 @@ struct BSDTourMapView: View {
             Spacer()
 
             HStack {
-                BSDTourDebugControls(viewModel: viewModel, shakeDetector: shakeDetector)
+                if isDebugControlsPresented {
+                    BSDTourDebugControls(
+                        viewModel: viewModel,
+                        shakeDetector: shakeDetector,
+                        isPresented: $isDebugControlsPresented
+                    )
+                }
                 Spacer()
             }
             .padding(.bottom, 24)
@@ -316,6 +325,20 @@ struct BSDTourMapView: View {
     private func locateTapped() {
         onLocate()
         locationService.requestAuthorizationAndStart()
+    }
+
+    private var trailingMapHeaderAction: CustomMapHeaderAction? {
+        #if DEBUG
+        CustomMapHeaderAction(
+            systemImage: "location",
+            accessibilityLabel: "Open debug controls",
+            background: Color.accentColor,
+            foreground: .white,
+            action: { isDebugControlsPresented = true }
+        )
+        #else
+        nil
+        #endif
     }
 }
 

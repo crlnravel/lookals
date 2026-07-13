@@ -17,7 +17,10 @@ struct NameInputView: View {
             title: "What should we call you?",
             subtitle: "This will be your nickname inside the app.",
             bgImageName: "profileSetupBg", 
-            onBack: { path.removeLast() },
+            onBack: {
+                guard !path.isEmpty else { return }
+                path.removeLast()
+            },
             circleYOffset: 250
         ) {
             VStack(spacing: 20) {
@@ -31,6 +34,7 @@ struct NameInputView: View {
                 
                 Button {
                     onboardingData.fullName = nickname
+                    path.append(.interests)
                 } label: {
                     PrimaryButtonLabel(title: "Next")
                 }

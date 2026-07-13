@@ -34,7 +34,9 @@ nonisolated struct MockBSDTourRoomRepository: BSDTourRoomRepository {
             return snapshot
         }
 
-        return join(participantID: nextMock.id, in: snapshot)
+        var next = join(participantID: nextMock.id, in: snapshot)
+        positionJoinedMocksNearCurrentUser(in: &next)
+        return next
     }
 
     func joinAllParticipants(in snapshot: BSDTourSnapshot) -> BSDTourSnapshot {
@@ -48,6 +50,7 @@ nonisolated struct MockBSDTourRoomRepository: BSDTourRoomRepository {
         }
 
         next.userJoined = next.participants.contains { $0.id == BSDTourConfiguration.currentUserID && $0.status == .joined }
+        positionJoinedMocksNearCurrentUser(in: &next)
         return next
     }
 
@@ -95,5 +98,27 @@ nonisolated struct MockBSDTourRoomRepository: BSDTourRoomRepository {
         completion.completedByParticipantID = completion.completedByParticipantID ?? activeIDs.first
         next.questCompletions[questID] = completion
         return next
+    }
+
+    private func positionJoinedMocksNearCurrentUser(in snapshot: inout BSDTourSnapshot) {
+        guard let currentUser = snapshot.participants.first(where: \.isCurrentUser) else { return }
+
+        let offsets: [(latitude: Double, longitude: Double)] = [
+            (0.00012, 0.00014),
+            (-0.00014, 0.00012),
+            (0.00010, -0.00016),
+            (-0.00012, -0.00014)
+        ]
+        let joinedMockIndexes = snapshot.participants.indices.filter {
+            !snapshot.participants[$0].isCurrentUser && snapshot.participants[$0].status == .joined
+        }
+
+        for (offsetIndex, participantIndex) in joinedMockIndexes.enumerated() {
+            let offset = offsets[offsetIndex % offsets.count]
+            snapshot.participants[participantIndex].coordinate = BSDTourCoordinate(
+                latitude: currentUser.coordinate.latitude + offset.latitude,
+                longitude: currentUser.coordinate.longitude + offset.longitude
+            )
+        }
     }
 }

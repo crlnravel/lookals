@@ -10,10 +10,15 @@ import SwiftUI
 struct PersonalityView: View {
     @Binding var path: [OnboardingStep]
     @EnvironmentObject var onboardingData: OnboardingData
-    @State private var selectedPersonality: String = "Select Personality"
+    @State private var selectedPersonality: Personality = .unselected
     @State private var isSaving: Bool = false // Indikator loading
-    
-    let personalities = ["Select Personality", "Introvert", "Extrovert", "Ambivert"]
+
+    private enum Personality: String, CaseIterable {
+        case unselected = "Select Personality"
+        case introvert = "Introvert"
+        case extrovert = "Extrovert"
+        case ambivert = "Ambivert"
+    }
     
     var body: some View {
         OnboardingTemplate(
@@ -23,37 +28,20 @@ struct PersonalityView: View {
             onBack: { path.removeLast() },
             circleYOffset: 250,
         ) {
-            Menu {
-                ForEach(personalities.dropFirst(), id: \.self) { trait in
-                    Button(trait) {
-                        selectedPersonality = trait
-                    }
-                }
-            } label: {
-                HStack {
-                    Text(selectedPersonality)
-                        .foregroundColor(selectedPersonality == "Select Personality" ? .gray : .black)
-                    Spacer()
-                    Image(systemName: "arrowtriangle.down.fill")
-                        .font(.system(size: 10))
-                        .foregroundColor(.gray)
-                }
-                .padding()
-                .contentShape(Rectangle())
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                    )
-
-            }
-            .padding(.bottom, 100)
+            CustomDropdown(
+                title: "Personality",
+                selection: $selectedPersonality,
+                options: Personality.allCases.filter { $0 != .unselected }
+            )
+            .padding(.bottom, 24)
             
             
             Button {
                 print("Tombol Next ditekan! Memulai upload...")
                 isSaving = true
-                onboardingData.personality = selectedPersonality
+                onboardingData.personality = selectedPersonality.rawValue
                 
+                #if LOOKALS_CLOUDKIT
                 CloudKitManager.shared.saveUserProfile(data: onboardingData) { success in
                     isSaving = false
                     if success {
@@ -63,6 +51,10 @@ struct PersonalityView: View {
                         print("YAH GAGAL UPLOAD KE CLOUDKIT! 😭")
                     }
                 }
+                #else
+                isSaving = false
+                path.append(.location)
+                #endif
             } label: {
                 if isSaving {
                     ProgressView().tint(.white)
@@ -72,8 +64,7 @@ struct PersonalityView: View {
                     PrimaryButtonLabel(title: "Next")
                 }
             }
-            .disabled(selectedPersonality == "Select Personality" || isSaving)
-            .disabled(selectedPersonality == "Select Personality" || isSaving)
+            .disabled(selectedPersonality == .unselected || isSaving)
         }
     }
 }

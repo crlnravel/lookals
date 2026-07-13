@@ -41,40 +41,51 @@ struct BSDTourBottomStatusCard: View {
         .shadow(color: .black.opacity(0.16), radius: 20, x: 0, y: 10)
         .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(title). \(subtitle)")
+        .accessibilityLabel("\(title). \(subtitle). \(Int(clampedProgress * 100)) percent of the route complete.")
     }
 
     private var progressRow: some View {
-        HStack(spacing: 0) {
-            GeometryReader { proxy in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(Color(.systemGray4))
+        GeometryReader { proxy in
+            let avatarDiameter: CGFloat = 28
+            let destinationDiameter: CGFloat = 32
+            let availableTravelWidth = max(0, proxy.size.width - avatarDiameter - destinationDiameter)
+            let avatarPosition = avatarDiameter / 2 + availableTravelWidth * clampedProgress
+            let destinationPosition = proxy.size.width - destinationDiameter / 2
 
-                    Capsule()
-                        .fill(Color.accentColor)
-                        .frame(width: max(4, proxy.size.width * min(max(progress, 0), 1)))
-                }
-            }
-            .frame(height: 4)
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(Color(.systemGray4))
+                    .frame(height: 4)
+                    .padding(.trailing, destinationDiameter / 2)
 
-            if let currentUser = participants.first {
-                RadarMarker(
-                    style: .participantAvatar(
-                        imageName: currentUser.avatarImageName,
-                        ringColor: currentUser.ringColor,
-                        label: currentUser.name
+                Capsule()
+                    .fill(Color.accentColor)
+                    .frame(width: max(4, min(avatarPosition, destinationPosition)), height: 4)
+
+                if let currentUser = participants.first {
+                    RadarMarker(
+                        style: .participantAvatar(
+                            imageName: currentUser.avatarImageName,
+                            ringColor: currentUser.ringColor,
+                            label: currentUser.name
+                        )
                     )
-                )
-                .frame(width: 28, height: 28)
-                .scaleEffect(0.7)
-                .padding(.leading, -16)
-            }
+                    .frame(width: avatarDiameter, height: avatarDiameter)
+                    .scaleEffect(0.7)
+                    .position(x: avatarPosition, y: proxy.size.height / 2)
+                }
 
-            RadarMarker(style: .smallDestination)
-                .frame(width: 32, height: 32)
-                .scaleEffect(0.60)
-                .padding(.leading, 8)
+                RadarMarker(style: .smallDestination)
+                    .frame(width: destinationDiameter, height: destinationDiameter)
+                    .scaleEffect(0.60)
+                    .position(x: destinationPosition, y: proxy.size.height / 2)
+            }
         }
+        .frame(height: 40)
+        .animation(.linear(duration: 0.05), value: clampedProgress)
+    }
+
+    private var clampedProgress: Double {
+        min(max(progress, 0), 1)
     }
 }

@@ -20,7 +20,10 @@ final class BSDTourViewModel {
     @ObservationIgnored private let clock: any BSDTourClock
     @ObservationIgnored private var waitingRoomCutoffTask: Task<Void, Never>?
     @ObservationIgnored private var routeRefreshTask: Task<Void, Never>?
+    @ObservationIgnored private var arrivalPreviewTask: Task<Void, Never>?
+    @ObservationIgnored private var arrivalPreviewID: UUID?
     @ObservationIgnored private var lastKnownLocation: CLLocation?
+    @ObservationIgnored private var startingRouteDistance: CLLocationDistance?
 
     private(set) var snapshot: BSDTourSnapshot
     private(set) var checkpoints: [BSDTourCheckpoint]
@@ -69,6 +72,7 @@ final class BSDTourViewModel {
     deinit {
         waitingRoomCutoffTask?.cancel()
         routeRefreshTask?.cancel()
+        arrivalPreviewTask?.cancel()
     }
 
     var phase: BSDTourPhase {
@@ -76,7 +80,7 @@ final class BSDTourViewModel {
     }
 
     var title: String {
-        "Hype Radar Map"
+        "The Blueprint"
     }
 
     var scheduledCutoff: Date {
@@ -115,7 +119,9 @@ final class BSDTourViewModel {
     }
 
     var mapParticipants: [BSDTourParticipant] {
-        snapshot.participants.filter { $0.status == .joined }
+        snapshot.participants.filter {
+            $0.status == .joined || ($0.isCurrentUser && $0.status != .removed)
+        }
     }
 
     var isCurrentUserRemoved: Bool {
@@ -163,17 +169,17 @@ final class BSDTourViewModel {
     }
 
     var remainingDistanceText: String {
-        guard let activeRoute, let destination = activeDestination else {
+        guard let destination = activeDestination else {
             return "Route"
         }
 
         let userLocation = snapshot.participants.first(where: \.isCurrentUser)?.coordinate.locationCoordinate
         guard let userLocation else {
+            guard let activeRoute else { return "Route" }
             return "\(Int(activeRoute.distance.rounded()))m"
         }
 
-        let remaining = CLLocation(latitude: userLocation.latitude, longitude: userLocation.longitude)
-            .distance(from: CLLocation(latitude: destination.coordinate.latitude, longitude: destination.coordinate.longitude))
+        let remaining = distance(from: userLocation, to: destination.coordinate)
         return "\(Int(max(0, remaining).rounded()))m"
     }
 
@@ -242,6 +248,12 @@ final class BSDTourViewModel {
     }
 
     func handleLocationUpdate(_ location: CLLocation) {
+        #if DEBUG
+        // The BSD Tour uses its fixed RM. Medan Ria route while recording a demo.
+        return
+        #else
+        guard arrivalPreviewID == nil else { return }
+
         lastKnownLocation = location
         updateCurrentUserCoordinate(location.coordinate)
         activeRoute = nil
@@ -253,6 +265,7 @@ final class BSDTourViewModel {
         routeRefreshTask = Task { [weak self] in
             await self?.refreshRouteIfNeeded()
         }
+        #endif
     }
 
     func handleShake() {
@@ -292,6 +305,54 @@ final class BSDTourViewModel {
         arrive(at: destination)
     }
 
+    #if DEBUG
+    func previewArrivalFromMedanRia() {
+        guard let destination = activeDestination else { return }
+        guard phase == .navigatingToMeetingPoint || phase == .navigatingToCheckpoint else { return }
+
+        arrivalPreviewTask?.cancel()
+
+        let startingCoordinate = BSDTourConfiguration.medanRiaCoordinate.locationCoordinate
+        startingRouteDistance = distance(from: startingCoordinate, to: destination.coordinate)
+        routeProgress = 0
+        let previewID = UUID()
+        arrivalPreviewID = previewID
+
+        arrivalPreviewTask = Task { [weak self] in
+            defer {
+                self?.finishArrivalPreview(id: previewID)
+            }
+
+            let frameCount = 100
+
+            for frame in 0...frameCount {
+                guard let self, !Task.isCancelled else { return }
+
+                let linearProgress = Double(frame) / Double(frameCount)
+                let progress = linearProgress * linearProgress * (3 - (2 * linearProgress))
+                let simulatedCoordinate = CLLocationCoordinate2D(
+                    latitude: startingCoordinate.latitude + (destination.coordinate.latitude - startingCoordinate.latitude) * progress,
+                    longitude: startingCoordinate.longitude + (destination.coordinate.longitude - startingCoordinate.longitude) * progress
+                )
+
+                self.updateCurrentUserCoordinate(simulatedCoordinate)
+                self.updateRouteProgress(for: simulatedCoordinate)
+
+                if frame < frameCount {
+                    do {
+                        try await Task.sleep(for: .milliseconds(50))
+                    } catch {
+                        return
+                    }
+                }
+            }
+
+            guard let self, !Task.isCancelled else { return }
+            self.simulateArrival()
+        }
+    }
+    #endif
+
     func simulateLeavingArrivalRadius() {
         routeProgress = min(routeProgress, 0.85)
     }
@@ -327,12 +388,18 @@ final class BSDTourViewModel {
         activeRoute = nil
         routeErrorMessage = nil
         routeProgress = 0
+        startingRouteDistance = nil
         waitingRoomCutoffTask?.cancel()
         waitingRoomCutoffTask = nil
+        arrivalPreviewTask?.cancel()
+        arrivalPreviewTask = nil
+        arrivalPreviewID = nil
         snapshot = Self.makeDefaultSnapshot(checkpoints: checkpoints)
+        #if !DEBUG
         if let lastKnownLocation {
             updateCurrentUserCoordinate(lastKnownLocation.coordinate)
         }
+        #endif
         isShakeWidgetExpanded = false
         isCompletionExpanded = false
         questFlow.setEarnedPoints(0)
@@ -461,6 +528,7 @@ final class BSDTourViewModel {
         snapshot.currentStepIndex = 0
         snapshot.phase = .navigatingToCheckpoint
         routeProgress = 0
+        startingRouteDistance = nil
         questFlow.moveToQuest(withID: nextQuest.id, expanded: false)
         persist()
 
@@ -619,15 +687,29 @@ final class BSDTourViewModel {
     }
 
     private func updateRouteProgress(for coordinate: CLLocationCoordinate2D) {
-        guard let activeRoute, let destination = activeDestination else {
+        guard let destination = activeDestination else {
             return
         }
 
-        let remaining = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
-            .distance(from: CLLocation(latitude: destination.coordinate.latitude, longitude: destination.coordinate.longitude))
-        let original = max(activeRoute.distance, remaining, 1)
+        let remaining = distance(from: coordinate, to: destination.coordinate)
+        let original = max(startingRouteDistance ?? activeRoute?.distance ?? remaining, 1)
+        startingRouteDistance = original
         let nextProgress = min(max(1 - (remaining / original), routeProgress), 1)
         routeProgress = nextProgress
+    }
+
+    private func distance(
+        from source: CLLocationCoordinate2D,
+        to destination: CLLocationCoordinate2D
+    ) -> CLLocationDistance {
+        CLLocation(latitude: source.latitude, longitude: source.longitude)
+            .distance(from: CLLocation(latitude: destination.latitude, longitude: destination.longitude))
+    }
+
+    private func finishArrivalPreview(id: UUID) {
+        guard arrivalPreviewID == id else { return }
+        arrivalPreviewID = nil
+        arrivalPreviewTask = nil
     }
 
     private func updateCurrentUserCoordinate(_ coordinate: CLLocationCoordinate2D) {

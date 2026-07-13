@@ -21,6 +21,14 @@ struct CustomCoordinateMapMarker: Identifiable {
     let coordinate: CLLocationCoordinate2D
 }
 
+struct CustomMapHeaderAction {
+    let systemImage: String
+    let accessibilityLabel: String
+    let background: Color
+    let foreground: Color
+    let action: () -> Void
+}
+
 struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
     let title: String
     let onBack: () -> Void
@@ -30,6 +38,7 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
     let navigationPolyline: MKPolyline?
     let showsUserLocation: Bool
     let cameraRegion: MKCoordinateRegion
+    let trailingAction: CustomMapHeaderAction?
     let overlay: () -> Overlay
     let bottomOverlay: () -> BottomOverlay
 
@@ -44,6 +53,7 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
         showsUserLocation: Bool = false,
         onBack: @escaping () -> Void = {},
         onLocate: @escaping () -> Void = {},
+        trailingAction: CustomMapHeaderAction? = nil,
         @ViewBuilder overlay: @escaping () -> Overlay = { EmptyView() },
         @ViewBuilder bottomOverlay: @escaping () -> BottomOverlay
     ) {
@@ -55,6 +65,7 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
         self.navigationPolyline = navigationPolyline
         self.showsUserLocation = showsUserLocation
         self.cameraRegion = region
+        self.trailingAction = trailingAction
         self.overlay = overlay
         self.bottomOverlay = bottomOverlay
         self._cameraPosition = State(initialValue: .region(region))
@@ -104,13 +115,23 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
 
                 Spacer()
 
-                mapHeaderButton(
-                    systemImage: "location",
-                    accessibilityLabel: "Show current location",
-                    background: Color.accentColor,
-                    foreground: .white,
-                    action: locateUser
-                )
+                if let trailingAction {
+                    mapHeaderButton(
+                        systemImage: trailingAction.systemImage,
+                        accessibilityLabel: trailingAction.accessibilityLabel,
+                        background: trailingAction.background,
+                        foreground: trailingAction.foreground,
+                        action: trailingAction.action
+                    )
+                } else {
+                    mapHeaderButton(
+                        systemImage: "location",
+                        accessibilityLabel: "Show current location",
+                        background: Color.accentColor,
+                        foreground: .white,
+                        action: locateUser
+                    )
+                }
             }
             .padding(.horizontal, 32)
             .padding(.top, topInset + 16)

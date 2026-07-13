@@ -9,7 +9,14 @@ import SwiftUI
 struct CustomDropdown<T: RawRepresentable & Hashable & CaseIterable>: View where T.RawValue == String {
     let title: String
     @Binding var selection: T
+    private let options: [T]
     @State private var isExpanded = false
+
+    init(title: String, selection: Binding<T>, options: [T]? = nil) {
+        self.title = title
+        self._selection = selection
+        self.options = options ?? Array(T.allCases)
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -45,8 +52,7 @@ struct CustomDropdown<T: RawRepresentable & Hashable & CaseIterable>: View where
                 // Expanded Options
                 if isExpanded {
                     VStack(spacing: 0) {
-                        let cases = Array(T.allCases)
-                        ForEach(cases, id: \.self) { option in
+                        ForEach(options, id: \.self) { option in
                             Button(action: {
                                 selection = option
                                 withAnimation(.easeInOut(duration: 0.2)) {
@@ -62,7 +68,7 @@ struct CustomDropdown<T: RawRepresentable & Hashable & CaseIterable>: View where
                             }
                             
                             // Add divider if it's not the last item
-                            if option != cases.last {
+                            if option != options.last {
                                 Divider().padding(.horizontal, 16)
                             }
                         }

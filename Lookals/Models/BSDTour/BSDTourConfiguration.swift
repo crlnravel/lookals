@@ -16,6 +16,10 @@ enum BSDTourConfiguration {
     }
 
     static let currentUserID = "current-user"
+    static let medanRiaCoordinate = BSDTourCoordinate(
+        latitude: -6.296751,
+        longitude: 106.6816513
+    )
 
     static let participants: [BSDTourParticipant] = [
         BSDTourParticipant(
@@ -25,7 +29,7 @@ enum BSDTourConfiguration {
             ringColorName: "orange",
             isCurrentUser: true,
             status: .invited,
-            coordinate: BSDTourCoordinate(latitude: -6.29900, longitude: 106.68190)
+            coordinate: medanRiaCoordinate
         ),
         BSDTourParticipant(
             id: "gisella",
@@ -62,7 +66,7 @@ enum BSDTourConfiguration {
             isCurrentUser: false,
             status: .invited,
             coordinate: BSDTourCoordinate(latitude: -6.30477, longitude: 106.67902)
-        )
+        ),
     ]
 
     static var checkpoints: [BSDTourCheckpoint] {

@@ -21,16 +21,19 @@ final class ProfileViewModel: ObservableObject {
     @Published private(set) var profileErrorMessage: String?
 
     private let localService: any ProfileServicing
-    private let cloudService: any ProfileServicing
+    private let cloudService: (any ProfileServicing)?
 
     convenience init() {
         self.init(
             localService: LocalProfileService.shared,
-            cloudService: CloudProfileService.shared
+            cloudService: Self.defaultCloudService
         )
     }
 
-    init(localService: any ProfileServicing, cloudService: any ProfileServicing) {
+    init(
+        localService: any ProfileServicing,
+        cloudService: (any ProfileServicing)?
+    ) {
         self.user = User.olivia
         self.profileErrorMessage = nil
         self.localService = localService
@@ -39,6 +42,14 @@ final class ProfileViewModel: ObservableObject {
         Task {
             await loadProfile()
         }
+    }
+
+    private static var defaultCloudService: (any ProfileServicing)? {
+        #if LOOKALS_CLOUDKIT
+        CloudProfileService.shared
+        #else
+        nil
+        #endif
     }
 
     // MARK: - Public API
@@ -95,6 +106,8 @@ final class ProfileViewModel: ObservableObject {
 
         // Then overlay with CloudKit if it has a copy — this is what makes
         // profile data follow the user across devices/reinstalls.
+        guard let cloudService else { return }
+
         do {
             if let cloudUser = try await cloudService.loadProfile() {
                 user = cloudUser
@@ -130,6 +143,8 @@ final class ProfileViewModel: ObservableObject {
         // Best-effort CloudKit sync. Deliberately not surfaced as
         // `profileErrorMessage` — a local save already succeeded, so a
         // CloudKit hiccup shouldn't look like the whole save failed.
+        guard let cloudService else { return }
+
         do {
             try await cloudService.saveProfile(user)
         } catch {

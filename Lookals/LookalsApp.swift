@@ -10,11 +10,35 @@ import SwiftUI
 @main
 struct LookalsApp: App {
     private let dependencies = AppDependencies.mock(isStoredInMemoryOnly: false)
+    @State private var onboardingPath: [OnboardingStep] = []
+    @StateObject private var onboardingData = OnboardingData()
+    @AppStorage("isSignedIn") private var isSignedIn = false
 
     var body: some Scene {
         WindowGroup {
-            //ContentView(dependencies: dependencies).preferredColorScheme(.light)
-            HomepageView()
+            Group {
+                if isSignedIn {
+                    HomepageView()
+                } else {
+                    NavigationStack(path: $onboardingPath) {
+                        NameInputView(path: $onboardingPath)
+                            .navigationDestination(for: OnboardingStep.self) { step in
+                                switch step {
+                                case .interests:
+                                    InterestsView(path: $onboardingPath)
+                                case .personality:
+                                    PersonalityView(path: $onboardingPath)
+                                case .location:
+                                    LocationPermissionView(path: $onboardingPath)
+                                case .success:
+                                    SuccessView(path: $onboardingPath)
+                                }
+                            }
+                    }
+                }
+            }
+            .environmentObject(onboardingData)
+            .preferredColorScheme(.light)
         }
     }
 }
