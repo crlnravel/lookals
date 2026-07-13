@@ -139,45 +139,7 @@ struct HomepageView: View {
             }
             .coordinateSpace(name: "HomeScreenSpace")
             .background(Color(.systemGroupedBackground).ignoresSafeArea())            
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        print("Poin diklik")
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "star.fill")
-                                .font(.system(size: 10))
-                                .foregroundColor(.white)
-                                .padding(6)
-                                .background(Circle().fill(Color.orange))
-                            
-                            Text("\(profileViewModel.user.points)")
-                                .font(.subheadline)
-                                .fontWeight(.bold)
-                                .foregroundColor(.orange)
-                                .padding(.trailing, 8)
-                        }
-                        .padding(4)
-                    }
-                    .buttonStyle(.plain)
-                    .fixedSize()
-                }
-                
-                ToolbarItem(placement: .principal) {
-                    Image("Logo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: 44)
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        path.append(HomeRoute.profile)
-                    } label: {
-                        toolbarProfileImage
-                    }
-                }
-            }
+
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: HomeRoute.self) { route in
                 switch route {
