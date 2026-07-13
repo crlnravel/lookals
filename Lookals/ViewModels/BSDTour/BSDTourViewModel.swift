@@ -76,7 +76,7 @@ final class BSDTourViewModel {
     }
 
     var title: String {
-        "Hype Radar Map"
+        "The Blueprint"
     }
 
     var scheduledCutoff: Date {
