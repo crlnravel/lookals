@@ -17,6 +17,9 @@ struct ExpandableWidget<CollapsedContent: View, ExpandedContent: View>: View {
     private let expandedMaxWidth: CGFloat
     private let horizontalPadding: CGFloat
     private let edgePadding: CGFloat
+    private let expandedControlSystemName: String?
+    private let expandedControlAccessibilityLabel: String?
+    private let expandedControlAction: (() -> Void)?
     private let collapsedContent: CollapsedContent
     private let expandedContent: ExpandedContent
 
@@ -26,6 +29,9 @@ struct ExpandableWidget<CollapsedContent: View, ExpandedContent: View>: View {
         expandedMaxWidth: CGFloat = 360,
         horizontalPadding: CGFloat = 20,
         edgePadding: CGFloat = 16,
+        expandedControlSystemName: String? = nil,
+        expandedControlAccessibilityLabel: String? = nil,
+        expandedControlAction: (() -> Void)? = nil,
         @ViewBuilder collapsedContent: () -> CollapsedContent,
         @ViewBuilder expandedContent: () -> ExpandedContent
     ) {
@@ -34,6 +40,9 @@ struct ExpandableWidget<CollapsedContent: View, ExpandedContent: View>: View {
         self.expandedMaxWidth = expandedMaxWidth
         self.horizontalPadding = horizontalPadding
         self.edgePadding = edgePadding
+        self.expandedControlSystemName = expandedControlSystemName
+        self.expandedControlAccessibilityLabel = expandedControlAccessibilityLabel
+        self.expandedControlAction = expandedControlAction
         self.collapsedContent = collapsedContent()
         self.expandedContent = expandedContent()
     }
@@ -99,7 +108,7 @@ struct ExpandableWidget<CollapsedContent: View, ExpandedContent: View>: View {
     }
 
     private var expansionControl: some View {
-        Button(action: toggleExpansion) {
+        Button(action: handleExpansionControl) {
             Image(systemName: expansionControlSystemName)
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(.primary)
@@ -110,11 +119,23 @@ struct ExpandableWidget<CollapsedContent: View, ExpandedContent: View>: View {
         .buttonStyle(.plain)
         .glassEffect()
         .zIndex(1)
-        .accessibilityLabel(isExpanded ? "Collapse quest" : "Expand quest")
+        .accessibilityLabel(expansionControlAccessibilityLabel)
     }
 
     private var expansionControlSystemName: String {
-        isExpanded ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right"
+        if isExpanded {
+            expandedControlSystemName ?? "arrow.down.right.and.arrow.up.left"
+        } else {
+            "arrow.up.left.and.arrow.down.right"
+        }
+    }
+
+    private var expansionControlAccessibilityLabel: String {
+        if isExpanded {
+            expandedControlAccessibilityLabel ?? "Collapse quest"
+        } else {
+            "Expand quest"
+        }
     }
 
     private var dismissLayer: some View {
@@ -143,6 +164,14 @@ struct ExpandableWidget<CollapsedContent: View, ExpandedContent: View>: View {
 
     private func toggleExpansion() {
         setExpanded(!isExpanded)
+    }
+
+    private func handleExpansionControl() {
+        if isExpanded, let expandedControlAction {
+            expandedControlAction()
+        } else {
+            toggleExpansion()
+        }
     }
 
     private func collapse() {

@@ -7,19 +7,19 @@
 
 import Foundation
 
-enum Gender: String, CaseIterable {
+nonisolated enum Gender: String, CaseIterable, Codable, Sendable {
     case female = "Female"
     case male = "Male"
     case preferNotToSay = "Prefer not to say"
 }
 
-enum Personality: String, CaseIterable {
+nonisolated enum Personality: String, CaseIterable, Codable, Sendable {
     case introverted = "Introverted"
     case extroverted = "Extroverted"
     case ambiverted = "Ambiverted"
 }
 
-enum UserLevel: Int {
+nonisolated enum UserLevel: Int, Codable, Sendable {
     case level1 = 1, level2, level3, level4
     
     var title: String {
@@ -41,7 +41,7 @@ enum UserLevel: Int {
     }
 }
 
-enum Interest: String, CaseIterable {
+nonisolated enum Interest: String, CaseIterable, Codable, Sendable {
     case coffeeTea = "☕️ Coffee & Tea"
     case photography = "📸 Photography"
     case movies = "🎬 Movies"
@@ -53,7 +53,7 @@ enum Interest: String, CaseIterable {
 }
 
 // MARK: - User Model
-struct User {
+nonisolated struct User: Codable, Sendable {
     var fullName: String
     var nickname: String
     var phoneNumber: String

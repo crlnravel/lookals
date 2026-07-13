@@ -1,0 +1,20 @@
+//
+//  BSDQuestKind.swift
+//  Lookals
+//
+//  Created by Carleano Ravelza Wongso on 10/07/26.
+//
+
+enum BSDQuestKind: Equatable {
+    case quest
+    case sideQuest
+
+    var displayLabel: String {
+        switch self {
+        case .quest:
+            "QUEST"
+        case .sideQuest:
+            "SIDE QUEST"
+        }
+    }
+}

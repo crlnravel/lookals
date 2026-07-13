@@ -17,7 +17,7 @@ enum HomeRoute: Hashable {
 
 struct HomepageView: View {
     @StateObject private var appState = HomeStateManager()
-    @StateObject private var profileViewModel = ProfileViewModel()
+    @StateObject private var profileViewModel: ProfileViewModel
     @State private var memoriesViewModel: MemoriesViewModel
     
     @State private var selectedMapForTooltip: TourMap? = nil
@@ -32,11 +32,28 @@ struct HomepageView: View {
 
     @MainActor
     init() {
-        self.init(memoryPhotoService: Self.defaultMemoryPhotoService)
+        self.init(
+            memoryPhotoService: Self.defaultMemoryPhotoService,
+            profileService: Self.defaultProfileService
+        )
     }
 
     @MainActor
     init(memoryPhotoService: any MemoryPhotoServicing) {
+        self.init(
+            memoryPhotoService: memoryPhotoService,
+            profileService: Self.defaultProfileService
+        )
+    }
+
+    @MainActor
+    init(
+        memoryPhotoService: any MemoryPhotoServicing,
+        profileService: any ProfileServicing
+    ) {
+        _profileViewModel = StateObject(
+            wrappedValue: ProfileViewModel(profileService: profileService)
+        )
         _memoriesViewModel = State(
             initialValue: MemoriesViewModel(memoryPhotoService: memoryPhotoService)
         )
@@ -117,8 +134,46 @@ struct HomepageView: View {
                 SignInView()
             }
             .coordinateSpace(name: "HomeScreenSpace")
-            .background(Color(.systemGroupedBackground).ignoresSafeArea())
-            .toolbar(.hidden, for: .navigationBar)
+            .background(Color(.systemGroupedBackground).ignoresSafeArea())            
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        print("Poin diklik")
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "star.fill")
+                                .font(.system(size: 10))
+                                .foregroundColor(.white)
+                                .padding(6)
+                                .background(Circle().fill(Color.orange))
+                            
+                            Text("\(profileViewModel.user.points)")
+                                .font(.subheadline)
+                                .fontWeight(.bold)
+                                .foregroundColor(.orange)
+                                .padding(.trailing, 8)
+                        }
+                        .padding(4)
+                    }
+                    .buttonStyle(.plain)
+                    .fixedSize()
+                }
+                
+                ToolbarItem(placement: .principal) {
+                    Image("Logo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 44)
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        path.append(HomeRoute.profile)
+                    } label: {
+                        toolbarProfileImage
+                    }
+                }
+            }
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: HomeRoute.self) { route in
                 switch route {
@@ -210,6 +265,31 @@ struct HomepageView: View {
         #else
         LocalMemoryPhotoService.shared
         #endif
+    }
+
+    private static var defaultProfileService: any ProfileServicing {
+        #if LOOKALS_CLOUDKIT
+        CloudProfileService.shared
+        #else
+        LocalProfileService.shared
+        #endif
+    }
+
+    @ViewBuilder
+    private var toolbarProfileImage: some View {
+        if let imageData = profileViewModel.user.customImageData,
+           let image = UIImage(data: imageData) {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 33, height: 33)
+                .clipShape(Circle())
+        } else {
+            Image(profileViewModel.user.profileImageName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 33, height: 33)
+        }
     }
 
     private var currentMemoryMap: TourMap? {

@@ -46,6 +46,10 @@ struct ContentView: View {
     private func showHome() {
         screen = .home
     }
+
+    private func showBSDTour() {
+        screen = .bsdTour
+    }
 }
 
 private enum AppScreen {
@@ -53,6 +57,7 @@ private enum AppScreen {
     case intro
     case faceVerification
     case home
+    case bsdTour
 }
 
 #Preview {

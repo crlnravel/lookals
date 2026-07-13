@@ -6,12 +6,26 @@
 //
 import Foundation
 
-struct Coupon: Identifiable, Equatable {
-    let id = UUID()
+nonisolated struct Coupon: Identifiable, Equatable, Codable, Sendable {
+    let id: UUID
     let title: String
     let description: String
     let pointsRequired: Int
     let imageName: String
+
+    init(
+        id: UUID = UUID(),
+        title: String,
+        description: String,
+        pointsRequired: Int,
+        imageName: String
+    ) {
+        self.id = id
+        self.title = title
+        self.description = description
+        self.pointsRequired = pointsRequired
+        self.imageName = imageName
+    }
 }
 
 let dummyCoupons = [

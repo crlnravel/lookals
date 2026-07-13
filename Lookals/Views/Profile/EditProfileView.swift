@@ -63,7 +63,7 @@ struct EditProfileView: View {
                     }
                 }
                 .padding(.bottom, 10)
-                .onChange(of: selectedPhotoItem) { newItem in
+                .onChange(of: selectedPhotoItem) { _, newItem in
                     Task {
                         // Attempt to load the selected image as raw Data
                         if let data = try? await newItem?.loadTransferable(type: Data.self),
