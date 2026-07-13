@@ -110,7 +110,7 @@ struct EditProfileView: View {
             
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: {
-                    saveToCloudKit()
+                    saveProfile()
                 }) {
                     if isSaving {
                         ProgressView() // Tampilkan loading saat upload
@@ -125,31 +125,19 @@ struct EditProfileView: View {
         }
     }
     
-    private func saveToCloudKit() {
-            isSaving = true
-                
-            viewModel.updateProfile(with: draftUser)
-      
-            let personalityString = draftUser.personality.rawValue
-            
-            let interestsStringArray = draftUser.interests.map { $0.rawValue }
-            
-            CloudKitManager.shared.updateUserProfile(
-                name: draftUser.nickname,
-                personality: personalityString,
-                interests: interestsStringArray,
-                imageData: draftUser.customImageData
-            ) { success in
-                DispatchQueue.main.async {
-                    isSaving = false
-                    if success {
-                        dismiss()
-                    } else {
-                        print("Gagal update ke CloudKit")
-                    }
-                }
-            }
+    // Renamed from `saveToCloudKit()` — this now goes through the
+    // ViewModel's local+CloudKit save path (ProfileServicing), not a
+    // direct CloudKitManager call. Fixes profile edits silently writing
+    // to a different CloudKit record schema than the rest of the app reads.
+    private func saveProfile() {
+        isSaving = true
+
+        Task {
+            await viewModel.saveDraft(draftUser)
+            isSaving = false
+            dismiss()
         }
+    }
 }
 
 struct CenterView<Content: View>: View {

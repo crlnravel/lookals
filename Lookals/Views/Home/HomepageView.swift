@@ -49,10 +49,14 @@ struct HomepageView: View {
     @MainActor
     init(
         memoryPhotoService: any MemoryPhotoServicing,
-        profileService: any ProfileServicing
+        profileService: any ProfileServicing,
+        cloudProfileService: any ProfileServicing = CloudProfileService.shared
     ) {
         _profileViewModel = StateObject(
-            wrappedValue: ProfileViewModel(profileService: profileService)
+            wrappedValue: ProfileViewModel(
+                localService: profileService,
+                cloudService: cloudProfileService
+            )
         )
         _memoriesViewModel = State(
             initialValue: MemoriesViewModel(memoryPhotoService: memoryPhotoService)
@@ -177,7 +181,7 @@ struct HomepageView: View {
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: HomeRoute.self) { route in
                 switch route {
-                case .profile: ProfileView()
+                case .profile: ProfileView(viewModel: profileViewModel)
                 case .ongoingItinerary: SignInView()
                 case .checkAvailability(let map): CheckAvailabilityView(appState: appState, map: map, path: $path)
                 case .memories, .gallery: MemoriesOverviewView(viewModel: memoriesViewModel)

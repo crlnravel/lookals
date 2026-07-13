@@ -90,3 +90,19 @@ nonisolated struct User: Codable, Sendable {
             self.myCoupons = []
         }
 }
+
+// MARK: - Placeholder profile shown before CloudKit/local data has loaded.
+extension User {
+    static var olivia: User {
+        var user = User()
+        user.fullName = "Olivia Bennett"
+        user.nickname = "Olivia"
+        user.gender = .female
+        user.personality = .extroverted
+        user.interests = [.coffeeTea, .photography]
+        user.exp = 0
+        user.points = 0
+        user.profileImageName = "Profile Picture"
+        return user
+    }
+}
