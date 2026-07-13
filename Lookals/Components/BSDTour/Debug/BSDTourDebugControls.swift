@@ -12,6 +12,7 @@ struct BSDTourDebugControls: View {
     @Bindable var viewModel: BSDTourViewModel
     let shakeDetector: BSDTourShakeDetector
     @Binding var isPresented: Bool
+    let onFactRequested: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -26,6 +27,10 @@ struct BSDTourDebugControls: View {
                 debugButton("Shake") { shakeDetector.simulateShake() }
                 debugButton("Join Mock", action: viewModel.joinNextMockParticipant)
                 debugButton("Join All", action: viewModel.joinAllParticipants)
+                debugButton("Fact") {
+                    viewModel.showLookalsFactDebug()
+                    onFactRequested()
+                }
                 debugButton("Cutoff", action: viewModel.triggerCutoff)
                 debugButton("Complete All", action: viewModel.completeCurrentQuestForAllParticipants)
                 debugButton("Finish", action: viewModel.finishTour)
@@ -50,4 +55,5 @@ struct BSDTourDebugControls: View {
             .controlSize(.small)
     }
 }
+
 #endif

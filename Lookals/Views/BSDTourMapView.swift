@@ -20,6 +20,7 @@ struct BSDTourMapView: View {
 
     let onBack: () -> Void
     let onLocate: () -> Void
+    private let automaticallyStartArrivalPreview: Bool
 
     @State private var viewModel: BSDTourViewModel
     @State private var memoriesViewModel: MemoriesViewModel
@@ -29,9 +30,11 @@ struct BSDTourMapView: View {
     @State private var hasStarted = false
     @State private var isDebugControlsPresented = false
     @State private var activeMemoryCamera: BSDTourMemoryCameraRequest?
+    @State private var isLookalsFactPresented = false
 
     init(
         dependencies: AppDependencies = .preview,
+        automaticallyStartArrivalPreview: Bool = false,
         onBack: @escaping () -> Void = {},
         onLocate: @escaping () -> Void = {}
     ) {
@@ -43,6 +46,7 @@ struct BSDTourMapView: View {
         self._memoriesViewModel = State(
             initialValue: MemoriesViewModel(memoryPhotoService: dependencies.memoryPhotoService)
         )
+        self.automaticallyStartArrivalPreview = automaticallyStartArrivalPreview
         self.onBack = onBack
         self.onLocate = onLocate
     }
@@ -81,12 +85,17 @@ struct BSDTourMapView: View {
                 )
             }
         }
+        .overlay { factOverlay }
         .sensoryFeedback(.success, trigger: viewModel.arrivalFeedbackTick)
         .task {
             guard !hasStarted else { return }
             hasStarted = true
-            viewModel.start(locationService: locationService, shakeDetector: shakeDetector)
+            await viewModel.start(locationService: locationService, shakeDetector: shakeDetector)
             locationService.requestAuthorizationAndStart()
+
+            if automaticallyStartArrivalPreview {
+                viewModel.previewArrivalFromMedanRia()
+            }
         }
         .onChange(of: locationService.authorization, initial: true) { _, newValue in
             viewModel.updateLocationAuthorization(newValue)
@@ -106,18 +115,39 @@ struct BSDTourMapView: View {
         return markers
     }
 
+    @ViewBuilder
+    private var factOverlay: some View {
+            if isLookalsFactPresented, let fact = busStopFact {
+                LookalsFactPopup(fact: fact, onDismiss: dismissLookalsFact)
+                .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                .zIndex(1)
+        }
+    }
+
     private var checkpointMarkers: [CustomCoordinateMapMarker] {
-        viewModel.checkpoints.compactMap { checkpoint in
+        var markers: [CustomCoordinateMapMarker] = []
+
+        for checkpoint in viewModel.checkpoints {
             guard let style = markerStyle(for: checkpoint) else {
-                return nil
+                continue
             }
 
-            return CustomCoordinateMapMarker(
+            let action: (() -> Void)?
+            if checkpoint.id == factCheckpointID {
+                action = presentBusStopFact
+            } else {
+                action = nil
+            }
+
+            markers.append(CustomCoordinateMapMarker(
                 id: "checkpoint-\(checkpoint.id)-\(style.accessibilityLabel)",
                 style: style,
-                coordinate: checkpoint.coordinate
-            )
+                coordinate: checkpoint.coordinate,
+                action: action
+            ))
         }
+
+        return markers
     }
 
     private var participantMarkers: [CustomCoordinateMapMarker] {
@@ -142,7 +172,7 @@ struct BSDTourMapView: View {
         }
 
         return CLLocationCoordinate2D(
-            latitude: destination.coordinate.latitude + 0.00016,
+            latitude: destination.coordinate.latitude + 0.00006,
             longitude: destination.coordinate.longitude
         )
     }
@@ -195,7 +225,7 @@ struct BSDTourMapView: View {
             return 145
         }
 
-        return 165
+        return 176
     }
 
     private var tourOverlay: some View {
@@ -204,7 +234,7 @@ struct BSDTourMapView: View {
                 statusCard(bottomPadding: statusCardBottomPadding)
             }
 
-            if viewModel.canShowShakeWidget {
+            if viewModel.canShowShakeWidget && !viewModel.isLookalsFactExperienceActive {
                 shakeWidget
             }
 
@@ -225,7 +255,7 @@ struct BSDTourMapView: View {
     }
 
     private var statusCardBottomPadding: CGFloat {
-        if viewModel.canShowShakeWidget {
+        if viewModel.canShowShakeWidget && !viewModel.isLookalsFactExperienceActive {
             return 132
         }
 
@@ -317,20 +347,22 @@ struct BSDTourMapView: View {
     @ViewBuilder
     private var debugOverlay: some View {
         #if DEBUG
-        VStack(spacing: 0) {
-            Spacer()
+        if isDebugControlsPresented {
+            VStack(spacing: 0) {
+                Spacer()
 
-            HStack {
-                if isDebugControlsPresented {
+                HStack {
                     BSDTourDebugControls(
                         viewModel: viewModel,
                         shakeDetector: shakeDetector,
-                        isPresented: $isDebugControlsPresented
+                        isPresented: $isDebugControlsPresented,
+                        onFactRequested: presentBusStopFact
                     )
+                    Spacer()
                 }
-                Spacer()
+                .padding(.leading, 20)
+                .padding(.bottom, 24)
             }
-            .padding(.bottom, 24)
         }
         #else
         EmptyView()
@@ -338,6 +370,13 @@ struct BSDTourMapView: View {
     }
 
     private func markerStyle(for checkpoint: BSDTourCheckpoint) -> RadarMarkerStyle? {
+        if checkpoint.id == factCheckpointID {
+            return .pulsatingLandmark(
+                imageName: "BSDMap/MuseumIcon",
+                label: checkpoint.name
+            )
+        }
+
         if viewModel.snapshot.revealedCheckpointIDs.contains(checkpoint.id) {
             return .landmark(imageName: checkpoint.landmarkImageName, label: checkpoint.name)
         }
@@ -359,6 +398,27 @@ struct BSDTourMapView: View {
 
         let albumID = memoriesViewModel.prepareAlbum(for: tourMap)
         activeMemoryCamera = BSDTourMemoryCameraRequest(albumID: albumID)
+    }
+
+    private var factCheckpointID: String? {
+        viewModel.checkpoints.first(where: { $0.name == "Bus Stop" })?.id
+    }
+
+    private var busStopFact: LookalsFact? {
+        dummyBSDRoute.stops.first(where: { $0.name == "Bus Stop" })?.fact
+    }
+
+    private func presentBusStopFact() {
+        viewModel.activateLookalsFactExperience()
+        withAnimation(.smooth(duration: 0.25)) {
+            isLookalsFactPresented = true
+        }
+    }
+
+    private func dismissLookalsFact() {
+        withAnimation(.smooth(duration: 0.2)) {
+            isLookalsFactPresented = false
+        }
     }
 
     private func locateTapped() {

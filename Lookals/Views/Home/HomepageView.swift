@@ -162,7 +162,10 @@ struct HomepageView: View {
                 switch route {
                 case .profile: ProfileView(viewModel: profileViewModel)
                 case .ongoingItinerary:
-                    BSDTourMapView(onBack: { path.removeLast() })
+                    BSDTourMapView(
+                        automaticallyStartArrivalPreview: true,
+                        onBack: { path.removeLast() }
+                    )
                 case .checkAvailability(let map): CheckAvailabilityView(appState: appState, map: map, path: $path)
                 case .memories, .gallery: MemoriesOverviewView(viewModel: memoriesViewModel)
                 }

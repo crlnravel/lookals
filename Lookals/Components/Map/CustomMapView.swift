@@ -19,6 +19,19 @@ struct CustomCoordinateMapMarker: Identifiable {
     let id: String
     let style: RadarMarkerStyle
     let coordinate: CLLocationCoordinate2D
+    let action: (() -> Void)?
+
+    init(
+        id: String,
+        style: RadarMarkerStyle,
+        coordinate: CLLocationCoordinate2D,
+        action: (() -> Void)? = nil
+    ) {
+        self.id = id
+        self.style = style
+        self.coordinate = coordinate
+        self.action = action
+    }
 }
 
 struct CustomMapHeaderAction {
@@ -38,6 +51,8 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
     let navigationPolyline: MKPolyline?
     let showsUserLocation: Bool
     let cameraRegion: MKCoordinateRegion
+    let leadingAction: CustomMapHeaderAction?
+    let showsBackButton: Bool
     let trailingAction: CustomMapHeaderAction?
     let overlay: () -> Overlay
     let bottomOverlay: () -> BottomOverlay
@@ -53,6 +68,8 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
         showsUserLocation: Bool = false,
         onBack: @escaping () -> Void = {},
         onLocate: @escaping () -> Void = {},
+        leadingAction: CustomMapHeaderAction? = nil,
+        showsBackButton: Bool = true,
         trailingAction: CustomMapHeaderAction? = nil,
         @ViewBuilder overlay: @escaping () -> Overlay = { EmptyView() },
         @ViewBuilder bottomOverlay: @escaping () -> BottomOverlay
@@ -65,6 +82,8 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
         self.navigationPolyline = navigationPolyline
         self.showsUserLocation = showsUserLocation
         self.cameraRegion = region
+        self.leadingAction = leadingAction
+        self.showsBackButton = showsBackButton
         self.trailingAction = trailingAction
         self.overlay = overlay
         self.bottomOverlay = bottomOverlay
@@ -97,13 +116,26 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
     private func mapHeader(topInset: CGFloat) -> some View {
         VStack(spacing: 0) {
             HStack {
-                mapHeaderButton(
-                    systemImage: "chevron.left",
-                    accessibilityLabel: "Go back",
-                    background: Color(.systemBackground),
-                    foreground: .primary,
-                    action: onBack
-                )
+                if let leadingAction {
+                    mapHeaderButton(
+                        systemImage: leadingAction.systemImage,
+                        accessibilityLabel: leadingAction.accessibilityLabel,
+                        background: leadingAction.background,
+                        foreground: leadingAction.foreground,
+                        action: leadingAction.action
+                    )
+                } else if showsBackButton {
+                    mapHeaderButton(
+                        systemImage: "chevron.left",
+                        accessibilityLabel: "Go back",
+                        background: Color(.systemBackground),
+                        foreground: .primary,
+                        action: onBack
+                    )
+                } else {
+                    Color.clear
+                        .frame(width: 44, height: 44)
+                }
 
                 Spacer()
 
@@ -182,7 +214,7 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
 
             ForEach(coordinateMarkers) { marker in
                 Annotation(marker.style.accessibilityLabel, coordinate: marker.coordinate) {
-                    RadarMarker(style: marker.style)
+                    coordinateMarkerContent(for: marker)
                 }
             }
 
@@ -199,6 +231,18 @@ struct CustomMapView<Overlay: View, BottomOverlay: View>: View {
                     .allowsHitTesting(false)
             }
             .accessibilityHidden(true)
+    }
+
+    @ViewBuilder
+    private func coordinateMarkerContent(for marker: CustomCoordinateMapMarker) -> some View {
+        if let action = marker.action {
+            Button(action: action) {
+                RadarMarker(style: marker.style)
+            }
+            .buttonStyle(.plain)
+        } else {
+            RadarMarker(style: marker.style)
+        }
     }
 
     @ViewBuilder

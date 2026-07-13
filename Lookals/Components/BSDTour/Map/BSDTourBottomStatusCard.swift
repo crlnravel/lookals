@@ -15,19 +15,17 @@ struct BSDTourBottomStatusCard: View {
     let participants: [BSDTourParticipantDisplay]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.title3.weight(.heavy))
                     .foregroundStyle(.primary)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.82)
+                    .lineLimit(1)
 
                 Text(subtitle)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(isArrived ? .secondary : .primary)
                     .lineLimit(2)
-                    .minimumScaleFactor(0.82)
             }
 
             progressRow
@@ -45,44 +43,57 @@ struct BSDTourBottomStatusCard: View {
     }
 
     private var progressRow: some View {
-        GeometryReader { proxy in
-            let avatarDiameter: CGFloat = 28
-            let destinationDiameter: CGFloat = 32
-            let availableTravelWidth = max(0, proxy.size.width - avatarDiameter - destinationDiameter)
-            let avatarPosition = avatarDiameter / 2 + availableTravelWidth * clampedProgress
-            let destinationPosition = proxy.size.width - destinationDiameter / 2
+        HStack(spacing: 12) {
+            GeometryReader { proxy in
+                let avatarDiameter: CGFloat = 36
+                let avatarRadius = avatarDiameter / 2
+                let trackWidth = proxy.size.width
+                let avatarPosition = min(
+                    max(avatarRadius, trackWidth * clampedProgress),
+                    trackWidth - avatarRadius
+                )
+                let completedTrackWidth = min(
+                    max(4, trackWidth * clampedProgress),
+                    trackWidth
+                )
 
-            ZStack(alignment: .leading) {
-                Capsule()
-                    .fill(Color(.systemGray4))
-                    .frame(height: 4)
-                    .padding(.trailing, destinationDiameter / 2)
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color(.systemGray4))
+                        .frame(width: trackWidth, height: 4)
+                        .position(x: trackWidth / 2, y: proxy.size.height / 2)
 
-                Capsule()
-                    .fill(Color.accentColor)
-                    .frame(width: max(4, min(avatarPosition, destinationPosition)), height: 4)
-
-                if let currentUser = participants.first {
-                    RadarMarker(
-                        style: .participantAvatar(
-                            imageName: currentUser.avatarImageName,
-                            ringColor: currentUser.ringColor,
-                            label: currentUser.name
+                    Capsule()
+                        .fill(Color.accentColor)
+                        .frame(width: completedTrackWidth, height: 4)
+                        .position(
+                            x: completedTrackWidth / 2,
+                            y: proxy.size.height / 2
                         )
-                    )
-                    .frame(width: avatarDiameter, height: avatarDiameter)
-                    .scaleEffect(0.7)
-                    .position(x: avatarPosition, y: proxy.size.height / 2)
-                }
 
-                RadarMarker(style: .smallDestination)
-                    .frame(width: destinationDiameter, height: destinationDiameter)
-                    .scaleEffect(0.60)
-                    .position(x: destinationPosition, y: proxy.size.height / 2)
+                    if let currentUser = participants.first {
+                        RadarMarker(
+                            style: .participantAvatar(
+                                imageName: currentUser.avatarImageName,
+                                ringColor: currentUser.ringColor,
+                                label: currentUser.name
+                            )
+                        )
+                        .frame(width: avatarDiameter, height: proxy.size.height)
+                        .scaleEffect(0.78)
+                        .position(x: avatarPosition, y: proxy.size.height / 2)
+                    }
+                }
+                .frame(width: proxy.size.width, height: proxy.size.height)
             }
+            .frame(height: 40)
+
+            RadarMarker(style: .smallDestination)
+                .frame(width: 28, height: 40)
+                .scaleEffect(0.65)
         }
         .frame(height: 40)
-        .animation(.linear(duration: 0.05), value: clampedProgress)
+        .animation(.smooth(duration: 0.25), value: clampedProgress)
     }
 
     private var clampedProgress: Double {

@@ -44,13 +44,13 @@ let dummyBSDRoute = Route(
             )
         ),
         Destination(
-            name: "Rosso' Micro Roastery",
-            address: "Jalan Letnan Sutopo No. 26, South Tangerang",
+            name: "Bus Stop",
+            address: "BSD Smart Shuttle Stop, Jalan Letnan Sutopo",
             coordinate: CLLocationCoordinate2D(latitude: -6.30455, longitude: 106.68429),
             fact: LookalsFact(
-                imageName: "RossoFunFact", // Sesuai foto di screenshot
-                highlight: "Rosso' Micro Roastery was built in 2014, making it one of the oldest coffee shops in BSD.",
-                details: "Beyond its legacy as a coffee shop, Rosso Micro Roastery functions as a dedicated education hub, frequently hosting open cupping sessions and workshops."
+                imageName: "RossoFunFact",
+                highlight: "BSD’s shuttle buses communicate with smart traffic lights to extend green lights whenever a vehicle is running behind schedule.",
+                details: "That real-time signal priority helps keep connections reliable during rush hour, turning an ordinary ride into a smoother, smarter trip across BSD."
             )
         ),
         Destination(

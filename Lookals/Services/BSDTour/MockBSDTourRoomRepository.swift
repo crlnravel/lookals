@@ -103,18 +103,18 @@ nonisolated struct MockBSDTourRoomRepository: BSDTourRoomRepository {
     private func positionJoinedMocksNearCurrentUser(in snapshot: inout BSDTourSnapshot) {
         guard let currentUser = snapshot.participants.first(where: \.isCurrentUser) else { return }
 
-        let offsets: [(latitude: Double, longitude: Double)] = [
-            (0.00012, 0.00014),
-            (-0.00014, 0.00012),
-            (0.00010, -0.00016),
-            (-0.00012, -0.00014)
+        let offsetsByParticipantID: [String: (latitude: Double, longitude: Double)] = [
+            "zee": (0.00005, 0.00007),
+            "gisella": (-0.00005, 0.00007),
+            "kevin": (0.00006, -0.00005)
         ]
         let joinedMockIndexes = snapshot.participants.indices.filter {
             !snapshot.participants[$0].isCurrentUser && snapshot.participants[$0].status == .joined
         }
 
-        for (offsetIndex, participantIndex) in joinedMockIndexes.enumerated() {
-            let offset = offsets[offsetIndex % offsets.count]
+        for participantIndex in joinedMockIndexes {
+            let participantID = snapshot.participants[participantIndex].id
+            guard let offset = offsetsByParticipantID[participantID] else { continue }
             snapshot.participants[participantIndex].coordinate = BSDTourCoordinate(
                 latitude: currentUser.coordinate.latitude + offset.latitude,
                 longitude: currentUser.coordinate.longitude + offset.longitude

@@ -25,6 +25,8 @@ struct RadarMarker: View {
                 unknownCheckpointMarker
             case .landmark(let imageName, _):
                 landmarkMarker(imageName: imageName)
+            case .pulsatingLandmark(let imageName, _):
+                PulsatingLandmarkMarker(imageName: imageName)
             case .mapBadge(let label):
                 mapBadge(label)
             }
@@ -130,6 +132,7 @@ enum RadarMarkerStyle {
     case place
     case unknownCheckpoint
     case landmark(imageName: String, label: String)
+    case pulsatingLandmark(imageName: String, label: String)
     case mapBadge(String)
 
     var accessibilityLabel: String {
@@ -146,8 +149,33 @@ enum RadarMarkerStyle {
             "Unknown checkpoint"
         case .landmark(_, let label):
             label
+        case .pulsatingLandmark(_, let label):
+            label
         case .mapBadge(let label):
             "Map route \(label)"
+        }
+    }
+}
+
+private struct PulsatingLandmarkMarker: View {
+    let imageName: String
+
+    @State private var isPulsing = false
+
+    var body: some View {
+        Image(imageName)
+            .resizable()
+            .scaledToFit()
+            .frame(width: 44, height: 44)
+            .padding(8)
+            .offset(y: 8)
+            .scaleEffect(isPulsing ? 1.18 : 0.92)
+            .frame(width: 64, height: 64)
+            .shadow(color: .black.opacity(0.12), radius: 8, x: 0, y: 4)
+        .onAppear {
+            withAnimation(.easeInOut(duration: 0.85).repeatForever(autoreverses: true)) {
+                isPulsing = true
+            }
         }
     }
 }

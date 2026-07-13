@@ -26,6 +26,8 @@ final class BSDTourViewModel {
     @ObservationIgnored private var lastKnownLocation: CLLocation?
     @ObservationIgnored private var startingRouteDistance: CLLocationDistance?
     @ObservationIgnored private var previewMapRegion: MKCoordinateRegion?
+    @ObservationIgnored private var previewRouteCoordinates: [CLLocationCoordinate2D]?
+    @ObservationIgnored private var factDebugTrailTask: Task<Void, Never>?
 
     private(set) var snapshot: BSDTourSnapshot
     private(set) var checkpoints: [BSDTourCheckpoint]
@@ -33,10 +35,12 @@ final class BSDTourViewModel {
     private(set) var routeErrorMessage: String?
     private(set) var routeProgress: Double
     private(set) var locationAuthorization: BSDTourLocationAuthorization
+    private(set) var factDebugTrailPolyline: MKPolyline?
 
     var questFlow: BSDTourFlowModel
     var isShakeWidgetExpanded: Bool
     var isCompletionExpanded: Bool
+    var isLookalsFactExperienceActive: Bool
     var arrivalFeedbackTick: Int
 
     init(
@@ -58,6 +62,7 @@ final class BSDTourViewModel {
         self.routeErrorMessage = nil
         self.routeProgress = 0
         self.locationAuthorization = .notDetermined
+        self.factDebugTrailPolyline = nil
         self.questFlow = BSDTourFlowModel(
             currentQuestIndex: snapshot.currentQuestIndex,
             currentStepIndex: snapshot.currentStepIndex,
@@ -66,6 +71,7 @@ final class BSDTourViewModel {
         )
         self.isShakeWidgetExpanded = false
         self.isCompletionExpanded = snapshot.tourCompleted && !snapshot.userEndedTour
+        self.isLookalsFactExperienceActive = false
         self.arrivalFeedbackTick = 0
 
         configureQuestCallbacks()
@@ -76,6 +82,7 @@ final class BSDTourViewModel {
         mockParticipantJoinTask?.cancel()
         routeRefreshTask?.cancel()
         arrivalPreviewTask?.cancel()
+        factDebugTrailTask?.cancel()
     }
 
     var phase: BSDTourPhase {
@@ -187,8 +194,16 @@ final class BSDTourViewModel {
     }
 
     var navigationPolyline: MKPolyline? {
+        if isLookalsFactExperienceActive, let completedTrailPolyline {
+            return completedTrailPolyline
+        }
+
         guard phase == .navigatingToMeetingPoint || phase == .navigatingToCheckpoint else {
             return nil
+        }
+
+        if arrivalPreviewID != nil, let previewRouteCoordinates {
+            return Self.remainingPolyline(after: routeProgress, along: previewRouteCoordinates)
         }
 
         return Self.navigationPolyline(
@@ -203,6 +218,17 @@ final class BSDTourViewModel {
             return previewMapRegion
         }
 
+        if isLookalsFactExperienceActive, let completedTrailPolyline {
+            return completedTrailPolyline.boundingMapRect.paddedRegion
+        }
+
+        if shouldFollowCurrentUserOnMap, let currentUserCoordinate {
+            return MKCoordinateRegion(
+                center: currentUserCoordinate,
+                span: MKCoordinateSpan(latitudeDelta: 0.002, longitudeDelta: 0.002)
+            )
+        }
+
         if let navigationPolyline {
             return navigationPolyline.boundingMapRect.paddedRegion
         }
@@ -212,6 +238,16 @@ final class BSDTourViewModel {
             center: center,
             span: MKCoordinateSpan(latitudeDelta: 0.015, longitudeDelta: 0.015)
         )
+    }
+
+    private var shouldFollowCurrentUserOnMap: Bool {
+        switch phase {
+        case .joinedWaitingRoom, .quest, .questSuccess:
+            true
+        case .navigatingToMeetingPoint, .navigatingToCheckpoint, .waitingToShake,
+             .unavailable, .tourCompleted, .tourEnded:
+            false
+        }
     }
 
     var currentCloudStage: Int {
@@ -227,7 +263,7 @@ final class BSDTourViewModel {
         }
     }
 
-    func start(locationService: BSDTourLocationService, shakeDetector: BSDTourShakeDetector) {
+    func start(locationService: BSDTourLocationService, shakeDetector: BSDTourShakeDetector) async {
         locationAuthorization = locationService.authorization
         locationService.onLocationUpdate = { [weak self] location in
             self?.handleLocationUpdate(location)
@@ -237,11 +273,13 @@ final class BSDTourViewModel {
         }
         shakeDetector.start()
 
-        Task {
-            await restore()
-            processScheduledCutoffIfNeeded()
-            scheduleWaitingRoomCutoffIfNeeded()
-            await refreshRouteIfNeeded()
+        await restore()
+        processScheduledCutoffIfNeeded()
+        scheduleWaitingRoomCutoffIfNeeded()
+
+        routeRefreshTask?.cancel()
+        routeRefreshTask = Task { [weak self] in
+            await self?.refreshRouteIfNeeded()
         }
     }
 
@@ -303,6 +341,49 @@ final class BSDTourViewModel {
         persist()
     }
 
+    func showLookalsFactDebug() {
+        guard let factCheckpointIndex = checkpoints.firstIndex(where: { $0.name == "Bus Stop" }) else {
+            return
+        }
+
+        waitingRoomCutoffTask?.cancel()
+        waitingRoomCutoffTask = nil
+        mockParticipantJoinTask?.cancel()
+        mockParticipantJoinTask = nil
+        arrivalPreviewTask?.cancel()
+        arrivalPreviewTask = nil
+        arrivalPreviewID = nil
+        previewMapRegion = nil
+        previewRouteCoordinates = nil
+        activeRoute = nil
+        routeProgress = 1
+        factDebugTrailTask?.cancel()
+        factDebugTrailTask = nil
+
+        snapshot = Self.makeDefaultSnapshot(checkpoints: checkpoints)
+        snapshot.currentCheckpointIndex = factCheckpointIndex
+        snapshot.phase = .joinedWaitingRoom
+        snapshot.earnedPoints = 150
+        let completedCheckpoints = Array(checkpoints.prefix(through: factCheckpointIndex))
+        let completedCheckpointIDs = completedCheckpoints.map(\.id)
+        snapshot.revealedCheckpointIDs = completedCheckpointIDs
+        snapshot.reachedCheckpointIDs = completedCheckpointIDs
+        factDebugTrailPolyline = Self.polyline(for: completedCheckpoints)
+        questFlow.setEarnedPoints(snapshot.earnedPoints)
+        snapshot = roomRepository.joinAllParticipants(in: snapshot)
+        positionJoinedParticipants(at: checkpoints[factCheckpointIndex].coordinate)
+        isShakeWidgetExpanded = false
+        isCompletionExpanded = false
+        isLookalsFactExperienceActive = true
+        loadFactDebugWalkingTrail(through: completedCheckpoints)
+        persist()
+    }
+
+    func activateLookalsFactExperience() {
+        isShakeWidgetExpanded = false
+        isLookalsFactExperienceActive = true
+    }
+
     func triggerCutoff() {
         snapshot.scheduledStartTime = Calendar.current.date(byAdding: .minute, value: -6, to: clock.now) ?? clock.now
         processScheduledCutoffIfNeeded()
@@ -315,22 +396,20 @@ final class BSDTourViewModel {
         arrive(at: destination)
     }
 
-    #if DEBUG
     func previewArrivalFromMedanRia() {
         guard let destination = activeDestination else { return }
         guard phase == .navigatingToMeetingPoint || phase == .navigatingToCheckpoint else { return }
 
         arrivalPreviewTask?.cancel()
+        routeRefreshTask?.cancel()
+        routeRefreshTask = nil
+        activeRoute = nil
+        previewRouteCoordinates = nil
 
         let startingCoordinate = BSDTourConfiguration.medanRiaCoordinate.locationCoordinate
         startingRouteDistance = distance(from: startingCoordinate, to: destination.coordinate)
         routeProgress = 0
         updateCurrentUserCoordinate(startingCoordinate)
-        previewMapRegion = Self.navigationPolyline(
-            routePolyline: nil,
-            source: startingCoordinate,
-            destination: destination.coordinate
-        )?.boundingMapRect.paddedRegion
         let previewID = UUID()
         arrivalPreviewID = previewID
 
@@ -339,20 +418,37 @@ final class BSDTourViewModel {
                 self?.finishArrivalPreview(id: previewID)
             }
 
+            guard let self else { return }
+
+            let route = try? await self.routeProvider.route(
+                from: startingCoordinate,
+                to: destination.coordinate
+            )
+            guard !Task.isCancelled, self.arrivalPreviewID == previewID else { return }
+
+            self.activeRoute = route
+
+            let routePolyline = Self.navigationPolyline(
+                routePolyline: route?.polyline,
+                source: startingCoordinate,
+                destination: destination.coordinate
+            )
+            self.previewMapRegion = routePolyline?.boundingMapRect.paddedRegion
+            let routeCoordinates = routePolyline.map { Self.coordinates(in: $0) }
+                ?? [startingCoordinate, destination.coordinate]
+            self.previewRouteCoordinates = routeCoordinates
+
             let frameCount = 250
 
             for frame in 0...frameCount {
-                guard let self, !Task.isCancelled else { return }
+                guard !Task.isCancelled, self.arrivalPreviewID == previewID else { return }
 
                 let linearProgress = Double(frame) / Double(frameCount)
                 let progress = linearProgress * linearProgress * (3 - (2 * linearProgress))
-                let simulatedCoordinate = CLLocationCoordinate2D(
-                    latitude: startingCoordinate.latitude + (destination.coordinate.latitude - startingCoordinate.latitude) * progress,
-                    longitude: startingCoordinate.longitude + (destination.coordinate.longitude - startingCoordinate.longitude) * progress
-                )
+                let simulatedCoordinate = Self.coordinate(at: progress, along: routeCoordinates)
 
                 self.updateCurrentUserCoordinate(simulatedCoordinate)
-                self.updateRouteProgress(for: simulatedCoordinate)
+                self.routeProgress = progress
 
                 if frame < frameCount {
                     do {
@@ -363,11 +459,10 @@ final class BSDTourViewModel {
                 }
             }
 
-            guard let self, !Task.isCancelled else { return }
+            guard !Task.isCancelled else { return }
             self.simulateArrival()
         }
     }
-    #endif
 
     func simulateLeavingArrivalRadius() {
         routeProgress = min(routeProgress, 0.85)
@@ -413,6 +508,10 @@ final class BSDTourViewModel {
         arrivalPreviewTask = nil
         arrivalPreviewID = nil
         previewMapRegion = nil
+        previewRouteCoordinates = nil
+        factDebugTrailTask?.cancel()
+        factDebugTrailTask = nil
+        factDebugTrailPolyline = nil
         snapshot = Self.makeDefaultSnapshot(checkpoints: checkpoints)
         #if !DEBUG
         if let lastKnownLocation {
@@ -421,6 +520,7 @@ final class BSDTourViewModel {
         #endif
         isShakeWidgetExpanded = false
         isCompletionExpanded = false
+        isLookalsFactExperienceActive = false
         questFlow.setEarnedPoints(0)
         questFlow.moveToQuest(
             withID: BSDTourQuestDemoData.quests.first?.id ?? "",
@@ -440,6 +540,11 @@ final class BSDTourViewModel {
         }
 
         snapshot = restored
+        let normalizedParticipants = Self.normalizedParticipants(from: snapshot.participants)
+        if snapshot.participants != normalizedParticipants {
+            snapshot.participants = normalizedParticipants
+            persist()
+        }
         questFlow.setEarnedPoints(snapshot.earnedPoints)
         questFlow.moveToQuest(
             withID: BSDTourQuestDemoData.quests[safe: snapshot.currentQuestIndex]?.id ?? BSDTourQuestDemoData.quests[0].id,
@@ -701,11 +806,9 @@ final class BSDTourViewModel {
         }
 
         mockParticipantJoinTask = Task { [weak self] in
-            var isFirstMock = true
-
             while !Task.isCancelled {
                 do {
-                    try await Task.sleep(for: isFirstMock ? .seconds(15) : .seconds(10))
+                    try await Task.sleep(for: .seconds(5))
                 } catch {
                     return
                 }
@@ -718,7 +821,6 @@ final class BSDTourViewModel {
                 }
 
                 self.joinNextMockParticipant()
-                isFirstMock = false
             }
         }
     }
@@ -772,6 +874,7 @@ final class BSDTourViewModel {
         arrivalPreviewID = nil
         arrivalPreviewTask = nil
         previewMapRegion = nil
+        previewRouteCoordinates = nil
     }
 
     private func updateCurrentUserCoordinate(_ coordinate: CLLocationCoordinate2D) {
@@ -779,8 +882,82 @@ final class BSDTourViewModel {
         snapshot.participants[index].coordinate = BSDTourCoordinate(coordinate)
     }
 
+    private func positionJoinedParticipants(at coordinate: CLLocationCoordinate2D) {
+        let offsets: [(latitude: Double, longitude: Double)] = [
+            (0.00008, 0),
+            (0.00006, 0.000055),
+            (0.00006, -0.000055),
+            (0.00002, 0.00008),
+            (0.00002, -0.00008)
+        ]
+        let joinedIndexes = snapshot.participants.indices.filter {
+            snapshot.participants[$0].status == .joined
+        }
+
+        for (offsetIndex, participantIndex) in joinedIndexes.enumerated() {
+            let offset = offsets[offsetIndex % offsets.count]
+            snapshot.participants[participantIndex].coordinate = BSDTourCoordinate(
+                latitude: coordinate.latitude + offset.latitude,
+                longitude: coordinate.longitude + offset.longitude
+            )
+        }
+    }
+
     private var currentUserCoordinate: CLLocationCoordinate2D? {
         snapshot.participants.first(where: \.isCurrentUser)?.coordinate.locationCoordinate
+    }
+
+    private var completedTrailPolyline: MKPolyline? {
+        if let factDebugTrailPolyline {
+            return factDebugTrailPolyline
+        }
+
+        let completedCheckpoints = checkpoints.filter {
+            snapshot.reachedCheckpointIDs.contains($0.id)
+        }
+        return Self.polyline(for: completedCheckpoints)
+    }
+
+    private func loadFactDebugWalkingTrail(through checkpoints: [BSDTourCheckpoint]) {
+        guard checkpoints.count > 1 else { return }
+
+        factDebugTrailTask?.cancel()
+        factDebugTrailTask = Task { [weak self] in
+            guard let self else { return }
+
+            var routeCoordinates: [CLLocationCoordinate2D] = []
+
+            for index in 0..<(checkpoints.count - 1) {
+                guard !Task.isCancelled else { return }
+
+                let source = checkpoints[index].coordinate
+                let destination = checkpoints[index + 1].coordinate
+                let segmentCoordinates: [CLLocationCoordinate2D]
+
+                if let route = try? await self.routeProvider.route(from: source, to: destination) {
+                    segmentCoordinates = Self.coordinates(in: route.polyline)
+                } else {
+                    segmentCoordinates = [source, destination]
+                }
+
+                if routeCoordinates.isEmpty {
+                    routeCoordinates.append(contentsOf: segmentCoordinates)
+                } else {
+                    routeCoordinates.append(contentsOf: segmentCoordinates.dropFirst())
+                }
+            }
+
+            guard !Task.isCancelled, routeCoordinates.count > 1 else { return }
+            var coordinates = routeCoordinates
+            self.factDebugTrailPolyline = MKPolyline(coordinates: &coordinates, count: coordinates.count)
+        }
+    }
+
+    private static func polyline(for checkpoints: [BSDTourCheckpoint]) -> MKPolyline? {
+        guard checkpoints.count > 1 else { return nil }
+
+        var coordinates = checkpoints.map(\.coordinate)
+        return MKPolyline(coordinates: &coordinates, count: coordinates.count)
     }
 
     static func navigationPolyline(
@@ -798,6 +975,85 @@ final class BSDTourViewModel {
 
         var coordinates = [source, destination]
         return MKPolyline(coordinates: &coordinates, count: coordinates.count)
+    }
+
+    private static func coordinates(in polyline: MKPolyline) -> [CLLocationCoordinate2D] {
+        guard polyline.pointCount > 0 else { return [] }
+
+        var coordinates = Array(
+            repeating: CLLocationCoordinate2D(),
+            count: polyline.pointCount
+        )
+        polyline.getCoordinates(&coordinates, range: NSRange(location: 0, length: polyline.pointCount))
+        return coordinates
+    }
+
+    private static func coordinate(
+        at progress: Double,
+        along coordinates: [CLLocationCoordinate2D]
+    ) -> CLLocationCoordinate2D {
+        guard let first = coordinates.first else {
+            return BSDTourConfiguration.medanRiaCoordinate.locationCoordinate
+        }
+        guard coordinates.count > 1 else { return first }
+
+        let segments = zip(coordinates, coordinates.dropFirst()).map { start, end in
+            (start, end, CLLocation(latitude: start.latitude, longitude: start.longitude)
+                .distance(from: CLLocation(latitude: end.latitude, longitude: end.longitude)))
+        }
+        let totalDistance = segments.reduce(0) { $0 + $1.2 }
+        guard totalDistance > 0 else { return first }
+
+        let targetDistance = min(max(progress, 0), 1) * totalDistance
+        var distanceCovered: CLLocationDistance = 0
+
+        for (start, end, segmentDistance) in segments {
+            let nextDistance = distanceCovered + segmentDistance
+            if targetDistance <= nextDistance, segmentDistance > 0 {
+                let segmentProgress = (targetDistance - distanceCovered) / segmentDistance
+                return CLLocationCoordinate2D(
+                    latitude: start.latitude + (end.latitude - start.latitude) * segmentProgress,
+                    longitude: start.longitude + (end.longitude - start.longitude) * segmentProgress
+                )
+            }
+            distanceCovered = nextDistance
+        }
+
+        return coordinates[coordinates.count - 1]
+    }
+
+    private static func remainingPolyline(
+        after progress: Double,
+        along coordinates: [CLLocationCoordinate2D]
+    ) -> MKPolyline? {
+        guard coordinates.count > 1 else { return nil }
+
+        let segments = zip(coordinates, coordinates.dropFirst()).map { start, end in
+            CLLocation(latitude: start.latitude, longitude: start.longitude)
+                .distance(from: CLLocation(latitude: end.latitude, longitude: end.longitude))
+        }
+        let totalDistance = segments.reduce(0, +)
+        guard totalDistance > 0 else { return nil }
+
+        let targetDistance = min(max(progress, 0), 1) * totalDistance
+        var distanceCovered: CLLocationDistance = 0
+
+        for (index, segmentDistance) in segments.enumerated() {
+            let nextDistance = distanceCovered + segmentDistance
+            if targetDistance <= nextDistance {
+                var remainingCoordinates = [coordinate(at: progress, along: coordinates)]
+                remainingCoordinates.append(contentsOf: coordinates.dropFirst(index + 1))
+
+                guard remainingCoordinates.count > 1 else { return nil }
+                return MKPolyline(
+                    coordinates: &remainingCoordinates,
+                    count: remainingCoordinates.count
+                )
+            }
+            distanceCovered = nextDistance
+        }
+
+        return nil
     }
 
     private func completionRule(for quest: BSDQuest) -> BSDQuestCompletionRule {
@@ -890,6 +1146,24 @@ final class BSDTourViewModel {
             tourCompleted: false,
             userEndedTour: false
         )
+    }
+
+    private static func normalizedParticipants(
+        from storedParticipants: [BSDTourParticipant]
+    ) -> [BSDTourParticipant] {
+        let storedByID = Dictionary(uniqueKeysWithValues: storedParticipants.map { ($0.id, $0) })
+
+        return BSDTourConfiguration.participants.map { configuredParticipant in
+            let storedParticipant = storedByID[configuredParticipant.id]
+                ?? (configuredParticipant.id == "zee" ? storedByID["julian"] : nil)
+
+            guard let storedParticipant else { return configuredParticipant }
+
+            var participant = configuredParticipant
+            participant.status = storedParticipant.status
+            participant.coordinate = storedParticipant.coordinate
+            return participant
+        }
     }
 
     private static func displayParticipant(_ participant: BSDTourParticipant) -> BSDTourParticipantDisplay {

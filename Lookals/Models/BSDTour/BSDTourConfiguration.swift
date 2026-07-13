@@ -32,6 +32,15 @@ enum BSDTourConfiguration {
             coordinate: medanRiaCoordinate
         ),
         BSDTourParticipant(
+            id: "zee",
+            name: "Zee",
+            avatarImageName: "AvatarPlaceholder",
+            ringColorName: "green",
+            isCurrentUser: false,
+            status: .invited,
+            coordinate: BSDTourCoordinate(latitude: -6.30438, longitude: 106.67882)
+        ),
+        BSDTourParticipant(
             id: "gisella",
             name: "Gisella",
             avatarImageName: "Profile Picture",
@@ -48,24 +57,6 @@ enum BSDTourConfiguration {
             isCurrentUser: false,
             status: .invited,
             coordinate: BSDTourCoordinate(latitude: -6.30458, longitude: 106.67890)
-        ),
-        BSDTourParticipant(
-            id: "julian",
-            name: "Julian",
-            avatarImageName: "AvatarPlaceholder",
-            ringColorName: "green",
-            isCurrentUser: false,
-            status: .invited,
-            coordinate: BSDTourCoordinate(latitude: -6.30438, longitude: 106.67882)
-        ),
-        BSDTourParticipant(
-            id: "carleano",
-            name: "Carleano",
-            avatarImageName: "AvatarPlaceholder",
-            ringColorName: "red",
-            isCurrentUser: false,
-            status: .invited,
-            coordinate: BSDTourCoordinate(latitude: -6.30477, longitude: 106.67902)
         ),
     ]
 
@@ -93,10 +84,10 @@ enum BSDTourConfiguration {
             ),
             checkpoint(
                 code: "L3",
-                name: "Rosso Micro Roastery",
-                address: "Jalan Letnan Sutopo No. 26",
+                name: "Bus Stop",
+                address: "BSD Smart Shuttle Stop, Jalan Letnan Sutopo",
                 coordinate: CLLocationCoordinate2D(latitude: -6.30455, longitude: 106.68429),
-                landmarkImageName: "BSDMap/CoffeeIcon",
+                landmarkImageName: "BSDMap/MuseumIcon",
                 cloudStage: 2,
                 questsByLocation: questsByLocation
             ),
