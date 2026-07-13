@@ -14,7 +14,10 @@ struct TourDetailsPopup: View {
     @Binding var path: NavigationPath
 
     @State private var showCancelAlert = false
-
+    
+    @Binding var showSignIn: Bool
+    @AppStorage("isSignedIn") private var isSignedIn = false
+    
     private var isBookedMap: Bool {
         map.id == appState.bookedMapId
     }
@@ -163,26 +166,30 @@ struct TourDetailsPopup: View {
     }
 
     @ViewBuilder
-    private var actionButton: some View {
-        if isBookedMap && appState.bookingStatus == .upcoming {
-            Button {
-                showCancelAlert = true
-            } label: {
-                actionLabel("Cancel Tour", background: Color.orange, foreground: .white)
+        private var actionButton: some View {
+            if isBookedMap && appState.bookingStatus == .upcoming {
+                Button {
+                    isPresented = false
+                } label: {
+                    actionLabel("Cancel Tour", background: Color.orange, foreground: .white)
+                }
+            } else if isBookedMap && appState.bookingStatus == .ongoing {
+                actionLabel("Tour in Progress", background: Color.orange.opacity(0.6), foreground: .white)
+            } else if map.isAvailable {
+                Button {
+                    if isSignedIn {
+                        isPresented = false
+                        path.append(HomeRoute.checkAvailability(map))
+                    } else {
+                        showSignIn = true
+                    }
+                } label: {
+                    actionLabel("Check Availability", background: Color.orange, foreground: .white)
+                }
+            } else {
+                actionLabel("Coming Soon", background: Color.gray.opacity(0.4), foreground: .white.opacity(0.7))
             }
-        } else if isBookedMap && appState.bookingStatus == .ongoing {
-            actionLabel("Tour in Progress", background: Color.orange.opacity(0.6), foreground: .white)
-        } else if map.isAvailable {
-            Button {
-                isPresented = false
-                path.append(HomeRoute.checkAvailability(map))
-            } label: {
-                actionLabel("Check Availability", background: Color.orange, foreground: .white)
-            }
-        } else {
-            actionLabel("Coming Soon", background: Color.gray.opacity(0.4), foreground: .white.opacity(0.7))
         }
-    }
 
     private func actionLabel(_ title: String, background: Color, foreground: Color) -> some View {
         Text(title)

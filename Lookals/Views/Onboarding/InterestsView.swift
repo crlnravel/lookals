@@ -11,6 +11,7 @@ import SwiftUI
 struct InterestsView: View {
     @Binding var path: [OnboardingStep]
     @State private var selectedInterests: Set<String> = []
+    @EnvironmentObject var onboardingData: OnboardingData
     
     let allInterests = [
         "☕️ Coffee & Tea", "📸 Photography",
@@ -55,6 +56,7 @@ struct InterestsView: View {
             .padding(.bottom, 30)
             
             Button {
+                onboardingData.interests = Array(selectedInterests)
                 path.append(.personality)
             } label: {
                 PrimaryButtonLabel(title: "Next")

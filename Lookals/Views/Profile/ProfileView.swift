@@ -50,7 +50,6 @@ struct ProfileView: View {
             
             // MARK: - Progress Bar
             VStack(spacing: 6) {
-                // Calculate EXP progress
                 let currentLevelExp = viewModel.user.exp % 200
                 let currentProgress = min(Double(currentLevelExp) / 200.0, 1.0)
                 
@@ -58,7 +57,6 @@ struct ProfileView: View {
                     .padding(.horizontal, 40)
                     .animation(.spring(response: 0.5, dampingFraction: 0.8), value: currentProgress)
                 
-                // Total cumulative EXP display
                 Text("You've reached \(viewModel.user.exp) cumulative points!")
                     .font(.caption)
                     .foregroundColor(.gray)

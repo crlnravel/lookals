@@ -10,6 +10,8 @@ struct EditProfileView: View {
     @State private var selectedPhotoItem: PhotosPickerItem? = nil
     @State private var customProfileImage: Image? = nil
     
+    @State private var isSaving: Bool = false
+    
     init(viewModel: ProfileViewModel) {
         self.viewModel = viewModel
         _draftUser = State(initialValue: viewModel.user)
@@ -108,16 +110,46 @@ struct EditProfileView: View {
             
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: {
-                    viewModel.updateProfile(with: draftUser)
-                    dismiss()
+                    saveToCloudKit()
                 }) {
-                    Image(systemName: "checkmark")
-                        .fontWeight(.bold)
-                        .foregroundColor(.orange)
+                    if isSaving {
+                        ProgressView() // Tampilkan loading saat upload
+                    } else {
+                        Image(systemName: "checkmark")
+                            .fontWeight(.bold)
+                            .foregroundColor(.orange)
+                    }
                 }
+                .disabled(isSaving)
             }
         }
     }
+    
+    private func saveToCloudKit() {
+            isSaving = true
+                
+            viewModel.updateProfile(with: draftUser)
+      
+            let personalityString = draftUser.personality.rawValue
+            
+            let interestsStringArray = draftUser.interests.map { $0.rawValue }
+            
+            CloudKitManager.shared.updateUserProfile(
+                name: draftUser.nickname,
+                personality: personalityString,
+                interests: interestsStringArray,
+                imageData: draftUser.customImageData
+            ) { success in
+                DispatchQueue.main.async {
+                    isSaving = false
+                    if success {
+                        dismiss()
+                    } else {
+                        print("Gagal update ke CloudKit")
+                    }
+                }
+            }
+        }
 }
 
 struct CenterView<Content: View>: View {

@@ -76,20 +76,17 @@ struct User {
         else if exp < 600 { return .level3 }
         else { return .level4 }
     }
-}
-
-// MARK: - Dummy Data
-extension User {
-    static let olivia = User(
-        fullName: "Olivia Olivia",
-        nickname: "Olivia",
-        phoneNumber: "+62 812-3456-7890",
-        gender: .female,
-        personality: .extroverted,
-        interests: [.coffeeTea, .photography, .game],
-        exp: 0,
-        points: 0,
-        profileImageName: "Profile Picture",
-        myCoupons: []
-    )
+    
+    init() {
+            self.fullName = ""
+            self.nickname = ""
+            self.phoneNumber = ""
+            self.gender = .female // Nilai default
+            self.personality = .introverted // Nilai default
+            self.interests = []
+            self.exp = 0
+            self.points = 0
+            self.profileImageName = "Profile Picture"
+            self.myCoupons = []
+        }
 }

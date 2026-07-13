@@ -1,28 +1,27 @@
 //
-//  SigninView.swift
+//  SignInView.swift
 //  Lookals
-//
-//  Created by Putri Aziza Mufva on 12/07/26.
 //
 
 import SwiftUI
 import AuthenticationServices
 
 struct SignInView: View {
+    @State private var path: [OnboardingStep] = []
+    @StateObject private var onboardingData = OnboardingData()
+    @AppStorage("isSignedIn") private var isSignedIn = false
+    @Environment(\.dismiss) var dismiss
+
 
     let onBack: () -> Void
-    let onSignIn: () -> Void
 
-    init(
-        onBack: @escaping () -> Void = {},
-        onSignIn: @escaping () -> Void = {}
-    ) {
+    init(onBack: @escaping () -> Void = {}) {
         self.onBack = onBack
-        self.onSignIn = onSignIn
     }
 
     var body: some View {
-        NavigationStack {
+        
+        NavigationStack(path: $path) {
             ZStack(alignment: .top) {
                 
                 VStack(spacing: 0) {
@@ -54,7 +53,15 @@ struct SignInView: View {
                         onCompletion: { result in
                             switch result {
                             case .success(let authResults):
-                                print("Authorization successful: \(authResults)")
+                                if let appleIDCredential = authResults.credential as? ASAuthorizationAppleIDCredential {
+                                        if let givenName = appleIDCredential.fullName?.givenName {
+                                            onboardingData.fullName = givenName
+                                        }
+                                        if let email = appleIDCredential.email {
+                                            onboardingData.email = email
+                                        }
+                                    }
+                                path.append(.interests)
                             case .failure(let error):
                                 print("Authorization failed: \(error.localizedDescription)")
                             }
@@ -69,7 +76,6 @@ struct SignInView: View {
                 }
                 .padding(.horizontal, 40)
             }
-
             .background(
                 ZStack(alignment: .top) {
                     Color.white
@@ -85,7 +91,7 @@ struct SignInView: View {
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button(action: back) {
+                    Button(action: { dismiss() }) {
                         Label("", systemImage: "chevron.left")
                     }
                     .accessibilityLabel("Back to Log in View")
@@ -93,18 +99,31 @@ struct SignInView: View {
                     .glassEffect()
                 }
             }
+            .navigationDestination(for: OnboardingStep.self) { step in
+                switch step {
+                case .interests:
+                    InterestsView(path: $path)
+                case .personality:
+                    PersonalityView(path: $path)
+                case .location:
+                    LocationPermissionView(path: $path)
+                case .success:
+                    SuccessView(path: $path)
+                }
+            }
+        }
+        .environmentObject(onboardingData)
+        .onChange(of: isSignedIn) { newValue in
+            if newValue == true {
+                dismiss()
+            }
         }
     }
 
     private func back() {
         onBack()
     }
-
-    private func signIn() {
-        onSignIn()
-    }
 }
-
 
 #Preview {
     SignInView()

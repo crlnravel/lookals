@@ -25,6 +25,10 @@ struct HomepageView: View {
     @State private var showTourDetails = false
     @State private var tapLocation: CGPoint = .zero
     @State private var path = NavigationPath()
+    
+    @State private var showSignIn = false
+    
+    @AppStorage("isSignedIn") private var isSignedIn = false
 
     @MainActor
     init() {
@@ -101,13 +105,16 @@ struct HomepageView: View {
                 if let map = selectedMapForTooltip { tooltipOverlay(for: map).zIndex(50) }
                 
                 if showTourDetails, let map = detailMap {
-                    TourDetailsPopup(appState: appState, map: map, isPresented: $showTourDetails, path: $path)
+                    TourDetailsPopup(appState: appState, map: map, isPresented: $showTourDetails, path: $path, showSignIn: $showSignIn)
                         .transition(.scale(scale: 0.9).combined(with: .opacity))
                         .zIndex(100)
                 }
             }
             .onAppear {
                 prepareCurrentTourMemoryAlbum()
+            }
+            .fullScreenCover(isPresented: $showSignIn) {
+                SignInView()
             }
             .coordinateSpace(name: "HomeScreenSpace")
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
@@ -125,7 +132,7 @@ struct HomepageView: View {
     }
     
     private var customTopBar: some View {
-        HStack {
+            HStack {
             Button { print("Poin diklik") } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "star.fill")
@@ -133,7 +140,8 @@ struct HomepageView: View {
                         .foregroundColor(.white)
                         .padding(6)
                         .background(Circle().fill(Color.orange))
-                    Text("\(profileViewModel.user.points)")
+                    
+                    Text(isSignedIn ? "\(profileViewModel.user.points)" : "0")
                         .font(.subheadline)
                         .fontWeight(.bold)
                         .foregroundColor(.orange)
@@ -159,26 +167,41 @@ struct HomepageView: View {
             Spacer()
 
             Button {
-                path.append(HomeRoute.profile)
+                if isSignedIn {
+                    path.append(HomeRoute.profile)
+                } else {
+                    showSignIn = true
+                }
             } label: {
                 ZStack {
                     Group {
-                        if let imageData = profileViewModel.user.customImageData, let uiImage = UIImage(data: imageData) {
-                            Image(uiImage: uiImage).resizable().scaledToFill()
+                        if isSignedIn {
+                            if let imageData = profileViewModel.user.customImageData, let uiImage = UIImage(data: imageData) {
+                                Image(uiImage: uiImage).resizable().scaledToFill()
+                            } else {
+                                Image(profileViewModel.user.profileImageName).resizable().scaledToFill()
+                            }
                         } else {
-                            Image(profileViewModel.user.profileImageName).resizable().scaledToFill()
+                            Image(systemName: "person.crop.circle.fill")
+                                .resizable()
+                                .scaledToFill()
+                                .foregroundColor(.gray.opacity(0.6))
+                                .background(Color.white)
                         }
                     }
                     .frame(width: 44, height: 44)
                     .clipShape(Circle())
 
-                    Image(profileViewModel.user.level.badgeImageName)
-                        .resizable()
-                        .scaledToFit()
-                    .frame(height: 44)
+                    if isSignedIn {
+                        Image(profileViewModel.user.level.badgeImageName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 55)
+                    }
                 }
             }
         }
+        .padding(.horizontal)
     }
 
     private static var defaultMemoryPhotoService: any MemoryPhotoServicing {
