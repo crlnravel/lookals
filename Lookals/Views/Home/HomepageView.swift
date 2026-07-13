@@ -5,17 +5,9 @@
 
 import SwiftUI
 
-// MARK: - Navigation Routes
-
-enum HomeRoute: Hashable {
-    case profile
-    case ongoingItinerary
-    case checkAvailability(TourMap)
-    case memories
-    case gallery
-}
-
 struct HomepageView: View {
+    private let bsdTourDependencies: AppDependencies
+
     @StateObject private var appState = HomeStateManager()
     @StateObject private var profileViewModel: ProfileViewModel
     @State private var memoriesViewModel: MemoriesViewModel
@@ -24,7 +16,7 @@ struct HomepageView: View {
     @State private var detailMap: TourMap? = nil
     @State private var showTourDetails = false
     @State private var tapLocation: CGPoint = .zero
-    @State private var path = NavigationPath()
+    @State private var path: [HomeRoute] = []
     
     @State private var showSignIn = false
     
@@ -33,25 +25,41 @@ struct HomepageView: View {
     @MainActor
     init() {
         self.init(
+            bsdTourDependencies: .mock(isStoredInMemoryOnly: false),
             memoryPhotoService: Self.defaultMemoryPhotoService,
-            profileService: Self.defaultProfileService
+            profileService: Self.defaultProfileService,
+            cloudProfileService: CloudProfileService.shared
+        )
+    }
+
+    @MainActor
+    init(dependencies: AppDependencies) {
+        self.init(
+            bsdTourDependencies: dependencies,
+            memoryPhotoService: dependencies.memoryPhotoService,
+            profileService: dependencies.profileService,
+            cloudProfileService: CloudProfileService.shared
         )
     }
 
     @MainActor
     init(memoryPhotoService: any MemoryPhotoServicing) {
         self.init(
+            bsdTourDependencies: .mock(isStoredInMemoryOnly: false),
             memoryPhotoService: memoryPhotoService,
-            profileService: Self.defaultProfileService
+            profileService: Self.defaultProfileService,
+            cloudProfileService: CloudProfileService.shared
         )
     }
 
     @MainActor
     init(
+        bsdTourDependencies: AppDependencies,
         memoryPhotoService: any MemoryPhotoServicing,
         profileService: any ProfileServicing,
-        cloudProfileService: any ProfileServicing = CloudProfileService.shared
+        cloudProfileService: any ProfileServicing
     ) {
+        self.bsdTourDependencies = bsdTourDependencies
         _profileViewModel = StateObject(
             wrappedValue: ProfileViewModel(
                 localService: profileService,
@@ -94,11 +102,6 @@ struct HomepageView: View {
                         openCurrentTourMemories()
                     }
                     .zIndex(20)
-                }
-
-                if appState.bookingStatus == .ongoing {
-                    ongoingMemoryCameraButton
-                        .zIndex(30)
                 }
 
                 VStack {
@@ -144,9 +147,16 @@ struct HomepageView: View {
             .navigationDestination(for: HomeRoute.self) { route in
                 switch route {
                 case .profile: ProfileView(viewModel: profileViewModel)
-                case .ongoingItinerary: SignInView()
+                case .ongoingItinerary:
+                    BSDTourMapView(
+                        title: ongoingTourTitle,
+                        dependencies: bsdTourDependencies,
+                        onBack: popRoute,
+                        onAddMemory: openCurrentTourMemoryCamera
+                    )
                 case .checkAvailability(let map): CheckAvailabilityView(appState: appState, map: map, path: $path)
                 case .memories, .gallery: MemoriesOverviewView(viewModel: memoriesViewModel)
+                case .memory(let route): MemoriesDestinationView(route: route, viewModel: memoriesViewModel)
                 }
             }
         }
@@ -285,30 +295,18 @@ struct HomepageView: View {
         path.append(HomeRoute.gallery)
     }
 
-    private var ongoingMemoryCameraButton: some View {
-        VStack {
-            Spacer()
+    private var ongoingTourTitle: String {
+        appState.bookedMap?.title ?? currentMemoryMap?.title ?? "The Blueprint"
+    }
 
-            HStack {
-                Spacer()
+    private func openCurrentTourMemoryCamera() {
+        guard let albumID = prepareCurrentTourMemoryAlbum() else { return }
+        path.append(.memory(.addMemory(albumID)))
+    }
 
-                Button {
-                    guard let albumID = prepareCurrentTourMemoryAlbum() else { return }
-                    path.append(MemoriesRoute.addMemory(albumID))
-                } label: {
-                    Image(systemName: "camera.fill")
-                        .font(.title3.bold())
-                        .foregroundColor(.white)
-                        .frame(width: 56, height: 56)
-                        .background(Circle().fill(Color.orange))
-                        .shadow(color: .black.opacity(0.16), radius: 8, y: 4)
-                }
-                .accessibilityLabel("Add memory")
-            }
-            .padding(.trailing, 24)
-            .padding(.bottom, 164)
-        }
-        .padding(.horizontal, 16)
+    private func popRoute() {
+        guard !path.isEmpty else { return }
+        path.removeLast()
     }
 
     private var backgroundMap: some View {

@@ -11,8 +11,12 @@ struct MemoryToolbarBackButton: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        Button("Back", systemImage: "chevron.left", action: dismiss.callAsFunction)
-            .labelStyle(.iconOnly)
-            .buttonStyle(CircleToolbarButtonStyle())
+        Button(action: dismiss.callAsFunction) {
+            Image(systemName: "chevron.left")
+                .fontWeight(.bold)
+                .foregroundColor(.black)
+        }
+        .accessibilityLabel("Back")
+        .buttonStyle(.plain)
     }
 }

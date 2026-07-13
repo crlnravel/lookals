@@ -12,8 +12,10 @@ import SwiftUI
 struct BSDTourMapView: View {
     @Environment(\.scenePhase) private var scenePhase
 
+    let title: String
     let onBack: () -> Void
     let onLocate: () -> Void
+    let onAddMemory: () -> Void
 
     @State private var viewModel: BSDTourViewModel
     @State private var locationService = BSDTourLocationService()
@@ -22,22 +24,26 @@ struct BSDTourMapView: View {
     @State private var hasStarted = false
 
     init(
+        title: String = "The Blueprint",
         dependencies: AppDependencies = .preview,
         onBack: @escaping () -> Void = {},
-        onLocate: @escaping () -> Void = {}
+        onLocate: @escaping () -> Void = {},
+        onAddMemory: @escaping () -> Void = {}
     ) {
         self._viewModel = State(
             initialValue: BSDTourViewModel(
                 persistenceStore: dependencies.bsdTourPersistenceStore
             )
         )
+        self.title = title
         self.onBack = onBack
         self.onLocate = onLocate
+        self.onAddMemory = onAddMemory
     }
 
     var body: some View {
         CustomMapView(
-            title: viewModel.title,
+            title: title,
             region: viewModel.mapRegion,
             markers: [],
             coordinateMarkers: coordinateMarkers,
@@ -73,6 +79,8 @@ struct BSDTourMapView: View {
             guard newPhase == .active else { return }
             viewModel.appBecameActive()
         }
+        .navigationBarBackButtonHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
     }
 
     private var coordinateMarkers: [CustomCoordinateMapMarker] {
@@ -144,7 +152,7 @@ struct BSDTourMapView: View {
 
                 Spacer()
 
-                MapCameraButton(action: {})
+                MapCameraButton(action: onAddMemory)
             }
             .padding(.horizontal, 20)
             .padding(.bottom, baseControlsBottomPadding)
