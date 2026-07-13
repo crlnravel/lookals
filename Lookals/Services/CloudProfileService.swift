@@ -25,7 +25,7 @@ actor CloudProfileService: ProfileServicing {
         // Was CKContainer.default() — that resolves based on bundle ID and
         // silently pointed at the wrong (or an unconfigured) container,
         // which is why every load/save was failing quietly and `user`
-        // never left its User.olivia default. Pin it to the actual
+        // never left its User.ravel default. Pin it to the actual
         // container explicitly, same one the old CloudKitManager used.
         container: CKContainer = CKContainer(identifier: "iCloud.com.gisel.Lookals"),
         databaseScope: CKDatabase.Scope = .private
