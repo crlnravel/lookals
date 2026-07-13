@@ -8,10 +8,8 @@
 import SwiftUI
 
 struct IntroView: View {
-    
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var selectedPage = 0
-    @State private var isAnimating: Bool = false
 
     let onFinish: () -> Void
 
@@ -85,15 +83,22 @@ struct IntroView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                TabView(selection: $selectedPage) {
-                    ForEach(pages.indices, id: \.self) { index in
-                        IntroPageView(page: pages[index])
-                            .tag(index)
-                    }
+                ZStack {
+                    IntroPageView(page: pages[selectedPage])
+                        .id(selectedPage)
                 }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                .animation(reduceMotion ? nil : .snappy(duration: 0.3), value: selectedPage)
                 .ignoresSafeArea()
+                .contentShape(Rectangle())
+                .gesture(
+                    DragGesture()
+                        .onEnded { value in
+                            if value.translation.width < -50 {
+                                swipeImageLeft()
+                            } else if value.translation.width > 50 {
+                                swipeImageRight()
+                            }
+                        }
+                )
                 
                 VStack(spacing: 20) {
                     Spacer()
@@ -111,7 +116,7 @@ struct IntroView: View {
                     Button(action: backTapped) {
                         Label("", systemImage: "chevron.left")
                     }
-                    .accessibilityLabel("Next intro image")
+                    .accessibilityLabel("Previous intro image")
                     .padding()
                     .glassEffect()
                 }
@@ -158,7 +163,7 @@ struct IntroView: View {
         if reduceMotion {
             selectedPage += 1
         } else {
-            withAnimation(.snappy(duration: 0.3)) {
+            withAnimation(.easeInOut(duration: 0.4)) {
                 selectedPage += 1
             }
         }
@@ -169,17 +174,16 @@ struct IntroView: View {
     }
     
     private func swipeImageRight() {
-        guard selectedPage >= 0 else { return }
+        guard selectedPage > 0 else { return }
 
         if reduceMotion {
             selectedPage -= 1
         } else {
-            withAnimation(.snappy(duration: 0.3)) {
+            withAnimation(.easeInOut(duration: 0.4)) {
                 selectedPage -= 1
             }
         }
     }
-
 }
 
 private struct IntroPage: Identifiable {
@@ -203,29 +207,39 @@ private struct IntroPageView: View {
         ZStack {
             page.backgroundColor
                 .ignoresSafeArea()
+                .transition(.opacity)
             
             if let bgImage = page.backgroundImageName {
-                Image(bgImage)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxWidth: .infinity)
-                    .ignoresSafeArea()
+                    Image(bgImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxHeight: .infinity, alignment: .top)
+                        .ignoresSafeArea()
+                        .transition(.opacity)
             }
             
             if page.hasCurvedBottom {
                 VStack {
                     Spacer()
-                    if page.pageNum == "1" {
-                        Ellipse()
-                            .fill(Color.white)
-                            .frame(width: 900, height: 900)
-                            .offset(y: 415)
-                    }
-                    else if page.pageNum == "4" {
-                        Ellipse()
-                            .fill(Color.white)
-                            .frame(width: 900, height: 900)
-                            .offset(y: 475)
+                    if page.hasCurvedBottom {
+                        Color.clear
+                        .ignoresSafeArea()
+                        .overlay(alignment: .bottom) {
+                            if page.pageNum == "1" {
+                                Ellipse()
+                                    .fill(Color.white)
+                                    .frame(width: 900, height: 900)
+                                    .offset(y: 415)
+                                    .transition(.move(edge: .bottom))
+                            }
+                            else if page.pageNum == "4" {
+                                Ellipse()
+                                    .fill(Color.white)
+                                    .frame(width: 900, height: 900)
+                                    .offset(y: 525)
+                                    .transition(.move(edge: .top))
+                            }
+                        }
                     }
                 }
                 .ignoresSafeArea()
@@ -241,6 +255,7 @@ private struct IntroPageView: View {
                             .scaledToFit()
                             .frame(height: 220)
                             .offset(y: 85)
+                            .transition(.move(edge: .bottom))
                     }
                     else if page.pageNum == "3" {
                         Image(mainImage)
@@ -248,13 +263,15 @@ private struct IntroPageView: View {
                             .scaledToFit()
                             .frame(height: 260)
                             .padding(.trailing, 20)
+                            .transition(.asymmetric(insertion: .opacity, removal: .move(edge: .bottom)))
                     }
                     else if page.pageNum == "4" {
                         Image(mainImage)
                             .resizable()
                             .scaledToFit()
                             .frame(height: 350)
-                            .offset(y: -50)
+                            .offset(y: -20)
+                            .transition(.move(edge: .top))
                     }
                     else if page.pageNum == "5" {
                         Image(mainImage)
@@ -262,6 +279,7 @@ private struct IntroPageView: View {
                             .scaledToFit()
                             .frame(width: 320)
                             .offset(y: 90)
+                            .transition(.move(edge: .bottom))
                     }
                 }
                 
@@ -272,6 +290,7 @@ private struct IntroPageView: View {
                         .foregroundColor(page.hasCurvedBottom ? .black : .white)
                         .padding(.horizontal, 32)
                         .padding(.top, 105)
+                        .transition(.opacity)
                 }
                 else if page.pageNum == "2" {
                     Text(page.title)
@@ -280,8 +299,8 @@ private struct IntroPageView: View {
                         .foregroundColor(page.hasCurvedBottom ? .black : .white)
                         .padding(.horizontal, 32)
                         .padding(.top, 110)
+                        .transition(.opacity)
                 }
-                
                 else if page.pageNum == "3" {
                     Text(page.title)
                         .font(.system(size: 20, weight: .bold))
@@ -289,15 +308,16 @@ private struct IntroPageView: View {
                         .foregroundColor(page.hasCurvedBottom ? .black : .white)
                         .padding(.horizontal, 32)
                         .fixedSize()
+                        .transition(.asymmetric(insertion: .opacity, removal: .move(edge: .bottom)))
                 }
-                
                 else if page.pageNum == "4" {
                     Text(page.title)
                         .font(.system(size: 20, weight: .bold))
                         .multilineTextAlignment(.center)
                         .foregroundColor(page.hasCurvedBottom ? .black : .white)
                         .padding(.horizontal, 32)
-                        .padding(.top, 35)
+                        .padding(.top, 50)
+                        .transition(.move(edge: .top))
                 }
                 else if page.pageNum == "5" {
                     Text(page.title)
@@ -306,6 +326,7 @@ private struct IntroPageView: View {
                         .foregroundColor(.black)
                         .padding(.horizontal, 32)
                         .padding(.top, 70)
+                        .transition(.move(edge: .bottom))
                 }
                 Spacer()
                 Spacer()
