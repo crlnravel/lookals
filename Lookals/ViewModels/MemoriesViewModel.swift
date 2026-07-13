@@ -19,17 +19,27 @@ final class MemoriesViewModel {
 
     private let memoryPhotoService: any MemoryPhotoServicing
 
-    init(memoryPhotoService: any MemoryPhotoServicing = LocalMemoryPhotoService.shared) {
-        self.albums = [.sampleHypeRadarMap]
+    convenience init() {
+        self.init(memoryPhotoService: LocalMemoryPhotoService.shared)
+    }
+
+    init(memoryPhotoService: any MemoryPhotoServicing) {
+        self.albums = [Self.sampleAlbum(for: Self.defaultTourMap)]
         self.memoryImages = [:]
         self.syncingAlbumIDs = []
         self.cloudErrorMessage = nil
         self.memoryPhotoService = memoryPhotoService
     }
 
+    convenience init(
+        albums: [MemoryAlbum]
+    ) {
+        self.init(albums: albums, memoryPhotoService: LocalMemoryPhotoService.shared)
+    }
+
     init(
         albums: [MemoryAlbum],
-        memoryPhotoService: any MemoryPhotoServicing = LocalMemoryPhotoService.shared
+        memoryPhotoService: any MemoryPhotoServicing
     ) {
         self.albums = albums
         self.memoryImages = [:]
@@ -57,6 +67,26 @@ final class MemoriesViewModel {
 
     func memoryImage(for id: UUID) -> UIImage? {
         memoryImages[id]
+    }
+
+    @discardableResult
+    func prepareAlbum(for map: TourMap) -> UUID {
+        let partitionID = Self.albumPartitionID(for: map)
+
+        if let albumIndex = albums.firstIndex(where: { $0.partitionID == partitionID }) {
+            albums[albumIndex].title = map.title
+            retitlePhotos(in: albumIndex, title: map.title)
+            return albums[albumIndex].id
+        }
+
+        let album = MemoryAlbum(
+            partitionID: partitionID,
+            title: map.title,
+            coverSource: .asset(map.image),
+            photos: []
+        )
+        albums.insert(album, at: 0)
+        return album.id
     }
 
     @discardableResult
@@ -102,7 +132,7 @@ final class MemoriesViewModel {
                 albumPartitionID: album.partitionID
             )
             cloudPhotos
-                .map { memoryPhoto(from: $0) }
+                .map { memoryPhoto(from: $0, titleOverride: album.title) }
                 .forEach { insertOrReplace($0, in: albumID) }
             cloudErrorMessage = nil
         } catch {
@@ -112,7 +142,8 @@ final class MemoriesViewModel {
 
     private func memoryPhoto(
         from cloudPhoto: CloudMemoryPhoto,
-        fallbackImage: UIImage? = nil
+        fallbackImage: UIImage? = nil,
+        titleOverride: String? = nil
     ) -> MemoryPhoto {
         if let image = UIImage(data: cloudPhoto.imageData) ?? fallbackImage {
             memoryImages[cloudPhoto.id] = image
@@ -120,7 +151,7 @@ final class MemoriesViewModel {
 
         return MemoryPhoto(
             id: cloudPhoto.id,
-            title: cloudPhoto.title,
+            title: titleOverride ?? cloudPhoto.title,
             time: Self.captureTimeString(from: cloudPhoto.createdAt),
             source: .cloud(cloudPhoto.id),
             accessibilityLabel: "Cloud memory photo"
@@ -139,53 +170,78 @@ final class MemoriesViewModel {
         }
     }
 
+    private func retitlePhotos(in albumIndex: Int, title: String) {
+        albums[albumIndex].photos = albums[albumIndex].photos.map { photo in
+            MemoryPhoto(
+                id: photo.id,
+                title: title,
+                time: photo.time,
+                source: photo.source,
+                accessibilityLabel: photo.accessibilityLabel
+            )
+        }
+    }
+
     private static func captureTimeString(from date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH.mm"
         return formatter.string(from: date)
     }
-}
 
-private extension MemoryAlbum {
-    static var sampleHypeRadarMap: MemoryAlbum {
+    private static var defaultTourMap: TourMap {
+        TourMap.sampleData[0]
+    }
+
+    private static let sampleAlbumID = UUID(uuidString: "8CE8D91C-C8A0-42FC-9610-62DF35A0C60D")!
+    private static let legacyFirstTourPartitionID = "hype-radar-map"
+
+    private static func albumPartitionID(for map: TourMap) -> String {
+        if map.id == defaultTourMap.id {
+            return legacyFirstTourPartitionID
+        }
+
+        return "tour-map-\(map.id.uuidString.lowercased())"
+    }
+
+    private static func sampleAlbum(for map: TourMap) -> MemoryAlbum {
         MemoryAlbum(
-            id: UUID(uuidString: "8CE8D91C-C8A0-42FC-9610-62DF35A0C60D")!,
-            partitionID: "hype-radar-map",
-            title: "Hype Radar Map",
+            id: sampleAlbumID,
+            partitionID: albumPartitionID(for: map),
+            title: map.title,
             coverSource: .asset("Memory Album Cover"),
             photos: [
                 MemoryPhoto(
-                    title: "Kelontong Poet Tea",
+                    title: map.title,
                     time: "14.02",
                     source: .asset("Memory Photo 1"),
                     accessibilityLabel: "Friends taking a selfie by a bridge"
                 ),
                 MemoryPhoto(
-                    title: "Kelontong Poet Tea",
+                    title: map.title,
                     time: "14.07",
                     source: .asset("Memory Photo 2"),
                     accessibilityLabel: "Friends posing together on stairs"
                 ),
                 MemoryPhoto(
-                    title: "Kelontong Poet Tea",
+                    title: map.title,
                     time: "14.18",
                     source: .asset("Memory Photo 3"),
                     accessibilityLabel: "Friends sharing drinks around a table"
                 ),
                 MemoryPhoto(
-                    title: "Kelontong Poet Tea",
+                    title: map.title,
                     time: "14.31",
                     source: .asset("Memory Photo 4"),
                     accessibilityLabel: "Friends posing together at night"
                 ),
                 MemoryPhoto(
-                    title: "Kelontong Poet Tea",
+                    title: map.title,
                     time: "14.43",
                     source: .asset("Memory Photo 5"),
                     accessibilityLabel: "Friends taking a mirror photo outdoors"
                 ),
                 MemoryPhoto(
-                    title: "Kelontong Poet Tea",
+                    title: map.title,
                     time: "14.56",
                     source: .asset("Memory Photo 6"),
                     accessibilityLabel: "Friends lying on the ground in a star shape"

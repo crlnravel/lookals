@@ -112,14 +112,12 @@ struct IntroView: View {
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button(action: backTapped) {
-                        Label("", systemImage: "chevron.left")
-                    }
-                    .accessibilityLabel("Previous intro image")
-                    .padding()
-                    .glassEffect()
-                }
+                ToolbarIconButton(
+                    placement: .topBarLeading,
+                    systemImage: "chevron.left",
+                    accessibilityLabel: "Previous intro image",
+                    action: backTapped
+                )
             }
         }
     }
