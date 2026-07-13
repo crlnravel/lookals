@@ -129,9 +129,22 @@ struct BSDTourMapView: View {
                     ringColor: Color.bsdTourRingColor(named: participant.ringColorName),
                     label: participant.name
                 ),
-                coordinate: participant.coordinate.locationCoordinate
+                coordinate: markerCoordinate(for: participant)
             )
         }
+    }
+
+    private func markerCoordinate(for participant: BSDTourParticipant) -> CLLocationCoordinate2D {
+        guard participant.isCurrentUser,
+              !viewModel.shouldShowRouteCard,
+              let destination = viewModel.activeDestination else {
+            return participant.coordinate.locationCoordinate
+        }
+
+        return CLLocationCoordinate2D(
+            latitude: destination.coordinate.latitude + 0.00016,
+            longitude: destination.coordinate.longitude
+        )
     }
 
     @ViewBuilder
@@ -356,7 +369,7 @@ struct BSDTourMapView: View {
     private var trailingMapHeaderAction: CustomMapHeaderAction? {
         #if DEBUG
         CustomMapHeaderAction(
-            systemImage: "wrench.and.screwdriver",
+            systemImage: "location",
             accessibilityLabel: "Open debug controls",
             background: Color.accentColor,
             foreground: .white,

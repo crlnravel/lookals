@@ -50,21 +50,25 @@ struct ShakePhoneParticipantRow: View {
     var body: some View {
         HStack(spacing: 8) {
             ForEach(participants) { participant in
-                if participant.hasJoined {
-                    RadarMarker(
-                        style: .participantAvatar(
-                            imageName: participant.avatarImageName,
-                            ringColor: participant.ringColor,
-                            label: participant.name
+                Group {
+                    if participant.hasJoined {
+                        RadarMarker(
+                            style: .participantAvatar(
+                                imageName: participant.avatarImageName,
+                                ringColor: participant.ringColor,
+                                label: participant.name
+                            )
                         )
-                    )
-                    .frame(width: 28, height: 28)
-                    .scaleEffect(0.64)
-                } else {
-                    ShakePhoneParticipantRing(color: participant.ringColor)
+                        .frame(width: 28, height: 28)
+                        .scaleEffect(0.64)
+                    } else {
+                        ShakePhoneParticipantRing(color: participant.ringColor)
+                    }
                 }
+                .transition(.scale.combined(with: .opacity))
             }
         }
+        .animation(.bouncy, value: participants.map(\.id))
         .accessibilityHidden(true)
     }
 }

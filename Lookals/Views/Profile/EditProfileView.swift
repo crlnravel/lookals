@@ -85,7 +85,7 @@ struct EditProfileView: View {
                 }
                 
                 // Custom Gender Dropdown
-                CustomDropdown(title: "Gender", selection: $draftUser.gender)
+//                CustomDropdown(title: "Gender", selection: $draftUser.gender)
                 
                 // Interests
                 InterestSelectionView(selectedInterests: $draftUser.interests)

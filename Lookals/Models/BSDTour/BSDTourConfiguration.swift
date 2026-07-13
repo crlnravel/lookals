@@ -25,7 +25,7 @@ enum BSDTourConfiguration {
         BSDTourParticipant(
             id: currentUserID,
             name: "You",
-            avatarImageName: "AvatarPlaceholder",
+            avatarImageName: "Ravel",
             ringColorName: "orange",
             isCurrentUser: true,
             status: .invited,

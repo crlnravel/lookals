@@ -19,6 +19,7 @@ final class BSDTourViewModel {
     @ObservationIgnored private let routeProvider: any BSDTourRouteProvider
     @ObservationIgnored private let clock: any BSDTourClock
     @ObservationIgnored private var waitingRoomCutoffTask: Task<Void, Never>?
+    @ObservationIgnored private var mockParticipantJoinTask: Task<Void, Never>?
     @ObservationIgnored private var routeRefreshTask: Task<Void, Never>?
     @ObservationIgnored private var arrivalPreviewTask: Task<Void, Never>?
     @ObservationIgnored private var arrivalPreviewID: UUID?
@@ -72,6 +73,7 @@ final class BSDTourViewModel {
 
     deinit {
         waitingRoomCutoffTask?.cancel()
+        mockParticipantJoinTask?.cancel()
         routeRefreshTask?.cancel()
         arrivalPreviewTask?.cancel()
     }
@@ -281,6 +283,7 @@ final class BSDTourViewModel {
         isShakeWidgetExpanded = false
         processWaitingRoomCompletionIfNeeded()
         scheduleWaitingRoomCutoffIfNeeded()
+        scheduleMockParticipantJoins()
         persist()
     }
 
@@ -292,6 +295,8 @@ final class BSDTourViewModel {
     }
 
     func joinAllParticipants() {
+        mockParticipantJoinTask?.cancel()
+        mockParticipantJoinTask = nil
         snapshot = roomRepository.joinAllParticipants(in: snapshot)
         processWaitingRoomCompletionIfNeeded()
         scheduleWaitingRoomCutoffIfNeeded()
@@ -402,6 +407,8 @@ final class BSDTourViewModel {
         startingRouteDistance = nil
         waitingRoomCutoffTask?.cancel()
         waitingRoomCutoffTask = nil
+        mockParticipantJoinTask?.cancel()
+        mockParticipantJoinTask = nil
         arrivalPreviewTask?.cancel()
         arrivalPreviewTask = nil
         arrivalPreviewID = nil
@@ -451,6 +458,10 @@ final class BSDTourViewModel {
         isCompletionExpanded = snapshot.tourCompleted && !snapshot.userEndedTour
         isShakeWidgetExpanded = snapshot.phase == .waitingToShake
         scheduleWaitingRoomCutoffIfNeeded()
+
+        if snapshot.phase == .joinedWaitingRoom {
+            scheduleMockParticipantJoins()
+        }
     }
 
     private func configureQuestCallbacks() {
@@ -633,6 +644,8 @@ final class BSDTourViewModel {
 
         waitingRoomCutoffTask?.cancel()
         waitingRoomCutoffTask = nil
+        mockParticipantJoinTask?.cancel()
+        mockParticipantJoinTask = nil
         snapshot = roomRepository.removeUnjoinedParticipants(in: snapshot)
         snapshot.waitingRoomClosed = true
         isShakeWidgetExpanded = false
@@ -666,11 +679,47 @@ final class BSDTourViewModel {
         }
 
         waitingRoomCutoffTask = Task { [weak self] in
-            let nanoseconds = UInt64(secondsUntilCutoff * 1_000_000_000)
-            try? await Task.sleep(nanoseconds: nanoseconds)
+            do {
+                try await Task.sleep(for: .seconds(secondsUntilCutoff))
+            } catch {
+                return
+            }
 
             guard !Task.isCancelled else { return }
             self?.processScheduledCutoffIfNeeded()
+        }
+    }
+
+    private func scheduleMockParticipantJoins() {
+        mockParticipantJoinTask?.cancel()
+
+        guard phase == .joinedWaitingRoom,
+              !snapshot.waitingRoomClosed,
+              snapshot.participants.contains(where: { !$0.isCurrentUser && $0.status == .invited }) else {
+            mockParticipantJoinTask = nil
+            return
+        }
+
+        mockParticipantJoinTask = Task { [weak self] in
+            var isFirstMock = true
+
+            while !Task.isCancelled {
+                do {
+                    try await Task.sleep(for: isFirstMock ? .seconds(15) : .seconds(10))
+                } catch {
+                    return
+                }
+
+                guard let self,
+                      self.phase == .joinedWaitingRoom,
+                      !self.snapshot.waitingRoomClosed,
+                      self.snapshot.participants.contains(where: { !$0.isCurrentUser && $0.status == .invited }) else {
+                    return
+                }
+
+                self.joinNextMockParticipant()
+                isFirstMock = false
+            }
         }
     }
 

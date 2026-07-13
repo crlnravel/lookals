@@ -50,6 +50,7 @@ nonisolated enum Interest: String, CaseIterable, Codable, Sendable {
     case art = "🎨 Art"
     case game = "🎮 Game"
     case nature = "🌿 Nature"
+    case furry = "🐾 Furry"
 }
 
 // MARK: - User Model

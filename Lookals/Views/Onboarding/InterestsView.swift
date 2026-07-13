@@ -16,7 +16,7 @@ struct InterestsView: View {
     let allInterests = [
         "☕️ Coffee & Tea", "📸 Photography",
         "🎬 Movies", "🏋️ Workout", "🎶 Music",
-        "🎨 Art", "🎮 Game", "🌿 Nature"
+        "🎨 Art", "🎮 Game", "🌿 Nature", "🐾 Furry"
     ]
     
     var body: some View {
