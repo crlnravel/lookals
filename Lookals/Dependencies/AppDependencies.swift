@@ -11,6 +11,7 @@ import SwiftData
 struct AppDependencies: Sendable {
     let lookalMatchRepository: any LookalMatchRepository
     let bsdTourPersistenceStore: any BSDTourPersistenceStore
+    let bsdTourRuntimeContext: BSDTourRuntimeContext
     let memoryPhotoService: any MemoryPhotoServicing
     let profileService: any ProfileServicing
 
@@ -18,12 +19,14 @@ struct AppDependencies: Sendable {
         lookalMatchRepository: any LookalMatchRepository,
         memoryPhotoService: any MemoryPhotoServicing,
         profileService: any ProfileServicing,
-        bsdTourPersistenceStore: any BSDTourPersistenceStore
+        bsdTourPersistenceStore: any BSDTourPersistenceStore,
+        bsdTourRuntimeContext: BSDTourRuntimeContext = BSDTourRuntimeContext.resolve()
     ) {
         self.lookalMatchRepository = lookalMatchRepository
         self.memoryPhotoService = memoryPhotoService
         self.profileService = profileService
         self.bsdTourPersistenceStore = bsdTourPersistenceStore
+        self.bsdTourRuntimeContext = bsdTourRuntimeContext
     }
 }
 
@@ -34,7 +37,9 @@ extension AppDependencies {
 
     static func mock(
         matches: [LookalMatch] = LookalMatch.sampleMatches,
-        isStoredInMemoryOnly: Bool = true
+        isStoredInMemoryOnly: Bool = true,
+        infoProvider: any BSDTourInfoProviding = BundleBSDTourInfoProvider(),
+        liveRoomSessionFactory: (any BSDTourLiveRoomSessionFactory)? = nil
     ) -> AppDependencies {
         let service = MockLookalMatchingService(matches: matches)
         let modelContainer = makeModelContainer(isStoredInMemoryOnly: isStoredInMemoryOnly)
@@ -45,7 +50,8 @@ extension AppDependencies {
             lookalMatchRepository: repository,
             memoryPhotoService: LocalMemoryPhotoService.shared,
             profileService: LocalProfileService.shared,
-            bsdTourPersistenceStore: tourStore
+            bsdTourPersistenceStore: tourStore,
+            bsdTourRuntimeContext: .resolve(infoProvider: infoProvider, liveRoomSessionFactory: liveRoomSessionFactory)
         )
     }
 
@@ -62,7 +68,8 @@ extension AppDependencies {
             lookalMatchRepository: repository,
             memoryPhotoService: configuredMemoryPhotoService,
             profileService: configuredProfileService,
-            bsdTourPersistenceStore: tourStore
+            bsdTourPersistenceStore: tourStore,
+            bsdTourRuntimeContext: .resolve()
         )
     }
 

@@ -28,7 +28,9 @@ struct BSDTourMapView: View {
     ) {
         self._viewModel = State(
             initialValue: BSDTourViewModel(
-                persistenceStore: dependencies.bsdTourPersistenceStore
+                persistenceStore: dependencies.bsdTourPersistenceStore,
+                identity: dependencies.bsdTourRuntimeContext.identity,
+                liveRoomSessionFactory: dependencies.bsdTourRuntimeContext.liveRoomSessionFactory
             )
         )
         self.onBack = onBack
@@ -63,15 +65,29 @@ struct BSDTourMapView: View {
         .task {
             guard !hasStarted else { return }
             hasStarted = true
-            viewModel.start(locationService: locationService, shakeDetector: shakeDetector)
+            await viewModel.startTour(
+                locationService: locationService,
+                shakeDetector: shakeDetector,
+                sceneIsActive: scenePhase == .active
+            )
             locationService.requestAuthorizationAndStart()
         }
         .onChange(of: locationService.authorization, initial: true) { _, newValue in
             viewModel.updateLocationAuthorization(newValue)
         }
         .onChange(of: scenePhase) { _, newPhase in
-            guard newPhase == .active else { return }
-            viewModel.appBecameActive()
+            switch newPhase {
+            case .active:
+                viewModel.appBecameActive()
+                Task { await viewModel.activateLiveRoom() }
+            case .inactive, .background:
+                Task { await viewModel.deactivateLiveRoom() }
+            @unknown default:
+                Task { await viewModel.deactivateLiveRoom() }
+            }
+        }
+        .onDisappear {
+            Task { await viewModel.liveRoomDisappeared() }
         }
     }
 

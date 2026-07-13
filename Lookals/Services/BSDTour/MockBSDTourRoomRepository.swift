@@ -23,7 +23,7 @@ nonisolated struct MockBSDTourRoomRepository: BSDTourRoomRepository {
         }
 
         next.participants[index].status = .joined
-        if participantID == BSDTourConfiguration.currentUserID {
+        if next.participants[index].isCurrentUser {
             next.userJoined = true
         }
         return next
@@ -47,7 +47,13 @@ nonisolated struct MockBSDTourRoomRepository: BSDTourRoomRepository {
             next.participants[index].status = .joined
         }
 
-        next.userJoined = next.participants.contains { $0.id == BSDTourConfiguration.currentUserID && $0.status == .joined }
+        next.userJoined = next.participants.contains { $0.isCurrentUser && $0.status == .joined }
+        return next
+    }
+
+    func joinAllParticipants(identity: BSDTourSessionIdentity, in snapshot: BSDTourSnapshot) -> BSDTourSnapshot {
+        var next = joinAllParticipants(in: snapshot)
+        next.userJoined = next.participants.contains { $0.id == identity.participantID && $0.status == .joined }
         return next
     }
 
@@ -95,5 +101,9 @@ nonisolated struct MockBSDTourRoomRepository: BSDTourRoomRepository {
         completion.completedByParticipantID = completion.completedByParticipantID ?? activeIDs.first
         next.questCompletions[questID] = completion
         return next
+    }
+
+    func completeQuestForAllActiveParticipants(_ questID: String, identity: BSDTourSessionIdentity, in snapshot: BSDTourSnapshot) -> BSDTourSnapshot {
+        completeQuestForAllActiveParticipants(questID, in: snapshot)
     }
 }

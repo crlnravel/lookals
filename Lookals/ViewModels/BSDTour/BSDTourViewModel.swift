@@ -18,9 +18,21 @@ final class BSDTourViewModel {
     @ObservationIgnored private let persistenceStore: any BSDTourPersistenceStore
     @ObservationIgnored private let routeProvider: any BSDTourRouteProvider
     @ObservationIgnored private let clock: any BSDTourClock
+    @ObservationIgnored private let liveRoomSessionFactory: any BSDTourLiveRoomSessionFactory
+    @ObservationIgnored let identity: BSDTourSessionIdentity
     @ObservationIgnored private var waitingRoomCutoffTask: Task<Void, Never>?
     @ObservationIgnored private var routeRefreshTask: Task<Void, Never>?
+    @ObservationIgnored private var persistenceTask: Task<Void, Never>?
+    @ObservationIgnored private var restoreTask: Task<Void, Never>?
+    @ObservationIgnored private var isRestoring = false
+    @ObservationIgnored private var hasStarted = false
+    @ObservationIgnored private var resetRequestedDuringRestore = false
     @ObservationIgnored private var lastKnownLocation: CLLocation?
+    @ObservationIgnored private var liveRoomSession: (any BSDTourLiveRoomSession)?
+    @ObservationIgnored private var liveRoomEventTask: Task<Void, Never>?
+    @ObservationIgnored private var liveRoomGeneration = 0
+    @ObservationIgnored private var liveRoomSceneIsActive = true
+    @ObservationIgnored private var livePresenceByParticipantID: [String: BSDTourLivePresence] = [:]
 
     private(set) var snapshot: BSDTourSnapshot
     private(set) var checkpoints: [BSDTourCheckpoint]
@@ -38,15 +50,19 @@ final class BSDTourViewModel {
         roomRepository: (any BSDTourRoomRepository)? = nil,
         persistenceStore: any BSDTourPersistenceStore,
         routeProvider: (any BSDTourRouteProvider)? = nil,
-        clock: (any BSDTourClock)? = nil
+        clock: (any BSDTourClock)? = nil,
+        identity: BSDTourSessionIdentity = .offlineDefault,
+        liveRoomSessionFactory: (any BSDTourLiveRoomSessionFactory)? = nil
     ) {
         let checkpoints = BSDTourConfiguration.checkpoints
-        let snapshot = BSDTourViewModel.makeDefaultSnapshot(checkpoints: checkpoints)
+        let snapshot = BSDTourViewModel.makeDefaultSnapshot(checkpoints: checkpoints, identity: identity)
 
         self.roomRepository = roomRepository ?? MockBSDTourRoomRepository()
         self.persistenceStore = persistenceStore
         self.routeProvider = routeProvider ?? MapKitBSDTourRouteProvider()
         self.clock = clock ?? SystemBSDTourClock()
+        self.identity = identity
+        self.liveRoomSessionFactory = liveRoomSessionFactory ?? NoopBSDTourLiveRoomSessionFactory()
         self.snapshot = snapshot
         self.checkpoints = checkpoints
         self.activeRoute = nil
@@ -69,6 +85,9 @@ final class BSDTourViewModel {
     deinit {
         waitingRoomCutoffTask?.cancel()
         routeRefreshTask?.cancel()
+        persistenceTask?.cancel()
+        restoreTask?.cancel()
+        liveRoomEventTask?.cancel()
     }
 
     var phase: BSDTourPhase {
@@ -115,7 +134,19 @@ final class BSDTourViewModel {
     }
 
     var mapParticipants: [BSDTourParticipant] {
-        snapshot.participants.filter { $0.status == .joined }
+        snapshot.participants.compactMap { participant in
+            if participant.isCurrentUser {
+                return participant.status == .joined ? participant : nil
+            }
+            if participant.status == .joined || livePresenceByParticipantID[participant.id] != nil {
+                var participant = participant
+                if let presence = livePresenceByParticipantID[participant.id] {
+                    participant.coordinate = presence.coordinate
+                }
+                return participant
+            }
+            return nil
+        }
     }
 
     var isCurrentUserRemoved: Bool {
@@ -215,6 +246,9 @@ final class BSDTourViewModel {
     }
 
     func start(locationService: BSDTourLocationService, shakeDetector: BSDTourShakeDetector) {
+        guard !hasStarted else { return }
+        hasStarted = true
+        isRestoring = true
         locationAuthorization = locationService.authorization
         locationService.onLocationUpdate = { [weak self] location in
             self?.handleLocationUpdate(location)
@@ -224,15 +258,89 @@ final class BSDTourViewModel {
         }
         shakeDetector.start()
 
-        Task {
+        restoreTask = Task { [weak self] in
+            guard let self else { return }
             await restore()
+            isRestoring = false
+            if resetRequestedDuringRestore {
+                resetRequestedDuringRestore = false
+                reset()
+            }
             processScheduledCutoffIfNeeded()
             scheduleWaitingRoomCutoffIfNeeded()
             await refreshRouteIfNeeded()
         }
     }
 
+    /// Starts local gameplay and waits for restore before opening the ephemeral live-room session.
+    func startTour(locationService: BSDTourLocationService, shakeDetector: BSDTourShakeDetector, sceneIsActive: Bool = true) async {
+        start(locationService: locationService, shakeDetector: shakeDetector)
+        liveRoomSceneIsActive = sceneIsActive
+        await waitForRestore()
+        if sceneIsActive { await startLiveRoom() }
+    }
+
+    /// Starts a new live-room generation. A generation has one session and one event consumer.
+    func startLiveRoom() async {
+        guard hasStarted, !isRestoring, liveRoomSceneIsActive, liveRoomSession == nil else { return }
+        liveRoomGeneration += 1
+        let generation = liveRoomGeneration
+        let session = liveRoomSessionFactory.makeSession(identity: identity)
+        liveRoomSession = session
+
+        do {
+            let stream = try await session.start()
+            guard generation == liveRoomGeneration, liveRoomSession != nil else {
+                await session.stop()
+                return
+            }
+            liveRoomEventTask = Task { [weak self] in
+                var receivedTerminalEvent = false
+                for await event in stream {
+                    guard !Task.isCancelled else { return }
+                    receivedTerminalEvent = self?.handleLiveRoomEvent(event, generation: generation) == true
+                    if receivedTerminalEvent { break }
+                }
+                if receivedTerminalEvent {
+                    await self?.finishLiveRoomAfterTerminal(generation: generation)
+                }
+            }
+        } catch {
+            guard generation == liveRoomGeneration else { return }
+            liveRoomSession = nil
+            livePresenceByParticipantID.removeAll()
+        }
+    }
+
+    /// Stops the active generation and awaits both the sole consumer and the transport close.
+    func stopLiveRoom() async {
+        liveRoomGeneration += 1
+        let task = liveRoomEventTask
+        let session = liveRoomSession
+        liveRoomEventTask = nil
+        liveRoomSession = nil
+        livePresenceByParticipantID.removeAll()
+        task?.cancel()
+        await task?.value
+        await session?.stop()
+    }
+
+    func activateLiveRoom() async {
+        liveRoomSceneIsActive = true
+        await startLiveRoom()
+    }
+
+    func deactivateLiveRoom() async {
+        liveRoomSceneIsActive = false
+        await stopLiveRoom()
+    }
+
+    func liveRoomDisappeared() async {
+        await stopLiveRoom()
+    }
+
     func appBecameActive() {
+        guard !isRestoring else { return }
         processScheduledCutoffIfNeeded()
         scheduleWaitingRoomCutoffIfNeeded()
     }
@@ -242,6 +350,7 @@ final class BSDTourViewModel {
     }
 
     func handleLocationUpdate(_ location: CLLocation) {
+        guard !isRestoring else { return }
         lastKnownLocation = location
         updateCurrentUserCoordinate(location.coordinate)
         activeRoute = nil
@@ -253,12 +362,71 @@ final class BSDTourViewModel {
         routeRefreshTask = Task { [weak self] in
             await self?.refreshRouteIfNeeded()
         }
+
+        guard let liveRoomSession else { return }
+        let shareableLocation = BSDTourShareableLocation(
+            coordinate: BSDTourCoordinate(location.coordinate),
+            accuracyMeters: location.horizontalAccuracy,
+            observedAt: location.timestamp
+        )
+        Task {
+            await liveRoomSession.publish(shareableLocation)
+        }
+    }
+
+    private func handleLiveRoomEvent(_ event: BSDTourLiveRoomEvent, generation: Int) -> Bool {
+        guard generation == liveRoomGeneration else { return true }
+        let configuredIDs = Set(snapshot.participants.map(\.id))
+        switch event {
+            case let .snapshot(presences):
+            livePresenceByParticipantID.removeAll()
+            for presence in presences {
+                guard configuredIDs.contains(presence.participantID), presence.participantID != identity.participantID else { continue }
+                guard isFresh(presence) else { continue }
+                if let current = livePresenceByParticipantID[presence.participantID], current.serverReceivedAt >= presence.serverReceivedAt { continue }
+                livePresenceByParticipantID[presence.participantID] = presence
+            }
+        case let .location(presence):
+            guard configuredIDs.contains(presence.participantID), presence.participantID != identity.participantID, isFresh(presence) else { return false }
+            guard let current = livePresenceByParticipantID[presence.participantID], current.serverReceivedAt >= presence.serverReceivedAt else {
+                livePresenceByParticipantID[presence.participantID] = presence
+                return false
+            }
+        case let .locationExpired(participantID), let .left(participantID, _):
+            livePresenceByParticipantID.removeValue(forKey: participantID)
+        case .unavailable:
+            livePresenceByParticipantID.removeAll()
+            return true
+        }
+        return false
+    }
+
+#if DEBUG
+    /// Deterministic lifecycle seam for unit tests; production delivery still uses the sole consumer task.
+    func applyLiveRoomEventForTesting(_ event: BSDTourLiveRoomEvent) async {
+        let terminal = handleLiveRoomEvent(event, generation: liveRoomGeneration)
+        if terminal { await finishLiveRoomAfterTerminal(generation: liveRoomGeneration) }
+    }
+#endif
+
+    private func isFresh(_ presence: BSDTourLivePresence) -> Bool {
+        clock.now.timeIntervalSince(presence.serverReceivedAt) < 30
+    }
+
+    private func finishLiveRoomAfterTerminal(generation: Int) async {
+        guard generation == liveRoomGeneration else { return }
+        let session = liveRoomSession
+        liveRoomSession = nil
+        liveRoomEventTask = nil
+        livePresenceByParticipantID.removeAll()
+        await session?.stop()
     }
 
     func handleShake() {
+        guard !isRestoring else { return }
         guard canAcceptShake else { return }
 
-        snapshot = roomRepository.join(participantID: BSDTourConfiguration.currentUserID, in: snapshot)
+        snapshot = roomRepository.join(participantID: identity.participantID, in: snapshot)
         snapshot.phase = .joinedWaitingRoom
         isShakeWidgetExpanded = false
         processWaitingRoomCompletionIfNeeded()
@@ -267,6 +435,7 @@ final class BSDTourViewModel {
     }
 
     func joinNextMockParticipant() {
+        guard !isRestoring else { return }
         snapshot = roomRepository.joinNextMockParticipant(in: snapshot)
         processWaitingRoomCompletionIfNeeded()
         scheduleWaitingRoomCutoffIfNeeded()
@@ -274,13 +443,15 @@ final class BSDTourViewModel {
     }
 
     func joinAllParticipants() {
-        snapshot = roomRepository.joinAllParticipants(in: snapshot)
+        guard !isRestoring else { return }
+        snapshot = roomRepository.joinAllParticipants(identity: identity, in: snapshot)
         processWaitingRoomCompletionIfNeeded()
         scheduleWaitingRoomCutoffIfNeeded()
         persist()
     }
 
     func triggerCutoff() {
+        guard !isRestoring else { return }
         snapshot.scheduledStartTime = Calendar.current.date(byAdding: .minute, value: -6, to: clock.now) ?? clock.now
         processScheduledCutoffIfNeeded()
         scheduleWaitingRoomCutoffIfNeeded()
@@ -288,6 +459,7 @@ final class BSDTourViewModel {
     }
 
     func simulateArrival() {
+        guard !isRestoring else { return }
         guard let destination = activeDestination else { return }
         arrive(at: destination)
     }
@@ -297,11 +469,12 @@ final class BSDTourViewModel {
     }
 
     func completeCurrentQuestForAllParticipants() {
+        guard !isRestoring else { return }
         guard let quest = questFlow.currentQuest else { return }
         guard snapshot.phase == .quest else { return }
 
         let wasGroupComplete = snapshot.questCompletions[quest.id]?.isGroupComplete == true
-        snapshot = roomRepository.completeQuestForAllActiveParticipants(quest.id, in: snapshot)
+        snapshot = roomRepository.completeQuestForAllActiveParticipants(quest.id, identity: identity, in: snapshot)
         markQuestGroupCompleteIfReady(quest)
 
         if snapshot.questCompletions[quest.id]?.isGroupComplete == true {
@@ -317,6 +490,7 @@ final class BSDTourViewModel {
     }
 
     func finishTour() {
+        guard !isRestoring else { return }
         snapshot.userEndedTour = true
         snapshot.phase = .tourEnded
         isCompletionExpanded = false
@@ -324,12 +498,16 @@ final class BSDTourViewModel {
     }
 
     func reset() {
+        if isRestoring {
+            resetRequestedDuringRestore = true
+            return
+        }
         activeRoute = nil
         routeErrorMessage = nil
         routeProgress = 0
         waitingRoomCutoffTask?.cancel()
         waitingRoomCutoffTask = nil
-        snapshot = Self.makeDefaultSnapshot(checkpoints: checkpoints)
+        snapshot = Self.makeDefaultSnapshot(checkpoints: checkpoints, identity: identity)
         if let lastKnownLocation {
             updateCurrentUserCoordinate(lastKnownLocation.coordinate)
         }
@@ -341,14 +519,16 @@ final class BSDTourViewModel {
             expanded: false,
             notifiesStepChange: false
         )
-        Task {
-            try? await persistenceStore.reset(tourID: BSDTourConfiguration.tourID)
-            await refreshRouteIfNeeded()
+        let previous = persistenceTask
+        persistenceTask = Task { [weak self, persistenceStore, identity] in
+            await previous?.value
+            try? await persistenceStore.reset(session: identity)
+            await self?.refreshRouteIfNeeded()
         }
     }
 
     private func restore() async {
-        guard let restored = try? await persistenceStore.loadSnapshot(tourID: BSDTourConfiguration.tourID) else {
+        guard let restored = try? await persistenceStore.load(session: identity) else {
             persist()
             return
         }
@@ -396,7 +576,7 @@ final class BSDTourViewModel {
             return .waitForGroup(message: "Waiting for the current quest.")
         }
 
-        let currentUserID = BSDTourConfiguration.currentUserID
+        let currentUserID = identity.participantID
         snapshot = roomRepository.completeQuest(quest.id, participantID: currentUserID, in: snapshot)
 
         switch completionRule(for: quest) {
@@ -723,17 +903,29 @@ final class BSDTourViewModel {
 
     private func persist() {
         let snapshot = snapshot
-        Task {
-            try? await persistenceStore.saveSnapshot(snapshot)
+        let previous = persistenceTask
+        persistenceTask = Task { [persistenceStore, identity] in
+            await previous?.value
+            try? await persistenceStore.save(snapshot, for: identity)
         }
     }
 
-    private static func makeDefaultSnapshot(checkpoints: [BSDTourCheckpoint]) -> BSDTourSnapshot {
+    /// Test and lifecycle seam for awaiting all ordered local persistence work.
+    func waitForPersistenceOperations() async {
+        await persistenceTask?.value
+    }
+
+    /// Test and lifecycle seam for waiting until the initial restore has completed.
+    func waitForRestore() async {
+        await restoreTask?.value
+    }
+
+    private static func makeDefaultSnapshot(checkpoints: [BSDTourCheckpoint], identity: BSDTourSessionIdentity) -> BSDTourSnapshot {
         BSDTourSnapshot(
-            tourID: BSDTourConfiguration.tourID,
+            tourID: identity.tourID,
             phase: .navigatingToMeetingPoint,
             scheduledStartTime: BSDTourConfiguration.scheduledStartTime,
-            participants: BSDTourConfiguration.participants,
+            participants: BSDTourConfiguration.participants(for: identity),
             currentCheckpointIndex: 0,
             currentQuestIndex: 0,
             currentStepIndex: 0,

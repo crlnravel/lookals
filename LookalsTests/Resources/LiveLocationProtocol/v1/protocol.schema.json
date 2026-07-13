@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lookals.local/live-location/v1/protocol.schema.json",
+  "oneOf": [
+    { "$ref": "#/$defs/roomJoin" },
+    { "$ref": "#/$defs/roomSnapshot" },
+    { "$ref": "#/$defs/locationUpdate" },
+    { "$ref": "#/$defs/participantLocation" },
+    { "$ref": "#/$defs/locationExpired" },
+    { "$ref": "#/$defs/participantLeft" },
+    { "$ref": "#/$defs/protocolError" }
+  ],
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$" },
+    "timestamp": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$" },
+    "version": { "const": 1 },
+    "base": {
+      "type": "object",
+      "required": ["v", "type"],
+      "properties": { "v": { "$ref": "#/$defs/version" }, "type": { "type": "string" } },
+      "additionalProperties": false
+    },
+    "locationFields": {
+      "type": "object",
+      "required": ["latitude", "longitude", "accuracyMeters", "observedAt", "serverReceivedAt"],
+      "properties": {
+        "latitude": { "type": "number", "minimum": -90, "maximum": 90 },
+        "longitude": { "type": "number", "minimum": -180, "maximum": 180 },
+        "accuracyMeters": { "type": "number", "minimum": 0, "maximum": 50 },
+        "observedAt": { "$ref": "#/$defs/timestamp" },
+        "serverReceivedAt": { "$ref": "#/$defs/timestamp" }
+      },
+      "additionalProperties": false
+    },
+    "roomJoin": {
+      "type": "object", "additionalProperties": false,
+      "required": ["v", "type", "tourId", "participantId", "token"],
+      "properties": { "v": { "$ref": "#/$defs/version" }, "type": { "const": "room.join" }, "tourId": { "$ref": "#/$defs/id" }, "participantId": { "$ref": "#/$defs/id" }, "token": { "type": "string", "minLength": 1 } }
+    },
+    "roomSnapshot": {
+      "type": "object", "additionalProperties": false,
+      "required": ["v", "type", "serverReceivedAt", "participants"],
+      "properties": { "v": { "$ref": "#/$defs/version" }, "type": { "const": "room.snapshot" }, "serverReceivedAt": { "$ref": "#/$defs/timestamp" }, "participants": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["participantId", "latitude", "longitude", "accuracyMeters", "observedAt", "serverReceivedAt"], "properties": { "participantId": { "$ref": "#/$defs/id" }, "latitude": { "type": "number", "minimum": -90, "maximum": 90 }, "longitude": { "type": "number", "minimum": -180, "maximum": 180 }, "accuracyMeters": { "type": "number", "minimum": 0, "maximum": 50 }, "observedAt": { "$ref": "#/$defs/timestamp" }, "serverReceivedAt": { "$ref": "#/$defs/timestamp" } } } } }
+    },
+    "locationUpdate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["v", "type", "latitude", "longitude", "accuracyMeters", "observedAt"],
+      "properties": { "v": { "$ref": "#/$defs/version" }, "type": { "const": "location.update" }, "latitude": { "type": "number", "minimum": -90, "maximum": 90 }, "longitude": { "type": "number", "minimum": -180, "maximum": 180 }, "accuracyMeters": { "type": "number", "minimum": 0, "maximum": 50 }, "observedAt": { "$ref": "#/$defs/timestamp" } }
+    },
+    "participantLocation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["v", "type", "participantId", "latitude", "longitude", "accuracyMeters", "observedAt", "serverReceivedAt"],
+      "properties": { "v": { "$ref": "#/$defs/version" }, "type": { "const": "participant.location" }, "participantId": { "$ref": "#/$defs/id" }, "latitude": { "type": "number", "minimum": -90, "maximum": 90 }, "longitude": { "type": "number", "minimum": -180, "maximum": 180 }, "accuracyMeters": { "type": "number", "minimum": 0, "maximum": 50 }, "observedAt": { "$ref": "#/$defs/timestamp" }, "serverReceivedAt": { "$ref": "#/$defs/timestamp" } }
+    },
+    "locationExpired": {
+      "type": "object", "additionalProperties": false,
+      "required": ["v", "type", "participantId"],
+      "properties": { "v": { "$ref": "#/$defs/version" }, "type": { "const": "participant.locationExpired" }, "participantId": { "$ref": "#/$defs/id" } }
+    },
+    "participantLeft": {
+      "type": "object", "additionalProperties": false,
+      "required": ["v", "type", "participantId", "reason"],
+      "properties": { "v": { "$ref": "#/$defs/version" }, "type": { "const": "participant.left" }, "participantId": { "$ref": "#/$defs/id" }, "reason": { "enum": ["disconnect", "heartbeat_timeout"] } }
+    },
+    "protocolError": {
+      "type": "object", "additionalProperties": false,
+      "required": ["v", "type", "code", "message"],
+      "properties": { "v": { "$ref": "#/$defs/version" }, "type": { "const": "protocol.error" }, "code": { "enum": ["not_joined", "invalid_schema", "invalid_location", "stale_location", "rate_limited", "unknown_type", "unauthorized", "server_closing"] }, "message": { "type": "string", "maxLength": 160 } }
+    }
+  }
+}

@@ -5,6 +5,14 @@ LOOKALS_DEVELOPMENT_TEAM =
 LOOKALS_BUNDLE_IDENTIFIER = com.lookals.local
 LOOKALS_CODE_SIGN_ENTITLEMENTS = Lookals/Lookals.entitlements
 LOOKALS_SWIFT_ACTIVE_COMPILATION_CONDITIONS =
+LOOKALS_BSD_TOUR_PARTICIPANT_ID =
+LOOKALS_BSD_TOUR_WEBSOCKET_HOST =
+LOOKALS_BSD_TOUR_DEMO_JOIN_TOKEN =
+
+// Optional, untracked demo overrides. Keep only the host here; the app builds
+// the wss://<host>/v1/tours URL at runtime so slash-containing URLs never pass
+// through xcconfig parsing.
+#include? "LiveLocation.xcconfig"
 
 // To test the real CloudKit backend, put these overrides in Signing.local.xcconfig:
 // LOOKALS_CODE_SIGN_ENTITLEMENTS = Lookals/LookalsCloudKit.entitlements

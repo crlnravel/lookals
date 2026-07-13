@@ -8,18 +8,17 @@
 import CoreLocation
 import Foundation
 
-enum BSDTourConfiguration {
+nonisolated enum BSDTourConfiguration {
     static let tourID = "bsd-hype-radar-demo"
+    static let defaultParticipantID = "current-user"
 
     static var scheduledStartTime: Date {
         Calendar.current.date(byAdding: .minute, value: -2, to: Date()) ?? Date()
     }
 
-    static let currentUserID = "current-user"
-
-    static let participants: [BSDTourParticipant] = [
+    static let participantProfiles: [BSDTourParticipant] = [
         BSDTourParticipant(
-            id: currentUserID,
+            id: defaultParticipantID,
             name: "You",
             avatarImageName: "AvatarPlaceholder",
             ringColorName: "orange",
@@ -64,6 +63,20 @@ enum BSDTourConfiguration {
             coordinate: BSDTourCoordinate(latitude: -6.30477, longitude: 106.67902)
         )
     ]
+
+    static var participants: [BSDTourParticipant] { participants(for: .offlineDefault) }
+
+    static func participants(for identity: BSDTourSessionIdentity) -> [BSDTourParticipant] {
+        let selectedID = participantProfiles.contains(where: { $0.id == identity.participantID }) ? identity.participantID : defaultParticipantID
+        let profiles = selectedID == defaultParticipantID
+            ? participantProfiles
+            : participantProfiles.filter { $0.id != defaultParticipantID }
+        return profiles.map { profile in
+            var profile = profile
+            profile.isCurrentUser = profile.id == selectedID
+            return profile
+        }
+    }
 
     static var checkpoints: [BSDTourCheckpoint] {
         let questsByLocation = Dictionary(grouping: BSDTourQuestDemoData.quests, by: \.locationCode)

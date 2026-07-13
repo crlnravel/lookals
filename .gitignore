@@ -4,3 +4,4 @@ xcuserdata/
 
 # Local code signing
 Config/Signing.local.xcconfig
+Config/LiveLocation.xcconfig

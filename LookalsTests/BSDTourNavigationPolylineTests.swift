@@ -64,7 +64,7 @@ private extension MKPolyline {
 }
 
 private struct TestBSDTourPersistenceStore: BSDTourPersistenceStore {
-    func loadSnapshot(tourID: String) async throws -> BSDTourSnapshot? { nil }
-    func saveSnapshot(_ snapshot: BSDTourSnapshot) async throws {}
-    func reset(tourID: String) async throws {}
+    func load(session: BSDTourSessionIdentity) async throws -> BSDTourSnapshot? { nil }
+    func save(_ snapshot: BSDTourSnapshot, for session: BSDTourSessionIdentity) async throws {}
+    func reset(session: BSDTourSessionIdentity) async throws {}
 }

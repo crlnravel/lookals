@@ -1,0 +1,5 @@
+// Copy to Config/LiveLocation.xcconfig (untracked) for a supervised demo.
+// Use one participant slot and its rotating token per physical-device build.
+LOOKALS_BSD_TOUR_PARTICIPANT_ID = gisella
+LOOKALS_BSD_TOUR_WEBSOCKET_HOST = random-example.trycloudflare.com
+LOOKALS_BSD_TOUR_DEMO_JOIN_TOKEN = replace-with-rotating-token
