@@ -17,7 +17,7 @@ struct IntroView: View {
 
     private let pages = [
         IntroPage(
-            title: "This city is full of people,\nand still a stranger to it?",
+            title: "This city is full of people,\nyet it's still a stranger to you?",
             pageNum: "1",
             mainImageName: "intro-asset-1",
             backgroundImageName: "crowdImage",
@@ -26,10 +26,10 @@ struct IntroView: View {
             buttonText: "Continue",
             buttonColor: nil,
             buttonTextColor: nil,
-            accessibilityLabel: "This city is full of people, and still stranger to it?"
+            accessibilityLabel: "This city is full of people,yet it's still a stranger to you?"
         ),
         IntroPage(
-            title: "You sleep here,\nbut you're not part of it.",
+            title: "You sleep here,\nyet you remain an outsider.",
             pageNum: "2",
             mainImageName: nil,
             backgroundImageName: nil,
@@ -38,7 +38,7 @@ struct IntroView: View {
             buttonText: "Continue",
             buttonColor: nil,
             buttonTextColor: nil,
-            accessibilityLabel: "You sleep here,\nbut you're not part of it."
+            accessibilityLabel: "You sleep here, yet you remain an outsider."
         ),
         IntroPage(
             title: "This city has a version of\nitself you've never seen.",
@@ -225,7 +225,7 @@ private struct IntroPageView: View {
                         Ellipse()
                             .fill(Color.white)
                             .frame(width: 900, height: 900)
-                            .offset(y: 500)
+                            .offset(y: 475)
                     }
                 }
                 .ignoresSafeArea()
@@ -254,6 +254,7 @@ private struct IntroPageView: View {
                             .resizable()
                             .scaledToFit()
                             .frame(height: 350)
+                            .offset(y: -50)
                     }
                     else if page.pageNum == "5" {
                         Image(mainImage)
