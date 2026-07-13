@@ -25,6 +25,10 @@ struct HomepageView: View {
     @State private var showTourDetails = false
     @State private var tapLocation: CGPoint = .zero
     @State private var path = NavigationPath()
+    
+    @State private var showSignIn = false
+    
+    @AppStorage("isSignedIn") private var isSignedIn = false
 
     @MainActor
     init() {
@@ -45,10 +49,14 @@ struct HomepageView: View {
     @MainActor
     init(
         memoryPhotoService: any MemoryPhotoServicing,
-        profileService: any ProfileServicing
+        profileService: any ProfileServicing,
+        cloudProfileService: any ProfileServicing = CloudProfileService.shared
     ) {
         _profileViewModel = StateObject(
-            wrappedValue: ProfileViewModel(profileService: profileService)
+            wrappedValue: ProfileViewModel(
+                localService: profileService,
+                cloudService: cloudProfileService
+            )
         )
         _memoriesViewModel = State(
             initialValue: MemoriesViewModel(memoryPhotoService: memoryPhotoService)
@@ -118,7 +126,7 @@ struct HomepageView: View {
                 if let map = selectedMapForTooltip { tooltipOverlay(for: map).zIndex(50) }
                 
                 if showTourDetails, let map = detailMap {
-                    TourDetailsPopup(appState: appState, map: map, isPresented: $showTourDetails, path: $path)
+                    TourDetailsPopup(appState: appState, map: map, isPresented: $showTourDetails, path: $path, showSignIn: $showSignIn)
                         .transition(.scale(scale: 0.9).combined(with: .opacity))
                         .zIndex(100)
                 }
@@ -126,65 +134,26 @@ struct HomepageView: View {
             .onAppear {
                 prepareCurrentTourMemoryAlbum()
             }
+            .fullScreenCover(isPresented: $showSignIn) {
+                SignInView()
+            }
             .coordinateSpace(name: "HomeScreenSpace")
             .background(Color(.systemGroupedBackground).ignoresSafeArea())            
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        print("Poin diklik")
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "star.fill")
-                                .font(.system(size: 10))
-                                .foregroundColor(.white)
-                                .padding(6)
-                                .background(Circle().fill(Color.orange))
-                            
-                            Text("\(profileViewModel.user.points)")
-                                .font(.subheadline)
-                                .fontWeight(.bold)
-                                .foregroundColor(.orange)
-                                .padding(.trailing, 8)
-                        }
-                        .padding(4)
-                    }
-                    .buttonStyle(.plain)
-                    .fixedSize()
-                }
-                
-                ToolbarItem(placement: .principal) {
-                    Image("Logo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: 44)
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        path.append(HomeRoute.profile)
-                    } label: {
-                        toolbarProfileImage
-                    }
-                }
-            }
+
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: HomeRoute.self) { route in
                 switch route {
-                case .profile:
-                    ProfileView(viewModel: profileViewModel)
-                case .ongoingItinerary:
-                    LoginView()
-                case .checkAvailability(let map):
-                    CheckAvailabilityView(appState: appState, map: map, path: $path)
-                case .memories, .gallery:
-                    MemoriesOverviewView(viewModel: memoriesViewModel)
+                case .profile: ProfileView(viewModel: profileViewModel)
+                case .ongoingItinerary: SignInView()
+                case .checkAvailability(let map): CheckAvailabilityView(appState: appState, map: map, path: $path)
+                case .memories, .gallery: MemoriesOverviewView(viewModel: memoriesViewModel)
                 }
             }
         }
     }
     
     private var customTopBar: some View {
-        HStack {
+            HStack {
             Button { print("Poin diklik") } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "star.fill")
@@ -192,7 +161,8 @@ struct HomepageView: View {
                         .foregroundColor(.white)
                         .padding(6)
                         .background(Circle().fill(Color.orange))
-                    Text("\(profileViewModel.user.points)")
+                    
+                    Text(isSignedIn ? "\(profileViewModel.user.points)" : "0")
                         .font(.subheadline)
                         .fontWeight(.bold)
                         .foregroundColor(.orange)
@@ -218,26 +188,41 @@ struct HomepageView: View {
             Spacer()
 
             Button {
-                path.append(HomeRoute.profile)
+                if isSignedIn {
+                    path.append(HomeRoute.profile)
+                } else {
+                    showSignIn = true
+                }
             } label: {
                 ZStack {
                     Group {
-                        if let imageData = profileViewModel.user.customImageData, let uiImage = UIImage(data: imageData) {
-                            Image(uiImage: uiImage).resizable().scaledToFill()
+                        if isSignedIn {
+                            if let imageData = profileViewModel.user.customImageData, let uiImage = UIImage(data: imageData) {
+                                Image(uiImage: uiImage).resizable().scaledToFill()
+                            } else {
+                                Image(profileViewModel.user.profileImageName).resizable().scaledToFill()
+                            }
                         } else {
-                            Image(profileViewModel.user.profileImageName).resizable().scaledToFill()
+                            Image(systemName: "person.crop.circle.fill")
+                                .resizable()
+                                .scaledToFill()
+                                .foregroundColor(.gray.opacity(0.6))
+                                .background(Color.white)
                         }
                     }
                     .frame(width: 44, height: 44)
                     .clipShape(Circle())
 
-                    Image(profileViewModel.user.level.badgeImageName)
-                        .resizable()
-                        .scaledToFit()
-                    .frame(height: 44)
+                    if isSignedIn {
+                        Image(profileViewModel.user.level.badgeImageName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 55)
+                    }
                 }
             }
         }
+        .padding(.horizontal)
     }
 
     private static var defaultMemoryPhotoService: any MemoryPhotoServicing {

@@ -82,16 +82,122 @@ extension AppDependencies {
         #endif
     }
 
+    // MARK: - Model Container
     private static func makeModelContainer(isStoredInMemoryOnly: Bool) -> ModelContainer {
+        let schema = Schema([
+            LookalMatchRecord.self,
+            BSDTourStateRecord.self
+        ])
+        let configuration = makeModelConfiguration(
+            schema: schema,
+            isStoredInMemoryOnly: isStoredInMemoryOnly
+        )
+
         do {
-            let configuration = ModelConfiguration(isStoredInMemoryOnly: isStoredInMemoryOnly)
             return try ModelContainer(
                 for: LookalMatchRecord.self,
                 BSDTourStateRecord.self,
                 configurations: configuration
             )
         } catch {
-            fatalError("Unable to create SwiftData container: \(error.localizedDescription)")
+            print("SwiftData container creation failed (\(error.localizedDescription)). Deleting the local store and retrying with a fresh one.")
+
+            deleteExistingStore(for: configuration)
+
+            do {
+                return try ModelContainer(
+                    for: LookalMatchRecord.self,
+                    BSDTourStateRecord.self,
+                    configurations: configuration
+                )
+            } catch {
+                print("SwiftData container reset failed (\(error.localizedDescription)). Falling back to in-memory persistence for this launch.")
+                return makeInMemoryModelContainer(schema: schema)
+            }
+        }
+    }
+
+    private static func makeModelConfiguration(
+        schema: Schema,
+        isStoredInMemoryOnly: Bool
+    ) -> ModelConfiguration {
+        if isStoredInMemoryOnly {
+            return ModelConfiguration(
+                "LookalsStore",
+                schema: schema,
+                isStoredInMemoryOnly: true,
+                cloudKitDatabase: .none
+            )
+        }
+
+        return ModelConfiguration(
+            "LookalsStore",
+            schema: schema,
+            url: persistentStoreURL(),
+            cloudKitDatabase: .none
+        )
+    }
+
+    private static func makeInMemoryModelContainer(schema: Schema) -> ModelContainer {
+        let fallbackConfiguration = ModelConfiguration(
+            "LookalsFallbackStore",
+            schema: schema,
+            isStoredInMemoryOnly: true,
+            cloudKitDatabase: .none
+        )
+
+        do {
+            return try ModelContainer(
+                for: LookalMatchRecord.self,
+                BSDTourStateRecord.self,
+                configurations: fallbackConfiguration
+            )
+        } catch {
+            fatalError("Unable to create fallback in-memory SwiftData container: \(error.localizedDescription)")
+        }
+    }
+
+    private static func persistentStoreURL() -> URL {
+        let fileManager = FileManager.default
+
+        do {
+            let directory = try fileManager.url(
+                for: .applicationSupportDirectory,
+                in: .userDomainMask,
+                appropriateFor: nil,
+                create: true
+            )
+            return directory.appendingPathComponent("LookalsStore.sqlite")
+        } catch {
+            let directory = fileManager.temporaryDirectory
+                .appendingPathComponent("Lookals", isDirectory: true)
+            try? fileManager.createDirectory(
+                at: directory,
+                withIntermediateDirectories: true
+            )
+            return directory.appendingPathComponent("LookalsStore.sqlite")
+        }
+    }
+
+    /// Deletes the SQLite store file(s) backing a ModelConfiguration so a
+    /// fresh ModelContainer can be created in its place. No-op for
+    /// in-memory-only configurations, since there's no file to delete.
+    private static func deleteExistingStore(for configuration: ModelConfiguration) {
+        guard let storeURL = configuration.url as URL?,
+              storeURL.isFileURL else {
+            return
+        }
+
+        let fileManager = FileManager.default
+        // SwiftData/Core Data stores are typically a trio: the main sqlite
+        // file plus -wal and -shm sidecar files. Remove all three if present.
+        let suffixes = ["", "-wal", "-shm"]
+
+        for suffix in suffixes {
+            let candidate = URL(fileURLWithPath: storeURL.path + suffix)
+            if fileManager.fileExists(atPath: candidate.path) {
+                try? fileManager.removeItem(at: candidate)
+            }
         }
     }
 }
