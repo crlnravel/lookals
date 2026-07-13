@@ -62,7 +62,6 @@ struct ButtonColor: View {
             Text(title)
                 .font(font)
                 .foregroundStyle(textColor)
-                .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .frame(height: height)
         }

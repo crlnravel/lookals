@@ -26,7 +26,7 @@ struct IntroView: View {
             buttonText: "Continue",
             buttonColor: nil,
             buttonTextColor: nil,
-            accessibilityLabel: "This city is full of people,yet it's still a stranger to you?"
+            accessibilityLabel: "This city is full of people, yet it's still a stranger to you?"
         ),
         IntroPage(
             title: "You sleep here,\nyet you remain an outsider.",
@@ -62,7 +62,7 @@ struct IntroView: View {
             buttonText: "Continue",
             buttonColor: nil,
             buttonTextColor: nil,
-            accessibilityLabel: "Best stories aren't solo ones.\n5 strangers. One map."
+            accessibilityLabel: "Best stories aren't solo ones. 5 strangers. One map."
         ),
         IntroPage(
             title: "Pick a time.\nWe planned the rest.",
