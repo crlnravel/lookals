@@ -9,6 +9,12 @@ import CoreLocation
 import MapKit
 import SwiftUI
 
+private struct BSDTourMemoryCameraRequest: Identifiable {
+    let albumID: UUID
+
+    var id: UUID { albumID }
+}
+
 struct BSDTourMapView: View {
     @Environment(\.scenePhase) private var scenePhase
 
@@ -16,11 +22,13 @@ struct BSDTourMapView: View {
     let onLocate: () -> Void
 
     @State private var viewModel: BSDTourViewModel
+    @State private var memoriesViewModel: MemoriesViewModel
     @State private var locationService = BSDTourLocationService()
     @State private var shakeDetector = BSDTourShakeDetector()
     @State private var cameraStep: BSDQuestStep?
     @State private var hasStarted = false
     @State private var isDebugControlsPresented = false
+    @State private var activeMemoryCamera: BSDTourMemoryCameraRequest?
 
     init(
         dependencies: AppDependencies = .preview,
@@ -31,6 +39,9 @@ struct BSDTourMapView: View {
             initialValue: BSDTourViewModel(
                 persistenceStore: dependencies.bsdTourPersistenceStore
             )
+        )
+        self._memoriesViewModel = State(
+            initialValue: MemoriesViewModel(memoryPhotoService: dependencies.memoryPhotoService)
         )
         self.onBack = onBack
         self.onLocate = onLocate
@@ -60,6 +71,14 @@ struct BSDTourMapView: View {
                 viewModel.questFlow.advance()
             } onCancel: {
                 cameraStep = nil
+            }
+        }
+        .sheet(item: $activeMemoryCamera) { request in
+            NavigationStack {
+                AddMemoryCameraView(
+                    albumID: request.albumID,
+                    viewModel: memoriesViewModel
+                )
             }
         }
         .sensoryFeedback(.success, trigger: viewModel.arrivalFeedbackTick)
@@ -147,7 +166,7 @@ struct BSDTourMapView: View {
 
                 Spacer()
 
-                MapCameraButton(action: {})
+                MapCameraButton(action: presentMemoryCamera)
             }
             .padding(.horizontal, 20)
             .padding(.bottom, baseControlsBottomPadding)
@@ -322,6 +341,13 @@ struct BSDTourMapView: View {
         cameraStep = step
     }
 
+    private func presentMemoryCamera() {
+        guard let tourMap = TourMap.sampleData.first else { return }
+
+        let albumID = memoriesViewModel.prepareAlbum(for: tourMap)
+        activeMemoryCamera = BSDTourMemoryCameraRequest(albumID: albumID)
+    }
+
     private func locateTapped() {
         onLocate()
         locationService.requestAuthorizationAndStart()
@@ -330,7 +356,7 @@ struct BSDTourMapView: View {
     private var trailingMapHeaderAction: CustomMapHeaderAction? {
         #if DEBUG
         CustomMapHeaderAction(
-            systemImage: "location",
+            systemImage: "wrench.and.screwdriver",
             accessibilityLabel: "Open debug controls",
             background: Color.accentColor,
             foreground: .white,

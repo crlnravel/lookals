@@ -24,6 +24,7 @@ final class BSDTourViewModel {
     @ObservationIgnored private var arrivalPreviewID: UUID?
     @ObservationIgnored private var lastKnownLocation: CLLocation?
     @ObservationIgnored private var startingRouteDistance: CLLocationDistance?
+    @ObservationIgnored private var previewMapRegion: MKCoordinateRegion?
 
     private(set) var snapshot: BSDTourSnapshot
     private(set) var checkpoints: [BSDTourCheckpoint]
@@ -196,6 +197,10 @@ final class BSDTourViewModel {
     }
 
     var mapRegion: MKCoordinateRegion {
+        if let previewMapRegion {
+            return previewMapRegion
+        }
+
         if let navigationPolyline {
             return navigationPolyline.boundingMapRect.paddedRegion
         }
@@ -315,6 +320,12 @@ final class BSDTourViewModel {
         let startingCoordinate = BSDTourConfiguration.medanRiaCoordinate.locationCoordinate
         startingRouteDistance = distance(from: startingCoordinate, to: destination.coordinate)
         routeProgress = 0
+        updateCurrentUserCoordinate(startingCoordinate)
+        previewMapRegion = Self.navigationPolyline(
+            routePolyline: nil,
+            source: startingCoordinate,
+            destination: destination.coordinate
+        )?.boundingMapRect.paddedRegion
         let previewID = UUID()
         arrivalPreviewID = previewID
 
@@ -323,7 +334,7 @@ final class BSDTourViewModel {
                 self?.finishArrivalPreview(id: previewID)
             }
 
-            let frameCount = 100
+            let frameCount = 250
 
             for frame in 0...frameCount {
                 guard let self, !Task.isCancelled else { return }
@@ -340,7 +351,7 @@ final class BSDTourViewModel {
 
                 if frame < frameCount {
                     do {
-                        try await Task.sleep(for: .milliseconds(50))
+                        try await Task.sleep(for: .milliseconds(20))
                     } catch {
                         return
                     }
@@ -394,6 +405,7 @@ final class BSDTourViewModel {
         arrivalPreviewTask?.cancel()
         arrivalPreviewTask = nil
         arrivalPreviewID = nil
+        previewMapRegion = nil
         snapshot = Self.makeDefaultSnapshot(checkpoints: checkpoints)
         #if !DEBUG
         if let lastKnownLocation {
@@ -710,6 +722,7 @@ final class BSDTourViewModel {
         guard arrivalPreviewID == id else { return }
         arrivalPreviewID = nil
         arrivalPreviewTask = nil
+        previewMapRegion = nil
     }
 
     private func updateCurrentUserCoordinate(_ coordinate: CLLocationCoordinate2D) {

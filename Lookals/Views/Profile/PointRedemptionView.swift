@@ -19,7 +19,7 @@ struct PointRedemptionView: View {
             
             VStack(spacing: 0) {
                 // buat test bisa redeem atau tidak
-//                DebugPointsView(viewModel: viewModel)
+                DebugPointsView(viewModel: viewModel)
                 
                 // tab available coupons & my coupons
                 PointRedemptionTabBar(viewModel: viewModel, profileViewModel: profileViewModel)
