@@ -76,20 +76,33 @@ nonisolated struct User: Codable, Sendable {
         else if exp < 600 { return .level3 }
         else { return .level4 }
     }
+    
+    init() {
+            self.fullName = ""
+            self.nickname = ""
+            self.phoneNumber = ""
+            self.gender = .female // Nilai default
+            self.personality = .introverted // Nilai default
+            self.interests = []
+            self.exp = 0
+            self.points = 0
+            self.profileImageName = "Profile Picture"
+            self.myCoupons = []
+        }
 }
 
-// MARK: - Dummy Data
+// MARK: - Placeholder profile shown before CloudKit/local data has loaded.
 extension User {
-    static let olivia = User(
-        fullName: "Olivia Olivia",
-        nickname: "Olivia",
-        phoneNumber: "+62 812-3456-7890",
-        gender: .female,
-        personality: .extroverted,
-        interests: [.coffeeTea, .photography, .game],
-        exp: 0,
-        points: 0,
-        profileImageName: "Profile Picture",
-        myCoupons: []
-    )
+    static var olivia: User {
+        var user = User()
+        user.fullName = "Olivia Bennett"
+        user.nickname = "Olivia"
+        user.gender = .female
+        user.personality = .extroverted
+        user.interests = [.coffeeTea, .photography]
+        user.exp = 0
+        user.points = 0
+        user.profileImageName = "Profile Picture"
+        return user
+    }
 }

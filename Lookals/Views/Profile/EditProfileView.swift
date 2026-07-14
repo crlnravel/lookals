@@ -10,6 +10,8 @@ struct EditProfileView: View {
     @State private var selectedPhotoItem: PhotosPickerItem? = nil
     @State private var customProfileImage: Image? = nil
     
+    @State private var isSaving: Bool = false
+    
     init(viewModel: ProfileViewModel) {
         self.viewModel = viewModel
         _draftUser = State(initialValue: viewModel.user)
@@ -108,14 +110,32 @@ struct EditProfileView: View {
             
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: {
-                    viewModel.updateProfile(with: draftUser)
-                    dismiss()
+                    saveProfile()
                 }) {
-                    Image(systemName: "checkmark")
-                        .fontWeight(.bold)
-                        .foregroundColor(.orange)
+                    if isSaving {
+                        ProgressView() // Tampilkan loading saat upload
+                    } else {
+                        Image(systemName: "checkmark")
+                            .fontWeight(.bold)
+                            .foregroundColor(.orange)
+                    }
                 }
+                .disabled(isSaving)
             }
+        }
+    }
+    
+    // Renamed from `saveToCloudKit()` — this now goes through the
+    // ViewModel's local+CloudKit save path (ProfileServicing), not a
+    // direct CloudKitManager call. Fixes profile edits silently writing
+    // to a different CloudKit record schema than the rest of the app reads.
+    private func saveProfile() {
+        isSaving = true
+
+        Task {
+            await viewModel.saveDraft(draftUser)
+            isSaving = false
+            dismiss()
         }
     }
 }
