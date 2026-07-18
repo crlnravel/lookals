@@ -22,7 +22,7 @@ struct MemoryAlbumGridView: View {
                 ScrollView {
                     LazyVGrid(columns: columns, spacing: 12) {
                         ForEach(album.photos) { photo in
-                            NavigationLink(value: MemoriesRoute.photo(photo.id)) {
+                            NavigationLink(value: HomeRoute.memory(.photo(photo.id))) {
                                 MemoryGridPhotoCard(photo: photo, viewModel: viewModel)
                             }
                             .buttonStyle(.plain)
@@ -66,6 +66,11 @@ struct MemoryAlbumGridView: View {
     NavigationStack {
         if let album = viewModel.albums.first {
             MemoryAlbumGridView(albumID: album.id, viewModel: viewModel)
+                .navigationDestination(for: HomeRoute.self) { route in
+                    if case .memory(let memoriesRoute) = route {
+                        MemoriesDestinationView(route: memoriesRoute, viewModel: viewModel)
+                    }
+                }
         }
     }
 }

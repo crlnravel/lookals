@@ -39,7 +39,7 @@ struct MemoriesOverviewView: View {
                 ScrollView {
                     LazyVStack(spacing: 24) {
                         ForEach(viewModel.albums) { album in
-                            NavigationLink(value: MemoriesRoute.album(album.id)) {
+                            NavigationLink(value: HomeRoute.memory(.album(album.id))) {
                                 MemoryAlbumCard(album: album, viewModel: viewModel)
                             }
                             .buttonStyle(.plain)
@@ -65,14 +65,18 @@ struct MemoriesOverviewView: View {
                     .font(.headline)
             }
         }
-        .navigationDestination(for: MemoriesRoute.self) { route in
-            MemoriesDestinationView(route: route, viewModel: viewModel)
-        }
     }
 }
 
 #Preview {
+    let viewModel = MemoriesViewModel()
+
     NavigationStack {
-        MemoriesOverviewView()
+        MemoriesOverviewView(viewModel: viewModel)
+            .navigationDestination(for: HomeRoute.self) { route in
+                if case .memory(let memoriesRoute) = route {
+                    MemoriesDestinationView(route: memoriesRoute, viewModel: viewModel)
+                }
+            }
     }
 }

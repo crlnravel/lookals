@@ -52,7 +52,7 @@ struct AddMemoryCameraView: View {
                 latestImage: cameraManager.latestImage,
                 fallbackSource: latestMemorySource,
                 viewModel: viewModel,
-                galleryDestination: .album(albumID),
+                galleryDestination: .memory(.album(albumID)),
                 canFlipCamera: cameraManager.canSwitchCamera,
                 isSavingCapture: isSavingCapture,
                 capturePhoto: capturePhoto,
