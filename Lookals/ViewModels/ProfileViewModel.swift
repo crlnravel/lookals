@@ -31,7 +31,7 @@ final class ProfileViewModel: ObservableObject {
     }
 
     init(localService: any ProfileServicing, cloudService: any ProfileServicing) {
-        self.user = User.olivia
+        self.user = User.ravel
         self.profileErrorMessage = nil
         self.localService = localService
         self.cloudService = cloudService

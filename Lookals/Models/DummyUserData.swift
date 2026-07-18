@@ -78,31 +78,31 @@ nonisolated struct User: Codable, Sendable {
     }
     
     init() {
-            self.fullName = ""
-            self.nickname = ""
+            self.fullName = "Ravel"
+            self.nickname = "Ravel"
             self.phoneNumber = ""
-            self.gender = .female // Nilai default
-            self.personality = .introverted // Nilai default
-            self.interests = []
+            self.gender = .male
+            self.personality = .extroverted
+            self.interests = [.coffeeTea, .photography]
             self.exp = 0
             self.points = 0
-            self.profileImageName = "Profile Picture"
+            self.profileImageName = "Ravel"
             self.myCoupons = []
         }
 }
 
 // MARK: - Placeholder profile shown before CloudKit/local data has loaded.
 extension User {
-    static var olivia: User {
+    static var ravel: User {
         var user = User()
-        user.fullName = "Olivia Bennett"
-        user.nickname = "Olivia"
-        user.gender = .female
+        user.fullName = "Ravel"
+        user.nickname = "Ravel"
+        user.gender = .male
         user.personality = .extroverted
         user.interests = [.coffeeTea, .photography]
         user.exp = 0
         user.points = 0
-        user.profileImageName = "Profile Picture"
+        user.profileImageName = "Ravel"
         return user
     }
 }
