@@ -81,7 +81,7 @@ private struct ToolbarIconButtonBody<Background: ShapeStyle>: View {
                 ToolbarIconButton(
                     systemImage: "chevron.left",
                     accessibilityLabel: "Go back",
-                    background: .accent,
+                    background: Color.accentColor,
                     foreground: .white,
                     action: {}
                 )

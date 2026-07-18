@@ -10,7 +10,7 @@ import SwiftUI
 struct CheckAvailabilityView: View {
     @ObservedObject var appState: HomeStateManager
     let map: TourMap
-    @Binding var path: NavigationPath
+    @Binding var path: [HomeRoute]
 
     @Environment(\.dismiss) private var dismiss
 
@@ -72,7 +72,7 @@ struct CheckAvailabilityView: View {
             BookingConfirmationView(appState: appState, map: map, date: localSelectedDate ?? Date()) {
                 showConfirmation = false
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                    path = NavigationPath()
+                    path = []
                 }
             }
         }

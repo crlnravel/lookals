@@ -11,7 +11,7 @@ struct CameraCaptureControlsView: View {
     let latestImage: UIImage?
     let fallbackSource: MemoryImageSource?
     let viewModel: MemoriesViewModel
-    let galleryDestination: MemoriesRoute
+    let galleryDestination: HomeRoute
     let canFlipCamera: Bool
     let isSavingCapture: Bool
     let capturePhoto: () -> Void

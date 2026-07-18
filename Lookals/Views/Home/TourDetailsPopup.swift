@@ -11,7 +11,7 @@ struct TourDetailsPopup: View {
     @ObservedObject var appState: HomeStateManager
     let map: TourMap
     @Binding var isPresented: Bool
-    @Binding var path: NavigationPath
+    @Binding var path: [HomeRoute]
 
     @State private var showCancelAlert = false
     
